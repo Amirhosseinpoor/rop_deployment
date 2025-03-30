@@ -1,0 +1,32 @@
+version: '3.9'
+
+services:
+  web:
+    build: .
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DEBUG=1
+      - DJANGO_SECRET_KEY=django-insecure-v13tscble5i8h9*wxy#_qwfd%j49#2czbfn7!_@jpo4v=q#l!+
+      - DB_NAME=aras
+      - DB_USER=amir
+      - DB_PASSWORD=amirhpk1818
+      - DB_HOST=db
+      - DB_PORT=5432
+
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: aras
+      POSTGRES_USER: amir
+      POSTGRES_PASSWORD: amirhpk1818
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+volumes:
+  postgres_data:
