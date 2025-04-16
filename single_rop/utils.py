@@ -41,7 +41,7 @@ model_efficient_b4.load_state_dict(torch.load(best_model_path, map_location=devi
 model_efficient_b4.eval()
 
 # Define class names (hardcoded)
-class_names = ["Plus", "Normal_comp"]
+class_names = ["Plus", "Normal"]
 
 
 def transform_image(image_bytes):
