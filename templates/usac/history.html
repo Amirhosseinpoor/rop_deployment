@@ -1,0 +1,129 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>History</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+<!-- لوگو و logout -->
+<div class="absolute top-4 left-1/2 transform -translate-x-1/2">
+    <img src="{% static '/Logo_Aras.svg' %}" alt="ARAS Logo" class="h-10 w-auto opacity-90">
+</div>
+
+{% if user.is_authenticated %}
+    <div class="absolute top-4 right-4 text-right text-sm">
+        <p class="text-gray-600">Logged in as <span class="font-semibold text-blue-600">{{ user.username }}</span></p>
+        <form method="post" action="{% url 'logout' %}" class="mt-1">
+            {% csrf_token %}
+            <button class="text-red-600 hover:underline">Log out</button>
+        </form>
+    </div>
+{% endif %}
+
+<div class="flex items-center justify-center w-full h-full py-12 px-4">
+    <div class="bg-white shadow-lg rounded-3xl max-w-4xl w-full p-8">
+        <h2 class="text-2xl font-bold text-gray-700 text-center">Your Prediction History</h2>
+        <p class="text-center text-sm text-gray-500 mb-6">All your past ROP detections at a glance</p>
+
+        <!-- ROP section -->
+        <h3 class="text-lg font-semibold text-blue-600 mb-2">ROP</h3>
+        {% if single_results %}
+            <ul class="space-y-2 mb-6">
+                {% for s in single_results %}
+
+                    <li class="bg-gray-50 rounded p-3 shadow-sm text-sm">
+                    <a href="{{ s.image_url }}" target="_blank" class="text-blue-500 hover:underline text-xs">🔗 View Image</a>
+                    <br>
+                        <span class="font-medium">{{ s.file_name }}</span>
+                        → {{ s.predicted_class }} ({{ s.probability|floatformat:4 }})
+                        at <span class="text-xs text-gray-600">{{ s.timestamp }}</span>
+
+                        {% if s.corrected_class %}
+                            <div class="text-xs text-yellow-600 mt-1">Corrected: {{ s.corrected_class }}</div>
+                        {% endif %}
+                        {% if s.review_comment %}
+                            <div class="text-xs italic text-gray-500 mt-1">📝 {{ s.review_comment }}</div>
+                        {% endif %}
+
+                        {% if s.image_url %}
+                            <br>
+
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="mb-6 text-sm text-gray-600 italic">No ROP records found.</div>
+        {% endif %}
+
+        <!-- KC section -->
+        <h3 class="text-lg font-semibold text-purple-600 mb-2">KC</h3>
+        {% if double_results %}
+            <ul class="space-y-2">
+                {% for d in double_results %}
+                    <li class="bg-gray-50 rounded p-3 shadow-sm text-sm">
+                        <div class="mb-1">
+                            {% if d.left_image_url %}
+                                <a href="{{ d.left_image_url }}" target="_blank"
+                                   class="text-blue-500 hover:underline text-xs">🔗 Left Image</a>
+                            {% endif %}
+                            {% if d.right_image_url %}
+                                <span class="mx-2">|</span>
+                                <a href="{{ d.right_image_url }}" target="_blank"
+                                   class="text-purple-500 hover:underline text-xs">🔗 Right Image</a>
+                            {% endif %}
+                        </div>
+                        <div>
+
+                            L: {{ d.left_label }} ({{ d.left_probability|floatformat:4 }}),
+                            R: {{ d.right_label }} ({{ d.right_probability|floatformat:4 }}),
+                            Z: {{ d.z_class_label }} ({{ d.z_class_probability|floatformat:4 }})
+                            <span class="ml-2 text-xs text-gray-600">at {{ d.created_at }}</span>
+                        </div>
+
+                        {% if d.corrected_left_label or d.corrected_right_label or d.corrected_z_label %}
+                            <div class="text-xs text-yellow-600 mt-1">
+                                Corrected:
+                                {% if d.corrected_left_label %} L: {{ d.corrected_left_label }}{% endif %}
+                                {% if d.corrected_right_label %} | R: {{ d.corrected_right_label }}{% endif %}
+                                {% if d.corrected_z_label %} | Z: {{ d.corrected_z_label }}{% endif %}
+                            </div>
+                        {% endif %}
+                        {% if d.review_comment %}
+                            <div class="text-xs italic text-gray-500 mt-1">📝 {{ d.review_comment }}</div>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="text-sm text-gray-600 italic">No KC records found.</div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Navigation Links -->
+<div class="text-center mt-4">
+    <a href="{% url 'home' %}" class="mx-4 text-sm text-blue-600 hover:underline">Go to Single ROP</a>
+    <a href="{% url 'double_home' %}" class="mx-4 text-sm text-purple-600 hover:underline">Go to Double ROP</a>
+</div>
+
+<!-- CSV Download -->
+<div class="flex justify-center mt-8 mb-12">
+    <form method="get" action="{% url 'export_history_csv' %}">
+        <button type="submit"
+                class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-full shadow-md text-sm font-semibold transition-all duration-200">
+            Download Full History as CSV
+        </button>
+    </form>
+</div>
+
+</body>
+</html>

@@ -62,7 +62,7 @@ def get_prediction(image_bytes):
     return class_names[pred_label], probs[0, pred_label].item()  # Return class and probability
 
 
-def get_result(image_file, is_api=False):
+def get_result(image_file, is_api=False, request=None):
     """Format the result, including inference time and (optional) base64 image encoding."""
     try:
         start_time = datetime.datetime.now()
@@ -87,6 +87,7 @@ def get_result(image_file, is_api=False):
 
         # Prepare the result
         result = {
+            "image_data": image_data,
             "inference_time": execution_time,
             "predictions": {
                 "class_name": class_name,
@@ -96,16 +97,25 @@ def get_result(image_file, is_api=False):
         }
         from .models import PredictionLog  # بالا اضافه کن
 
-        PredictionLog.objects.create(
+        # ذخیره اولیه
+        log = PredictionLog.objects.create(
+            user=request.user,
             file_name=file_name,
             predicted_class=class_name,
             probability=class_prob,
             execution_time=round(time_diff.total_seconds() * 1000)
         )
 
-        if not is_api:
-            result["image_data"] = image_data
+        # اضافه کردن عکس
+        log.image = image_file
+        log.save()  # ذخیره اولیه عکس برای ساختن .url
 
+        # ساخت absolute URL بعد از save()
+        log.image_url = request.build_absolute_uri(log.image.url)
+        log.save(update_fields=["image_url"])
+
+        # ارسال به result برای نمایش
+        result["image_url"] = log.image_url
 
         return result
 
