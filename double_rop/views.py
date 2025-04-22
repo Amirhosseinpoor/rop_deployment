@@ -13,7 +13,6 @@ def home(request):
 
     if request.method == "POST":
 
-        # -------------------- فاز 2: اگر فقط بازخورد ارسال شده --------------------
         if "feedback_mode" in request.POST and request.user.is_authenticated:
             try:
                 latest_result = PredictionResult.objects.filter(user=request.user).latest("created_at")
@@ -21,6 +20,17 @@ def home(request):
                 latest_result.corrected_right_label = request.POST.get("corrected_right_label")
                 latest_result.corrected_z_label = request.POST.get("corrected_z_label")
                 latest_result.review_comment = request.POST.get("review_comment")
+                classification_status = 1
+
+                if (
+                        latest_result.corrected_left_label and latest_result.corrected_left_label != latest_result.left_label) or \
+                        (
+                                latest_result.corrected_right_label and latest_result.corrected_right_label != latest_result.right_label) or \
+                        (
+                                latest_result.corrected_z_label and latest_result.corrected_z_label != latest_result.z_class_label):
+                    classification_status = -1
+
+                latest_result.classification_status = classification_status
                 latest_result.save()
 
                 result = {

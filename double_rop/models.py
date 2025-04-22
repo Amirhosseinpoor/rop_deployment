@@ -23,6 +23,7 @@ class PredictionResult(models.Model):
     corrected_right_label = models.CharField(max_length=100, blank=True, null=True)
     corrected_z_label = models.CharField(max_length=100, blank=True, null=True)
     review_comment = models.TextField(blank=True, null=True)
+    classification_status = models.IntegerField(default=1)
 
     # Inference time
     inference_time = models.FloatField(help_text="Inference duration in seconds")

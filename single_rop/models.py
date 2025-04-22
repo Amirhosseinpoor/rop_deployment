@@ -14,6 +14,7 @@ class PredictionLog(models.Model):
     stage_class = models.CharField(max_length=100, blank=True, null=True)
     stage_probability = models.FloatField(blank=True, null=True,default=0.0)
     stage_corrected_class = models.CharField(max_length=100, blank=True, null=True)
+    classification_status = models.IntegerField(default=1)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

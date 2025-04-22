@@ -18,7 +18,18 @@ def home(request):
         latest_prediction.corrected_class = corrected_class
         latest_prediction.review_comment = review_comment
         latest_prediction.stage_corrected_class = corrected_stage
+        classification_status = 1
+
+        if (
+            corrected_class and corrected_class != latest_prediction.predicted_class
+        ) or (
+            corrected_stage and corrected_stage != latest_prediction.stage_class
+        ):
+            classification_status = -1
+
+        latest_prediction.classification_status = classification_status
         latest_prediction.save()
+
 
     """
     Handle GET and POST requests to display the main page with the form.
