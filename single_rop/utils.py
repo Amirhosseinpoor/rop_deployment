@@ -9,6 +9,7 @@ import cv2
 from torchvision import transforms
 import numpy as np
 from torchvision.models import efficientnet_b4, EfficientNet_B4_Weights
+import torchvision
 
 # Device setup
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -177,7 +178,7 @@ def vessels(input_image_file, model, device):
 
     result_image = original_image.copy()
     purple = np.array([128, 0, 128], dtype=np.uint8)  # بنفش ملایم
-    alpha = 0.5  # شفافیت
+    alpha = 0.7  # شفافیت
 
     result_image[vessel_mask == 255] = (
             alpha * purple + (1 - alpha) * result_image[vessel_mask == 255]
@@ -218,6 +219,21 @@ def get_result(image_file, is_api=False, request=None):
         _, buffer = cv2.imencode('.jpg', mask)
         mask_bytes = buffer.tobytes()
         class_name, class_prob = get_prediction(mask_bytes, classification_model)
+        stage_model = get_stage_model()
+        image_file.seek(0)
+        image_bytes = image_file.read()
+
+        stage_tensor = transform_image(image_bytes).to(device)
+        with torch.inference_mode():
+            stage_output = stage_model(stage_tensor)
+            stage_probs = torch.softmax(stage_output, dim=1)
+            stage_label = torch.argmax(stage_probs, dim=1).item()
+
+        stage_names = ['Stage 0', 'Stage 1', 'Stage 2', 'Stage 3']
+        stage_result = {
+            "stage_name": stage_names[stage_label],
+            "stage_prob": f"{stage_probs[0, stage_label].item():.3f}"
+        }
 
         image_file.seek(0)
         segmented_image = vessels(image_file, segmentation_model, device)
@@ -250,6 +266,8 @@ def get_result(image_file, is_api=False, request=None):
             file_name=file_name,
             predicted_class=class_name,
             probability=class_prob,
+            stage_class=stage_names[stage_label],
+            stage_probability=stage_probs[0, stage_label].item(),
             execution_time=round((end_time - start_time).total_seconds() * 1000)
         )
 
@@ -257,6 +275,7 @@ def get_result(image_file, is_api=False, request=None):
         log.save()
         log.image_url = request.build_absolute_uri(log.image.url)
         log.save(update_fields=["image_url"])
+        result["stage_prediction"] = stage_result
 
         result["image_url"] = log.image_url
         return result
@@ -264,3 +283,20 @@ def get_result(image_file, is_api=False, request=None):
     except Exception as e:
         print(f"Error in get_result: {e}")
         raise e
+# --------------------------
+# Lazy-load stage classification model
+# --------------------------
+model_stage = None
+
+def get_stage_model():
+    global model_stage
+    if model_stage is None:
+        weights_eff_b4 = torchvision.models.EfficientNet_B4_Weights.DEFAULT
+        model_stage = torchvision.models.efficientnet_b4(weights=weights_eff_b4).to(device)
+        model_stage.classifier = torch.nn.Sequential(
+            torch.nn.Dropout(p=0.2, inplace=True),
+            torch.nn.Linear(in_features=1792, out_features=4, bias=True)
+        ).to(device)
+        model_stage.load_state_dict(torch.load('model/model_eff_b4_3_stage.pth', map_location=device))
+        model_stage.eval()
+    return model_stage

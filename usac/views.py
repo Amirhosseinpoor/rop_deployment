@@ -47,7 +47,7 @@ def history_view(request):
 import csv
 from django.http import HttpResponse
 from single_rop.models import PredictionLog
-from double_rop.models import PredictionResult# مدل‌هاتو وارد کن
+from double_rop.models import PredictionResult
 
 from django.contrib.auth.decorators import login_required
 
@@ -70,6 +70,9 @@ def export_history_csv(request):
         'Probability',
         'Corrected Class',
         'Review Comment',
+        'Stage Class',
+        'Stage Probability',
+        'Corrected Stage Class'
         'Execution Time',
         'Timestamp',
         'Image URL'
@@ -88,6 +91,9 @@ def export_history_csv(request):
             f"{s.probability:.4f}",
             s.corrected_class or "",
             s.review_comment or "",
+            s.stage_class,
+            f"{s.stage_probability:.3f}",
+            s.stage_corrected_class,
             s.execution_time,
             s.timestamp,
             request.build_absolute_uri(s.image_url) if s.image_url else ""

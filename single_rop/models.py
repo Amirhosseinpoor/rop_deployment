@@ -11,6 +11,9 @@ class PredictionLog(models.Model):
     image_url = models.URLField(max_length=500, blank=True, null=True)
     corrected_class = models.CharField(max_length=100, blank=True, null=True)
     review_comment = models.TextField(blank=True, null=True)
+    stage_class = models.CharField(max_length=100, blank=True, null=True)
+    stage_probability = models.FloatField(blank=True, null=True,default=0.0)
+    stage_corrected_class = models.CharField(max_length=100, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -19,4 +22,4 @@ class PredictionLog(models.Model):
             super().save(update_fields=['image_url'])
 
     def __str__(self):
-        return f"{self.user.username} ({self.user.email}) → {self.predicted_class}"
+        return f"{self.user.username} ({self.user.email})"

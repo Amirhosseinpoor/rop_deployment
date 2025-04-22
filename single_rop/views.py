@@ -12,10 +12,12 @@ def home(request):
     if request.method == "POST" and request.POST.get("feedback_mode"):
         corrected_class = request.POST.get("corrected_class")
         review_comment = request.POST.get("review_comment")
+        corrected_stage = request.POST.get("stage_corrected_class")
 
         latest_prediction = PredictionLog.objects.filter(user=request.user).latest("timestamp")
         latest_prediction.corrected_class = corrected_class
         latest_prediction.review_comment = review_comment
+        latest_prediction.stage_corrected_class = corrected_stage
         latest_prediction.save()
 
     """

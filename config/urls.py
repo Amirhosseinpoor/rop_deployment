@@ -25,8 +25,8 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('usac.urls')),
-    path('ROP/', include('single_rop.urls')),
-    path('KC/', include('double_rop.urls')),
+    path('rop/', include('single_rop.urls')),
+    path('kc/', include('double_rop.urls')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -42,16 +42,18 @@
                     <li class="bg-gray-50 rounded p-3 shadow-sm text-sm">
                     <a href="{{ s.image_url }}" target="_blank" class="text-blue-500 hover:underline text-xs">🔗 View Image</a>
                     <br>
-                        <span class="font-medium">{{ s.file_name }}</span>
-                        → {{ s.predicted_class }} ({{ s.probability|floatformat:4 }})
+
+                         Class: {{ s.predicted_class }} ({{ s.probability|floatformat:4 }}) ,Stage: {{ s.stage_class }} ({{ s.stage_probability|floatformat:3 }})
+
                         at <span class="text-xs text-gray-600">{{ s.timestamp }}</span>
 
-                        {% if s.corrected_class %}
-                            <div class="text-xs text-yellow-600 mt-1">Corrected: {{ s.corrected_class }}</div>
+                        {% if s.corrected_class or s.stage_corrected_class %}
+                            <div class="text-xs text-yellow-600 mt-1">Corrected : {{ s.corrected_class }} | {{ s.stage_corrected_class }}</div>
                         {% endif %}
                         {% if s.review_comment %}
                             <div class="text-xs italic text-gray-500 mt-1">📝 {{ s.review_comment }}</div>
                         {% endif %}
+
 
                         {% if s.image_url %}
                             <br>
