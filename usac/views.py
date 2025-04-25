@@ -135,3 +135,97 @@ def export_history_csv(request):
         ])
 
     return response
+
+import csv
+
+from django.contrib.admin.views.decorators import staff_member_required
+from django.http import HttpResponse
+
+from double_rop.models import PredictionResult
+from single_rop.models import PredictionLog
+
+
+@staff_member_required
+def export_misclassified_rop_csv(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="misclassified_rop.csv"'
+    writer = csv.writer(response)
+
+    writer.writerow([
+        'Username',
+        'Email',
+        'File Name',
+        'Predicted Class',
+        'Probability',
+        'Corrected Class',
+        'Review Comment',
+        'Stage Class',
+        'Stage Probability',
+        'Corrected Stage Class'
+        'Execution Time',
+        'Timestamp',
+        'Image URL'
+    ])
+
+    for s in PredictionLog.objects.filter(classification_status=-1):
+        writer.writerow([
+            s.user.username,
+            s.user.email,
+            s.file_name,
+            s.predicted_class,
+            f"{s.probability:.4f}",
+            s.corrected_class or "",
+            s.review_comment or "",
+            s.stage_class,
+            f"{s.stage_probability:.3f}",
+            s.stage_corrected_class,
+            s.execution_time,
+            s.timestamp,
+            request.build_absolute_uri(s.image_url) if s.image_url else ""
+        ])
+
+    return response
+
+
+@staff_member_required
+def export_misclassified_kc_csv(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="misclassified_kc.csv"'
+    writer = csv.writer(response)
+
+    writer.writerow([
+
+        'Username',
+        'Email',
+        'Predicted Labels',
+        'Probabilities',
+        'Corrected Labels',
+        'Review Comment',
+        'Inference Time',
+        'Timestamp',
+        'Image URLs'
+    ])
+
+    for d in PredictionResult.objects.filter(classification_status=-1):
+        image_urls = []
+        if d.left_image:
+            image_urls.append(request.build_absolute_uri(d.left_image.url))
+        if d.right_image:
+            image_urls.append(request.build_absolute_uri(d.right_image.url))
+
+        writer.writerow([
+            d.user.username,
+            d.user.email,
+            f"L: {d.left_label}, R: {d.right_label}, Z: {d.z_class_label}",
+            f"L: {d.left_probability:.4f}, R: {d.right_probability:.4f}, Z: {d.z_class_probability:.4f}",
+            f"L: {d.corrected_left_label}, R: {d.corrected_right_label}, Z: {d.corrected_z_label}",
+
+            d.review_comment or "",
+            f"{d.inference_time:.2f}s",
+
+            d.created_at,
+            " | ".join(image_urls),
+
+        ])
+
+    return response

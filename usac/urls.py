@@ -2,6 +2,8 @@ from django.urls import path
 from . import views
 from django.contrib.auth import views as auth_views
 
+from .views import export_misclassified_rop_csv, export_misclassified_kc_csv
+
 urlpatterns = [
     path('', views.custom_login, name='login'),
     path('signup/', views.signup_view, name='signup'),
@@ -9,4 +11,7 @@ urlpatterns = [
     path('dilemma/', views.dilemma_view, name='dilemma'),
     path('history/', views.history_view, name='history'),
     path('history/export/', views.export_history_csv, name='export_history_csv'),
+
+    path("export/rop/", export_misclassified_rop_csv, name="export_rop_csv"),
+    path("export/kc/", export_misclassified_kc_csv, name="export_kc_csv"),
 ]

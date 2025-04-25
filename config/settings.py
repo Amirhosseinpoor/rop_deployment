@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY ='django-insecure-v13tscble5i8h9*wxy#_qwfd%j49#2czbfn7!_@jpo4v=q#l!+'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -31,6 +31,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -153,3 +154,28 @@ import os
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+JAZZMIN_SETTINGS = {
+    "site_logo":"/icons/mediversai_logo_final-032.png",
+    "site_title": "Admin Panel",
+    "site_header": "Mediverse AI",
+    "site_brand": "Mediverse AI",
+
+    "custom_links": {
+        "single_rop": [
+            {
+                "name": " Misclassified ROP",
+                "url": "/export/rop/",
+                "icon": "fas fa-file-csv",
+                "permissions": ["single_rop.view_predictionlog"],
+            },
+        ],
+        "double_rop": [
+            {
+                "name": " Misclassified KC",
+                "url": "/export/kc/",
+                "icon": "fas fa-file-csv",
+                "permissions": ["double_rop.view_predictionresult"],
+            },
+        ],
+    },
+}

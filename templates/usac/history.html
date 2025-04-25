@@ -10,12 +10,14 @@
             font-family: 'Poppins', sans-serif;
         }
     </style>
+    <link rel="icon" type="image/png" href="{% static 'icons/mediversai_logo_final-032.png' %}">
+    <link rel="shortcut icon" type="image/png" href="{% static 'icons/mediversai_logo_final-032.png' %}">
 </head>
 <body class="bg-gray-100 min-h-screen">
 
 <!-- لوگو و logout -->
 <div class="absolute top-4 left-1/2 transform -translate-x-1/2">
-    <img src="{% static '/Logo_Aras.svg' %}" alt="ARAS Logo" class="h-10 w-auto opacity-90">
+    <img src="{% static '/mediversai_logo_final.png' %}" alt="Medivers AI Logo" class="h-10 w-auto opacity-90">
 </div>
 
 {% if user.is_authenticated %}
@@ -40,15 +42,18 @@
                 {% for s in single_results %}
 
                     <li class="bg-gray-50 rounded p-3 shadow-sm text-sm">
-                    <a href="{{ s.image_url }}" target="_blank" class="text-blue-500 hover:underline text-xs">🔗 View Image</a>
-                    <br>
+                        <a href="{{ s.image_url }}" target="_blank" class="text-blue-500 hover:underline text-xs">🔗 View
+                            Image</a>
+                        <br>
 
-                         Class: {{ s.predicted_class }} ({{ s.probability|floatformat:4 }}) ,Stage: {{ s.stage_class }} ({{ s.stage_probability|floatformat:3 }})
+                        Class: {{ s.predicted_class }} ({{ s.probability|floatformat:4 }}) ,Stage: {{ s.stage_class }}
+                        ({{ s.stage_probability|floatformat:3 }})
 
                         at <span class="text-xs text-gray-600">{{ s.timestamp }}</span>
 
                         {% if s.corrected_class or s.stage_corrected_class %}
-                            <div class="text-xs text-yellow-600 mt-1">Corrected : {{ s.corrected_class }} | {{ s.stage_corrected_class }}</div>
+                            <div class="text-xs text-yellow-600 mt-1">Corrected : {{ s.corrected_class }}
+                                | {{ s.stage_corrected_class }}</div>
                         {% endif %}
                         {% if s.review_comment %}
                             <div class="text-xs italic text-gray-500 mt-1">📝 {{ s.review_comment }}</div>
