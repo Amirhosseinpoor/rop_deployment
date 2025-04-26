@@ -23,16 +23,20 @@ def custom_login(request):
 
     return render(request, 'usac/login.html')
 
+from .tasks import email_sending
 
 def signup_view(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save()
+            email_sending.delay(email=user.email, username=user.username)
+
             return redirect('login')
     else:
         form = CustomUserCreationForm()
     return render(request, 'usac/signup.html', {'form': form})
+
 
 @login_required(login_url='')
 def dilemma_view(request):
@@ -229,3 +233,18 @@ def export_misclassified_kc_csv(request):
         ])
 
     return response
+
+from django.core.mail import send_mail
+from django.http import HttpResponse
+from django.conf import settings
+
+def send_test_email(request):
+    send_mail(
+        subject="Test Email from ROP System",
+        message="This is a test email sent from your Django app!",
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=["yazdanbayat2004@gmail.com"],
+        fail_silently=False,
+    )
+    return HttpResponse("Test email sent!")
+

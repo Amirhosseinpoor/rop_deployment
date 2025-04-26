@@ -15,3 +15,9 @@ urlpatterns = [
     path("export/rop/", export_misclassified_rop_csv, name="export_rop_csv"),
     path("export/kc/", export_misclassified_kc_csv, name="export_kc_csv"),
 ]
+
+from .views import send_test_email
+
+urlpatterns += [
+    path('send-test-email/', send_test_email, name='send_test_email'),
+]
