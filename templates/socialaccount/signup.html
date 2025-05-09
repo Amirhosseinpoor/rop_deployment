@@ -1,0 +1,76 @@
+{% load static %}
+{% load i18n %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Complete Signup | MediversAI</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .fade-slide {
+            animation: fadeSlide 0.6s ease-out;
+        }
+
+        @keyframes fadeSlide {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        input:focus {
+            outline: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center px-4">
+
+<div class="bg-white rounded-2xl shadow-xl p-10 w-full max-w-sm fade-slide text-center">
+
+    <!-- لوگو -->
+    <div class="mb-6">
+        <img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediversAI Logo"
+             class="h-12 mx-auto opacity-90">
+    </div>
+
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">{% trans "Complete your signup" %}</h2>
+
+    <form method="post" class="space-y-6 text-left">
+        {% csrf_token %}
+        {% for field in form %}
+            <div>
+                <input
+                        type="{{ field.field.widget.input_type }}"
+                        name="{{ field.name }}"
+                        value="{{ field.value|default_if_none:'' }}"
+                        placeholder="{{ field.label }}"
+                        class="w-full border-b border-gray-300 py-2 text-sm placeholder-gray-400 bg-transparent focus:border-blue-500 transition duration-200"
+                        {% if field.field.required %} required {% endif %}
+                >
+                {% for error in field.errors %}
+                    <p class="text-xs text-red-500 mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+        <button type="submit"
+                class="w-full text-sm py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold transition duration-200 shadow-sm">
+            {% trans "Sign Up" %}
+        </button>
+    </form>
+
+
+</div>
+
+</body>
+</html>

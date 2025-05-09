@@ -22,10 +22,9 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
-
-
 urlpatterns = [
     path('admin/', custom_admin_site.urls),
+    path('accounts/', include('allauth.urls')),
     path('', include('usac.urls')),
     path('rop/', include('single_rop.urls')),
     path('kc/', include('double_rop.urls')),
@@ -36,4 +35,3 @@ if settings.DEBUG:
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-

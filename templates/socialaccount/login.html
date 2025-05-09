@@ -1,0 +1,57 @@
+{% load i18n %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign in with Google | MediversAI</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center px-4">
+
+<div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md text-center space-y-6">
+    <!-- لوگو -->
+    <div>
+        <img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="Logo"
+             class="h-12 mx-auto opacity-90">
+    </div>
+
+    <h1 class="text-2xl font-bold text-gray-800">{% trans "Sign In Via Google" %}</h1>
+    <p class="text-sm text-gray-600">{% trans "You are about to sign in using a third-party account from Google." %}</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit"
+                class="w-full flex items-center justify-center space-x-2 py-2 px-4 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold transition duration-200">
+            <svg class="w-5 h-5 fill-white" viewBox="0 0 488 512" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M488 261.8c0-17.8-1.4-35-4-51.6H249v97.7h134.5c-5.8 31.3-23.3 57.8-49.4 75.5v62.7h79.8c46.6-42.9 73.1-106.2 73.1-184.3z"
+                    fill="#4285F4" />
+                <path
+                    d="M249 492c66.6 0 122.5-22 163.3-59.7l-79.8-62.7c-22.1 14.9-50.5 23.7-83.5 23.7-64 0-118.1-43.1-137.4-101.3H29.1v63.4C69.9 433.1 152.6 492 249 492z"
+                    fill="#34A853" />
+                <path
+                    d="M111.6 291.9c-4.8-14.4-7.6-29.6-7.6-45.2s2.7-30.8 7.6-45.2V138.1H29.1C10.4 175.8 0 216.6 0 258.1s10.4 82.3 29.1 120z"
+                    fill="#FBBC05" />
+                <path
+                    d="M249 103.4c36.3 0 68.9 12.5 94.5 37l70.8-70.8C371.5 26.4 315.6 0 249 0 152.6 0 69.9 58.9 29.1 138.1l82.5 63.4C130.9 146.5 185 103.4 249 103.4z"
+                    fill="#EA4335" />
+            </svg>
+            <span>{% trans "Continue with Google" %}</span>
+        </button>
+    </form>
+
+    <p class="text-xs text-gray-500 mt-4">
+        {% trans "By continuing, you agree to our terms and privacy policy." %}
+    </p>
+</div>
+
+</body>
+</html>
