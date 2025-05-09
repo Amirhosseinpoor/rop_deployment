@@ -15,12 +15,18 @@ class PredictionLog(models.Model):
     stage_probability = models.FloatField(blank=True, null=True,default=0.0)
     stage_corrected_class = models.CharField(max_length=100, blank=True, null=True)
     classification_status = models.IntegerField(default=1)
+    segmented_image = models.ImageField(upload_to='segmented/', null=True, blank=True)
+    segmented_image_url = models.URLField(max_length=500, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.image and not self.image_url:
             self.image_url = self.image.url
             super().save(update_fields=['image_url'])
+
+        if self.segmented_image and not self.segmented_image_url:
+            self.segmented_image_url = self.segmented_image.url
+            super().save(update_fields=['segmented_image_url'])
 
     def __str__(self):
         return f"{self.user.username} ({self.user.email})"

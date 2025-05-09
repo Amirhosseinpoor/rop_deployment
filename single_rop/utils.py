@@ -10,7 +10,8 @@ from torchvision import transforms
 import numpy as np
 from torchvision.models import efficientnet_b4, EfficientNet_B4_Weights
 import torchvision
-
+from django.core.files.base import ContentFile
+import uuid
 # Device setup
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -47,8 +48,8 @@ def get_segmentation_model():
 def get_classification_model():
     global model_efficient_b4
     if model_efficient_b4 is None:
-        weights_eff_b4 = EfficientNet_B4_Weights.IMAGENET1K_V1
-        model_efficient_b4 = efficientnet_b4(weights=weights_eff_b4).to(device)
+        model_efficient_b4 = efficientnet_b4(weights=None).to(device)
+
         model_efficient_b4.classifier = torch.nn.Sequential(
             torch.nn.Dropout(p=0.2, inplace=True),
             torch.nn.Linear(in_features=1792, out_features=2, bias=True)
@@ -271,6 +272,12 @@ def get_result(image_file, is_api=False, request=None):
             execution_time=round((end_time - start_time).total_seconds() * 1000)
         )
 
+        seg_image_name = f"segmented_{uuid.uuid4().hex}.jpg"
+        seg_image_content = ContentFile(buffer.tobytes(), name=seg_image_name)
+
+        log.segmented_image.save(seg_image_name, seg_image_content)
+        log.segmented_image_url = request.build_absolute_uri(log.segmented_image.url)
+        log.save(update_fields=["segmented_image_url"])
         log.image = image_file
         log.save()
         log.image_url = request.build_absolute_uri(log.image.url)
@@ -291,8 +298,7 @@ model_stage = None
 def get_stage_model():
     global model_stage
     if model_stage is None:
-        weights_eff_b4 = torchvision.models.EfficientNet_B4_Weights.DEFAULT
-        model_stage = torchvision.models.efficientnet_b4(weights=weights_eff_b4).to(device)
+        model_stage = torchvision.models.efficientnet_b4(weights=None).to(device)
         model_stage.classifier = torch.nn.Sequential(
             torch.nn.Dropout(p=0.2, inplace=True),
             torch.nn.Linear(in_features=1792, out_features=4, bias=True)

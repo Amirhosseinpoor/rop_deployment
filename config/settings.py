@@ -20,11 +20,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+SECRET_KEY = 'django-insecure-v13tscble5i8h9*wxy#_qwfd%j49#2czbfn7!_@jpo4v=q#l!+'
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -90,7 +90,7 @@ DATABASES = {
         'NAME': os.environ.get('DB_NAME', 'aras'),
         'USER': os.environ.get('DB_USER', 'amir'),
         'PASSWORD': os.environ.get('DB_PASSWORD', 'amirhpk1818'),
-        'HOST': os.environ.get('DB_HOST', 'db'),
+        'HOST': 'localhost',
         'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
@@ -155,6 +155,7 @@ import os
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 JAZZMIN_SETTINGS = {
     "site_logo":"/icons/mediversai_logo_final-032.png",
     "site_title": "Admin Panel",

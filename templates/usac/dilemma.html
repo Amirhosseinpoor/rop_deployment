@@ -9,38 +9,102 @@
         body {
             font-family: 'Poppins', sans-serif;
         }
+
+        .fade-slide {
+            animation: fadeSlide 0.6s ease-out;
+        }
+
+        @keyframes fadeSlide {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card:hover img {
+            transform: scale(1.05);
+        }
+
+        .card img {
+            transition: transform 0.4s ease;
+        }
     </style>
     <link rel="icon" type="image/png" href="{% static 'icons/mediversai_logo_final-032.png' %}">
-    <link rel="shortcut icon" type="image/png" href="{% static 'icons/mediversai_logo_final-032.png' %}">
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-
-<div class="bg-white shadow-md rounded-3xl p-8 max-w-sm w-full text-center">
-    <div class="flex flex-col items-center mb-6">
-        <img src="{% static 'icons/mediversai_logo_final-03.png' %}" class="w-12 h-12 mb-2 opacity-80" alt="Logo">
-        <h2 class="text-2xl font-bold text-blue-600">Select Your Image Type</h2>
-        <p class="text-xs text-gray-500">Choose the AI module you want to use</p>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen px-4">
+<div class="w-full bg-white shadow-md border-b border-gray-200 px-6 py-3 flex justify-between items-center fixed top-0 left-0 z-50">
+    <!-- Logo -->
+    <div class="flex items-center space-x-2">
+        <img src="{% static 'mediversai_logo_final.png' %}" alt="Logo" class="h-8 opacity-90">
     </div>
 
-    <div class="space-y-4">
-        <a href="{% url 'home' %}"
-           class="block w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-full transition-all font-medium">
-            ROP
-        </a>
-        <a href="{% url 'double_home' %}"
-           class="block w-full bg-purple-500 hover:bg-purple-600 text-white py-2 rounded-full transition-all font-medium">
-            KC
-        </a>
-        <a href="{% url 'history' %}"
-           class="block w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-full transition-all font-medium">
-            History
-        </a>
-    </div>
+    <!-- Right Side (History + User Dropdown) -->
+    {% if user.is_authenticated %}
+        <div class="flex items-center space-x-6 text-sm">
+            <!-- History Link -->
+            <a href="{% url 'history' %}" class="text-gray-700 hover:underline">History</a>
 
-    <form method="post" action="{% url 'logout' %}" class="mt-6">
-        {% csrf_token %}
-        <button type="submit" class="text-sm text-red-600 hover:underline">Logout</button>
-    </form>
+            <!-- User Dropdown -->
+            <div class="relative group">
+                <button class="flex items-center space-x-2 text-sm text-gray-700 font-medium focus:outline-none">
+                    <span>{{ user.username }}</span>
+                    <svg class="w-4 h-4 text-gray-500 group-hover:rotate-180 transition duration-300"
+                         fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+
+                <!-- Dropdown Menu -->
+                <div class="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transform -translate-y-2 transition-all duration-200 z-10">
+                    <form method="post" action="{% url 'logout' %}" class="w-full">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="block w-full px-4 py-2 text-red-600 text-sm hover:bg-gray-50 text-center">
+                            Logout
+                        </button>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endif %}
 </div>
+
+<div class="bg-white shadow-2xl rounded-3xl p-10 max-w-xl w-full text-center fade-slide">
+    <div class="mb-8">
+        <img src="{% static 'icons/mediversai_logo_final-03.png' %}" class="h-10 mx-auto opacity-90 mb-3" alt="Logo">
+        <h2 class="text-2xl font-bold text-gray-800">Choose Your AI Module</h2>
+        <p class="text-sm text-gray-500 mt-1">Select the image type for prediction</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <!-- ROP -->
+        <a href="{% url 'home' %}"
+           class="card block bg-white border border-gray-200 shadow-sm rounded-xl overflow-hidden hover:shadow-lg transition transform hover:-translate-y-1">
+            <div class="flex items-center justify-center bg-black">
+                <img src="{% static 'segmented_rop1.jpg' %}" alt="ROP" class="w-full h-48 object-contain">
+            </div>
+            <div class="p-3">
+                <h3 class="text-lg font-semibold text-blue-600 text-center">ROP AI</h3>
+            </div>
+        </a>
+
+        <!-- KC -->
+        <a href="{% url 'double_home' %}"
+           class="card block bg-white border border-gray-200 shadow-sm rounded-xl overflow-hidden hover:shadow-lg transition transform hover:-translate-y-1">
+            <div class="flex items-center justify-center bg-black">
+                <img src="{% static 'kc.jpg' %}" alt="KC" class="w-full h-48 object-contain">
+            </div>
+            <div class="p-3">
+                <h3 class="text-lg font-semibold text-purple-600 text-center">KC AI</h3>
+            </div>
+        </a>
+    </div>
+</div>
+
 </body>
 </html>
