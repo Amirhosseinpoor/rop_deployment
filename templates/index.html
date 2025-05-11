@@ -31,7 +31,6 @@
 
 <!-- Header -->
 <!-- Fixed Full-width Header -->
-<
 <header class="w-full bg-white shadow-md border-b border-gray-200 px-6 py-3 flex justify-between items-center fixed top-0 left-0 z-50">
     <!-- Logo & Title -->
     <div class="flex items-center space-x-3">
@@ -89,9 +88,16 @@
                 </label>
 
             </div>
-            <button type="submit"
-                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-8 rounded-full shadow-sm transition">
-                Submit
+            <button id="submit-btn" type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-8 rounded-full shadow-sm transition flex items-center justify-center mx-auto relative">
+                <span id="submit-text">Submit</span>
+                <svg id="spinner" class="hidden animate-spin h-5 w-5 text-white ml-2" xmlns="http://www.w3.org/2000/svg"
+                     fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                            stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
             </button>
         </form>
     {% else %}
@@ -119,7 +125,6 @@
                 </div>
             </div>
 
-
             <!-- Feedback Form -->
             <div class="bg-gray-50 border border-gray-200 rounded-xl p-6 shadow-sm space-y-4 mt-8">
                 <form method="post">
@@ -130,22 +135,22 @@
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Correct Stage</label>
                             <select name="stage_corrected_class"
-                                    class="w-full px-3 py-2 text-sm border rounded-md focus:ring-blue-500 focus:border-blue-500">
-                                <option value="">-- Select --</option>
-                                <option value="Stage 0">Stage 0</option>
-                                <option value="Stage 1">Stage 1</option>
-                                <option value="Stage 2">Stage 2</option>
-                                <option value="Stage 3">Stage 3</option>
+                                    class="w-full px-3 py-2 text-sm border rounded-md focus:ring-blue-500 focus:border-blue-500 text-center">
+                                <option class="text-center" value="">-- Select --</option>
+                                <option class="text-center" value="Stage 0">Stage 0</option>
+                                <option class="text-center" value="Stage 1">Stage 1</option>
+                                <option class="text-center" value="Stage 2">Stage 2</option>
+                                <option class="text-center" value="Stage 3">Stage 3</option>
                                 ...
                             </select>
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Correct Class</label>
                             <select name="corrected_class"
-                                    class="w-full px-3 py-2 text-sm border rounded-md focus:ring-purple-500 focus:border-purple-500">
-                                <option value="">-- Select --</option>
-                                <option value="Normal">Normal</option>
-                                <option value="Plus">Plus</option>
+                                    class="w-full px-3 py-2 text-sm border rounded-md focus:ring-purple-500 focus:border-purple-500 text-center">
+                                <option class="text-center" value="">-- Select --</option>
+                                <option class="text-center" value="Normal">Normal</option>
+                                <option class="text-center" value="Plus">Plus</option>
                                 ...
                             </select>
                         </div>
@@ -165,12 +170,7 @@
                         </button>
                     </div>
                 </form>
-
             </div>
-
-
-            </form>
-
         </div>
     {% endif %}
 </main>
@@ -199,21 +199,34 @@
         content.classList.add('hidden');
     }
 
+    // Spinner activation on submit
+    // Spinner only on the image upload form (the first form inside main)
+    document.querySelector('main form[enctype="multipart/form-data"]').addEventListener('submit', function () {
+        const text = document.getElementById('submit-text');
+        const spinner = document.getElementById('spinner');
+        if (text && spinner) {
+            text.classList.add('hidden');
+            spinner.classList.remove('hidden');
+        }
+    });
+
+
     const btn = document.getElementById('dropdownBtn');
     const menu = document.getElementById('dropdownMenu');
 
-    btn.addEventListener('click', function (e) {
+    btn?.addEventListener('click', function (e) {
         e.stopPropagation();  // نذار کلیک بیرونی باعث بسته شدن بشه
         menu.classList.toggle('hidden');
     });
 
     document.addEventListener('click', function (e) {
-        if (!menu.contains(e.target)) {
-            menu.classList.add('hidden');
+        if (!menu?.contains(e.target)) {
+            menu?.classList.add('hidden');
         }
     });
-
-
+//2
 </script>
 </body>
 </html>
+
+
