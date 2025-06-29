@@ -29,6 +29,8 @@ urlpatterns = [
     path('rop/', include('single_rop.urls')),
     path('kc/', include('double_rop.urls')),
 
+    path('test_analysis/', include('test_analysis.urls')),
+
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

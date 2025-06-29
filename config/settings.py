@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'double_rop',
     'usac',
     'django.contrib.sites',
+    'test_analysis',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',

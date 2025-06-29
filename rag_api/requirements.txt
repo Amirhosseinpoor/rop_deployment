@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+torch
+sentence-transformers
+networkx
+langchain
+langchain-community
+faiss-cpu # or faiss-gpu if you have CUDA
+rank_bm25
+pypdf
+python-docx
