@@ -1,0 +1,210 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Profile Form | MediverseAI</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png">
+
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .form-input {
+            width: 100%; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 0.8rem 1rem;
+            background-color: #f7fafc; transition: all 0.2s; margin-top: 0.5rem; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .form-input:focus {
+            outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+        .form-checkbox {
+            height: 1.25rem; width: 1.25rem; border-radius: 0.375rem; border-color: #d2d6dc;
+            color: #4f46e5; cursor: pointer; margin-right: 0.75rem;
+        }
+        label { display: block; font-weight: 600; color: #374151; font-size: 0.9rem; }
+        .form-step { display: none; animation: fadeIn 0.5s; }
+        .form-step.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden">
+
+        <div class="px-8 py-5 border-b">
+            <div id="progress-bar" class="flex justify-between items-center">
+                </div>
+        </div>
+
+        <div class="p-8 md:p-12">
+
+            <div class="text-center mb-10">
+                <img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediversAI Logo" class="h-10 mx-auto mb-2">
+                <h1 id="step-title" class="text-2xl font-bold text-gray-800"></h1>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" class="space-y-12">
+                {% csrf_token %}
+
+                <div class="form-step active">
+                    <fieldset class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div><label>Marital Status</label>{{ form.marital_status }}</div>
+                            <div><label>Number of Children</label>{{ form.children_count }}</div>
+                            <div><label>Current Job Title</label>{{ form.current_job_title }}</div>
+                            <div><label>Previous Job Title</label>{{ form.previous_job_title }}</div>
+                        </div>
+                    </fieldset>
+                </div>
+
+                <div class="form-step">
+                    <fieldset class="space-y-6">
+                        <p class="text-center text-gray-500 mb-6">Describe any occupational hazards you are exposed to.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div><label>Physical Hazards (e.g., Noise)</label>{{ form.physical_hazards }}</div>
+                            <div><label>Chemical Hazards (e.g., Dust)</label>{{ form.chemical_hazards }}</div>
+                            <div><label>Biological Hazards (e.g., Viruses)</label>{{ form.biological_hazards }}</div>
+                            <div><label>Ergonomic Hazards (e.g., Repetitive tasks)</label>{{ form.ergonomic_hazards }}</div>
+                            <div class="md:col-span-2"><label>Psychological Hazards (e.g., Stress)</label>{{ form.psychological_hazards }}</div>
+                        </div>
+                    </fieldset>
+                </div>
+
+                <div class="form-step">
+                    <fieldset class="space-y-6">
+                        <div class="grid grid-cols-1 gap-y-6">
+                            <div class="flex items-center p-3 rounded-lg bg-gray-50 border">
+                                {{ form.has_disease_history }}
+                                <label for="{{ form.has_disease_history.id_for_label }}">Do you have a history of any significant illness?</label>
+                            </div>
+                            <div><label>Details of Illnesses</label>{{ form.disease_history_details }}</div>
+                            <div class="flex items-center p-3 rounded-lg bg-gray-50 border">
+                                {{ form.is_currently_smoking }}
+                                <label for="{{ form.is_currently_smoking.id_for_label }}">Do you currently smoke?</label>
+                            </div>
+                            <div><label>Smoking Details (quantity and duration)</label>{{ form.smoking_details }}</div>
+                        </div>
+                    </fieldset>
+                </div>
+
+                <div class="form-step">
+                     <fieldset class="space-y-6">
+                        <h3 class="font-semibold text-gray-700 text-lg text-center">Upload Recent Lab Test Files</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                            <div><label>First File (e.g., CBC)</label>{{ form.lab_test_file_1 }}</div>
+                            <div><label>Second File (e.g., Lipid)</label>{{ form.lab_test_file_2 }}</div>
+                            <div><label>Third File (e.g., U/A)</label>{{ form.lab_test_file_3 }}</div>
+                        </div>
+                        <h3 class="font-semibold text-gray-700 text-lg text-center pt-6">Other Findings</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                           <div><label>ECG Findings</label>{{ form.ecg_findings }}</div>
+                           <div><label>Chest X-Ray Findings</label>{{ form.chest_xray_findings }}</div>
+                        </div>
+                    </fieldset>
+                </div>
+
+                <div id="navigation-buttons" class="flex justify-between items-center pt-8">
+                    <button type="button" id="prev-btn" class="px-6 py-2 text-sm rounded-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold transition">Previous</button>
+                    <button type="button" id="next-btn" class="px-8 py-3 text-sm rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition shadow-md">Next Step</button>
+                    <button type="submit" id="submit-btn" class="px-8 py-3 text-sm rounded-full bg-green-600 hover:bg-green-700 text-white font-semibold transition shadow-md">Submit for Analysis</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const steps = document.querySelectorAll('.form-step');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const submitBtn = document.getElementById('submit-btn');
+            const progressBar = document.getElementById('progress-bar');
+            const stepTitle = document.getElementById('step-title');
+
+            let currentStep = 0;
+
+            const stepTitles = [
+                "Personal Information",
+                "Occupational Hazards",
+                "Medical History",
+                "Lab Results & Uploads"
+            ];
+
+            // Create progress bar steps
+            steps.forEach((step, index) => {
+                const stepDiv = document.createElement('div');
+                stepDiv.classList.add('flex-1', 'text-center');
+                const titleDiv = document.createElement('div');
+                titleDiv.classList.add('text-xs', 'font-semibold', 'transition-colors');
+                titleDiv.textContent = stepTitles[index];
+                stepDiv.appendChild(titleDiv);
+
+                const bubble = document.createElement('div');
+                bubble.classList.add('w-4', 'h-4', 'mx-auto', 'rounded-full', 'border-2', 'transition-all', 'mt-1');
+                stepDiv.appendChild(bubble);
+
+                progressBar.appendChild(stepDiv);
+            });
+
+            function updateStepUI() {
+                // Hide all steps
+                steps.forEach(step => step.classList.remove('active'));
+                // Show current step
+                steps[currentStep].classList.add('active');
+
+                // Update step title
+                stepTitle.textContent = stepTitles[currentStep];
+
+                // Update progress bar
+                const progressSteps = progressBar.querySelectorAll('div.text-center');
+                progressSteps.forEach((step, index) => {
+                    const title = step.querySelector('.text-xs');
+                    const bubble = step.querySelector('.w-4');
+                    if (index < currentStep) {
+                        title.classList.remove('text-gray-400');
+                        title.classList.add('text-indigo-600');
+                        bubble.classList.remove('border-gray-300');
+                        bubble.classList.add('bg-indigo-600', 'border-indigo-600');
+                    } else if (index === currentStep) {
+                        title.classList.remove('text-gray-400');
+                        title.classList.add('text-indigo-600', 'font-bold');
+                        bubble.classList.remove('border-gray-300');
+                        bubble.classList.add('border-indigo-600', 'scale-125');
+                    } else {
+                        title.classList.add('text-gray-400');
+                        title.classList.remove('text-indigo-600', 'font-bold');
+                        bubble.classList.add('border-gray-300');
+                        bubble.classList.remove('bg-indigo-600', 'border-indigo-600', 'scale-125');
+                    }
+                });
+
+
+                // Update buttons visibility
+                prevBtn.style.display = currentStep === 0 ? 'none' : 'inline-block';
+                nextBtn.style.display = currentStep === steps.length - 1 ? 'none' : 'inline-block';
+                submitBtn.style.display = currentStep === steps.length - 1 ? 'inline-block' : 'none';
+            }
+
+            nextBtn.addEventListener('click', () => {
+                if (currentStep < steps.length - 1) {
+                    currentStep++;
+                    updateStepUI();
+                }
+            });
+
+            prevBtn.addEventListener('click', () => {
+                if (currentStep > 0) {
+                    currentStep--;
+                    updateStepUI();
+                }
+            });
+
+            // Initial UI setup
+            updateStepUI();
+        });
+    </script>
+</body>
+</html>

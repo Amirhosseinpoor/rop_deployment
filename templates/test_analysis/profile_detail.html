@@ -1,0 +1,81 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Health Analysis | MediverseAI</title>
+
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png">
+
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+    </style>
+
+</head>
+<body class="bg-slate-50">
+    <div class="container mx-auto px-4 py-10 sm:py-16">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+            <aside class="lg:col-span-4 xl:col-span-3">
+                <div class="bg-white rounded-2xl shadow-lg p-6 text-center sticky top-8">
+                    <div class="relative w-32 h-32 mx-auto mb-4">
+                        <div class="absolute inset-0 rounded-full bg-gradient-to-br from-indigo-200 to-blue-300 transform -rotate-45"></div>
+                        <div class="relative w-full h-full rounded-full bg-white flex items-center justify-center p-1">
+                             <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-indigo-500" viewBox="0 0 20 20" fill="currentColor">
+                              <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-800">{{ profile.user.username }}</h2>
+                    <p class="text-sm text-slate-500">{{ profile.user.email }}</p>
+                    <div class="text-left mt-8 pt-6 border-t border-slate-200 space-y-5">
+                        <h3 class="font-semibold text-slate-500 text-xs uppercase tracking-wider">Key Information</h3>
+                        <div class="flex items-center text-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                            <span class="font-medium text-slate-700">{{ profile.current_job_title|default:"Not provided" }}</span>
+                        </div>
+                        <div class="flex items-center text-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                            <span class="font-medium text-slate-700">{{ profile.marital_status|default:"Not provided" }}</span>
+                        </div>
+                        <div class="flex items-center text-sm">
+                           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                            <span class="font-medium text-slate-700">{{ profile.children_count }} Children</span>
+                        </div>
+                    </div>
+                    <a href="{% url 'create_update_profile' %}" class="mt-8 group inline-flex items-center justify-center w-full py-3 text-sm rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition duration-200 shadow-md hover:shadow-lg">
+                        Edit Profile
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-2 transition-transform duration-200 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                    </a>
+                </div>
+            </aside>
+
+            <main class="lg:col-span-8 xl:col-span-9">
+                <div class="bg-white rounded-2xl shadow-lg">
+                    <div class="p-8 md:p-10 border-b border-slate-200">
+                        <h1 class="text-3xl font-bold text-slate-800">Your Health Analysis & Recommendations</h1>
+                        <p class="text-slate-500 mt-2">This AI-generated report is based on the information you provided.</p>
+                    </div>
+                    <div class="p-8 md:p-10">
+                        <article class="prose prose-indigo max-w-none">
+                            {{ html_advice|safe }}
+                        </article>
+                        <div class="mt-12 p-4 bg-blue-50 border-l-4 border-blue-300 text-blue-800 rounded-r-lg">
+                            <p class="font-bold">Important Disclaimer</p>
+                            <p class="text-sm">These recommendations are generated by AI and are not a substitute for professional medical advice. Always consult with a qualified physician for any medical decisions.</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+        </div>
+    </div>
+</body>
+</html>

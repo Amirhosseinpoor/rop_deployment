@@ -28,6 +28,8 @@ urlpatterns = [
     path('', include('usac.urls')),
     path('rop/', include('single_rop.urls')),
     path('kc/', include('double_rop.urls')),
+    path('test_analysis/', include('test_analysis.urls')),
+    path('health-analysis/', include('test_analysis.urls')),
 
 ]
 if settings.DEBUG:
