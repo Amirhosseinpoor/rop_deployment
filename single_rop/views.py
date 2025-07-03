@@ -5,7 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from .utils import get_result
 from .models import PredictionLog
-
+import json
 # Import other necessary modules if needed
 
 def home(request):
@@ -38,6 +38,7 @@ def home(request):
     """
     result = None
     error = None
+    result_json = None
 
     if request.method == "POST":
         # Check if a file is uploaded
@@ -48,13 +49,15 @@ def home(request):
             try:
                 # Call the utils.get_result method to process the file
                 result = get_result(image_file=uploaded_file,request=request)
+                if result:
+                    result_json = json.dumps(result)
 
             except Exception as ex:
                 error = str(ex)  # Catch and store any error that occurs during prediction
                 print(f"Error during prediction: {error}")  # Debugging print
 
     # Render the template with the result (or error, if any)
-    return render(request, "index.html", {"result": result, "error": error})
+    return render(request, "index.html", {"result": result, "error": error, "result_json": result_json})
 
 
 @csrf_exempt

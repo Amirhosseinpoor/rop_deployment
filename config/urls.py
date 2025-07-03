@@ -31,6 +31,8 @@ urlpatterns = [
     path('test_analysis/', include('test_analysis.urls')),
     path('health-analysis/', include('test_analysis.urls')),
 
+    path('test_analysis/', include('test_analysis.urls')),
+
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
