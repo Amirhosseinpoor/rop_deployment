@@ -11,6 +11,8 @@ from single_rop.models import PredictionLog
 from single_rop.admin import PredictionLogAdmin
 from double_rop.models import PredictionResult
 from double_rop.admin import PredictionResultAdmin
+from test_analysis.models import HealthProfile
+from test_analysis.admin import HealthProfileAdmin
 
 from .views import export_misclassified_rop_csv, export_misclassified_kc_csv
 
@@ -44,17 +46,4 @@ custom_admin_site.register(Group, GroupAdmin)
 custom_admin_site.register(PredictionLog, PredictionLogAdmin)
 custom_admin_site.register(PredictionResult, PredictionResultAdmin)
 
-custom_admin_site = CustomAdminSite(name="custom_admin")
-from test_analysis.models import HealthProfile
-from test_analysis.admin import HealthProfileAdmin
-
-# Auth models
-custom_admin_site.register(User, UserAdmin)
-custom_admin_site.register(Group, GroupAdmin)
-
-# Your existing app models
-custom_admin_site.register(PredictionLog, PredictionLogAdmin)
-custom_admin_site.register(PredictionResult, PredictionResultAdmin)
-
-# === Add this line to register your new HealthProfile model ===
 custom_admin_site.register(HealthProfile, HealthProfileAdmin)

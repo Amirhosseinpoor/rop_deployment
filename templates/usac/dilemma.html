@@ -37,18 +37,14 @@
 </head>
 <body class="bg-gray-50 flex items-center justify-center min-h-screen px-4">
 <div class="w-full bg-white shadow-md border-b border-gray-200 px-6 py-3 flex justify-between items-center fixed top-0 left-0 z-50">
-    <!-- Logo -->
     <div class="flex items-center space-x-2">
         <img src="{% static 'mediversai_logo_final.png' %}" alt="Logo" class="h-8 opacity-90">
     </div>
 
-    <!-- Right Side (History + User Dropdown) -->
     {% if user.is_authenticated %}
         <div class="flex items-center space-x-6 text-sm">
-            <!-- History Link -->
             <a href="{% url 'history' %}" class="text-gray-700 hover:underline">History</a>
 
-            <!-- User Dropdown -->
             <div class="relative group">
                 <button class="flex items-center space-x-2 text-sm text-gray-700 font-medium focus:outline-none">
                     <span>{{ user.username }}</span>
@@ -58,7 +54,6 @@
                     </svg>
                 </button>
 
-                <!-- Dropdown Menu -->
                 <div class="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transform -translate-y-2 transition-all duration-200 z-10">
                     <form method="post" action="{% url 'logout' %}" class="w-full">
                         {% csrf_token %}
@@ -74,15 +69,14 @@
     {% endif %}
 </div>
 
-<div class="bg-white shadow-2xl rounded-3xl p-10 max-w-xl w-full text-center fade-slide">
+<div class="bg-white shadow-2xl rounded-3xl p-10 max-w-4xl w-full text-center fade-slide">
     <div class="mb-8">
         <img src="{% static 'icons/mediversai_logo_final-03.png' %}" class="h-10 mx-auto opacity-90 mb-3" alt="Logo">
         <h2 class="text-2xl font-bold text-gray-800">Choose Your AI Module</h2>
         <p class="text-sm text-gray-500 mt-1">Select the image type for prediction</p>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <!-- ROP -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <a href="{% url 'home' %}"
            class="card block bg-white border border-gray-200 shadow-sm rounded-xl overflow-hidden hover:shadow-lg transition transform hover:-translate-y-1">
             <div class="flex items-center justify-center bg-black">
@@ -93,7 +87,6 @@
             </div>
         </a>
 
-        <!-- KC -->
         <a href="{% url 'double_home' %}"
            class="card block bg-white border border-gray-200 shadow-sm rounded-xl overflow-hidden hover:shadow-lg transition transform hover:-translate-y-1">
             <div class="flex items-center justify-center bg-black">
@@ -107,10 +100,10 @@
         <a href="{% url 'create_update_profile' %}"
            class="card block bg-white border border-gray-200 shadow-sm rounded-xl overflow-hidden hover:shadow-lg transition transform hover:-translate-y-1">
             <div class="flex items-center justify-center bg-black">
-                <img src="{% static 'kc.jpg' %}" alt="KC" class="w-full h-48 object-contain">
+                <img src="{% static 'test_analysis.jpg' %}" alt="Test Analysis" class="w-full h-48 object-contain p-4">
             </div>
             <div class="p-3">
-                <h3 class="text-lg font-semibold text-purple-600 text-center">Test Analysis</h3>
+                <h3 class="text-lg font-semibold text-green-600 text-center">Test Analysis</h3>
             </div>
         </a>
     </div>
