@@ -9,16 +9,9 @@ from openai import OpenAI
 import markdown2
 from . import ai_pipeline
 
-# --- (Keep your API KEY and other settings as they are) ---
-METIS_API_KEY = 'tpsg-2hVps33eNMzkEbnuONoApS8LvNfbMsJ'
-BASE_URL = "https://api.metisai.ir/openai/v1"
-
 
 def format_profile_for_llm(profile):
-    """
-    Formats the user's extensive profile data into a concise and structured
-    string for the LLM, focusing on positive and abnormal findings.
-    """
+
     prompt_data = f"Analyze the following occupational health profile for {profile.user.username} and provide personalized wellness and safety advice.\n\n"
     # --- Section 1 & 2: Personal and Occupational Info ---
     prompt_data += "== Personal & Current Occupational Information ==\n"
@@ -67,25 +60,16 @@ def format_profile_for_llm(profile):
     return prompt_data
 
 
-# --- THIS IS THE ONLY FUNCTION THAT HAS BEEN CHANGED ---
 def get_llm_advice(profile_text):
-    """
-    Sends the formatted profile text to the full AI pipeline
-    (Predict, Find Doctors, RAG) and returns the final generated report.
-    """
+
     try:
-        # Call the main function from our new ai_pipeline.py file
         final_report = ai_pipeline.run_health_analysis_pipeline(profile_text)
         return final_report
     except Exception as e:
-        # Log the detailed error for debugging
         print(f"🔥 CRITICAL ERROR calling the AI pipeline: {e}")
-        # Return a user-friendly error message in Persian
         return "متاسفانه در حال حاضر به دلیل یک خطای داخلی، امکان تولید گزارش وجود ندارد. لطفا بعداً دوباره تلاش کنید."
 
 
-# The create_or_update_health_profile function remains UNCHANGED.
-# It will now automatically use the new get_llm_advice logic.
 @login_required
 def create_or_update_health_profile(request):
     """
@@ -153,7 +137,6 @@ def create_or_update_health_profile(request):
     return render(request, 'test_analysis/profile_form.html', context)
 
 
-# The profile_detail_view function remains UNCHANGED.
 @login_required
 def profile_detail_view(request):
     """
