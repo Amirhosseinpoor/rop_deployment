@@ -60,10 +60,10 @@ def format_profile_for_llm(profile):
     return prompt_data
 
 
-def get_llm_advice(profile_text):
+def get_llm_advice(profile_text, selected_model):
 
     try:
-        final_report = ai_pipeline.run_health_analysis_pipeline(profile_text)
+        final_report = ai_pipeline.run_health_analysis_pipeline(profile_text, selected_model)
         return final_report
     except Exception as e:
         print(f"🔥 CRITICAL ERROR calling the AI pipeline: {e}")
@@ -106,9 +106,10 @@ def create_or_update_health_profile(request):
 
             # Generate the text summary from the saved profile
             profile_text_for_llm = format_profile_for_llm(profile)
-
+            selected_model = request.POST.get('selected_model', 'cloud_gpt')
+            profile.model_used_for_advice = selected_model
             # Call our NEW, powerful pipeline
-            advice = get_llm_advice(profile_text_for_llm)
+            advice = get_llm_advice(profile_text_for_llm, selected_model)
 
             # Save the final report to the profile
             profile.llm_advice = advice

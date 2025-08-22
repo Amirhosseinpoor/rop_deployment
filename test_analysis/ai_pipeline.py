@@ -33,7 +33,27 @@ METIS_API_KEY = os.getenv('METIS_API_KEY')
 BASE_URL = os.getenv('BASE_URL')
 MODEL_NAME_LLM = os.getenv('MODEL_NAME_LLM')
 openai_client = OpenAI(api_key=METIS_API_KEY, base_url=BASE_URL)
+OLLAMA_API_URL = os.getenv('OLLAMA_API_URL')
+LOCAL_MODEL_NAME = os.getenv('LOCAL_MODEL_NAME')
 
+def get_model_params(selected_model):
+    """
+    Returns the parameters needed to initialize an AI client.
+    """
+    if selected_model == 'local_llama':
+        print(f"🧠 [CONFIG] Using Local Model: {LOCAL_MODEL_NAME}")
+        return {
+            "model_name": LOCAL_MODEL_NAME,
+            "api_key": "ollama",
+            "base_url": OLLAMA_API_URL
+        }
+    else:  # Default to cloud GPT
+        print(f"🧠 [CONFIG] Using Cloud Model: {MODEL_NAME_LLM}")
+        return {
+            "model_name": MODEL_NAME_LLM,
+            "api_key": METIS_API_KEY,
+            "base_url": BASE_URL
+        }
 try:
     print("📚 [INIT] Loading Knowledge Base documents from PDF files...")
     folders = glob("knowledge_base/*")
@@ -100,44 +120,38 @@ print("=======================================================================")
 
 
 tools_hypertension = [{"type": "function", "function": hypertention_function}]
-def chat_with_tools_llm(message_text):
+def chat_with_tools_llm(client, model_name, message_text):
     messages = [{"role": "system", "content": system_prompt_tools_llm}, {"role": "user", "content": message_text}]
-    response = openai_client.chat.completions.create(model=MODEL_NAME_LLM, messages=messages, tools=tools_hypertension)
+    response = client.chat.completions.create(model=model_name, messages=messages, tools=tools_hypertension)
     if response.choices[0].finish_reason == "tool_calls":
         message = response.choices[0].message
         tool_response = handle_tool_call(message)
         messages.append(message)
         messages.append(tool_response)
-        final_response = openai_client.chat.completions.create(model=MODEL_NAME_LLM, messages=messages)
+        final_response = client.chat.completions.create(model=model_name, messages=messages)
         return final_response.choices[0].message.content
-    return "{}"  # Return empty JSON if no tool was called
-
+    return "{}"
 
 tools_doctors = [{"type": "function", "function": find_doctors_function}]
 
-def chat_with_doctors_llm(message_text):
+def chat_with_doctors_llm(client, model_name, message_text):
     messages = [{"role": "system", "content": system_prompt_doctors_llm}, {"role": "user", "content": message_text}]
-    response = openai_client.chat.completions.create(model=MODEL_NAME_LLM, messages=messages, tools=tools_doctors)
+    response = client.chat.completions.create(model=model_name, messages=messages, tools=tools_doctors)
     if response.choices[0].finish_reason == "tool_calls":
         message = response.choices[0].message
         tool_response = handle_doctors_call(message)
         messages.append(message)
         messages.append(tool_response)
-        final_response = openai_client.chat.completions.create(model=MODEL_NAME_LLM, messages=messages)
+        final_response = client.chat.completions.create(model=model_name, messages=messages)
         return final_response.choices[0].message.content
     return ""
 
 tools_drugs = [{"type": "function", "function": scrape_drugs_function}]
 
-def chat_with_drugs_llm(user_message):
+def chat_with_drugs_llm(llm, user_message):
+
     csv_retriever = csv_vectorstore.as_retriever()
 
-    llm = ChatOpenAI(
-        base_url="https://api.metisai.ir/openai/v1",
-        api_key=METIS_API_KEY,
-        temperature=0.2,
-        model_name=MODEL_NAME_LLM
-    )
 
     system_prompt = """
     You are a smart medicine assistant.
@@ -216,11 +230,11 @@ def chat_with_drugs_llm(user_message):
 QA_PROMPT = PromptTemplate(input_variables=["context", "question"], template=SYSTEM_TEMPLATE)
 
 
-def chat_with_rag_llm(tools_response, doctors_response, drugs_response):
+def chat_with_rag_llm(llm, tools_response, doctors_response, drugs_response):
     if not vectorstore:
         return "خطا: پایگاه دانش به درستی بارگذاری نشده است. امکان تولید گزارش کامل وجود ندارد."
 
-    llm = ChatOpenAI(base_url=BASE_URL, api_key=METIS_API_KEY, temperature=0.8, model_name=MODEL_NAME_LLM)
+
     memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
     retriever = vectorstore.as_retriever()
 
@@ -239,11 +253,27 @@ def chat_with_rag_llm(tools_response, doctors_response, drugs_response):
     return result["answer"]
 
 
-def run_health_analysis_pipeline(profile_text_summary):
+def run_health_analysis_pipeline(profile_text_summary, selected_model='cloud_gpt'):
+    # --- EFFICIENCY IMPROVEMENT ---
+    # 1. Get model parameters once.
+    params = get_model_params(selected_model)
 
+    # 2. Create client instances once.
+    client = OpenAI(api_key=params["api_key"], base_url=params["base_url"])
+
+    # Create LangChain-compatible LLM objects for the agent-based chains
+    agent_llm = ChatOpenAI(
+        base_url=params["base_url"], api_key=params["api_key"],
+        temperature=0.2, model_name=params["model_name"]
+    )
+    rag_llm = ChatOpenAI(
+        base_url=params["base_url"], api_key=params["api_key"],
+        temperature=0.8, model_name=params["model_name"]
+    )
+    # --
     print("\n\n--- [START] New Health Analysis Request ---")
     print("\n[PIPELINE - STAGE 1] 🩺 Running Disease Prediction...")
-    tools_response_str = chat_with_tools_llm(profile_text_summary)
+    tools_response_str = chat_with_tools_llm(client, params["model_name"], profile_text_summary)
     try:
         tools_response_json = json.loads(tools_response_str)
         if not tools_response_json:
@@ -256,7 +286,7 @@ def run_health_analysis_pipeline(profile_text_summary):
         return "گزارش به دلیل عدم تشخیص وضعیت پزشکی توسط مدل اول، تولید نشد."
 
     print("\n[PIPELINE - STAGE 2] 👨‍⚕️ Finding Relevant Doctors...")
-    doctors_response_str = chat_with_doctors_llm(tools_response_str)
+    doctors_response_str = chat_with_doctors_llm(client, params["model_name"], tools_response_str)
 
     if not doctors_response_str or not doctors_response_str.strip().startswith('['):
         print("   -> 🟡 Note: No doctors were found for the given criteria.")
@@ -265,11 +295,11 @@ def run_health_analysis_pipeline(profile_text_summary):
         print(f"   -> ✅ Success.")
 
     print("\n[PIPELINE - STAGE 3] 💊 Searching for Drugs and Drugstores...")
-    drugs_response = chat_with_drugs_llm(tools_response_str)
+    drugs_response = chat_with_drugs_llm(agent_llm, tools_response_str)
     print(f"   -> ✅ Success.")
 
     print("\n[PIPELINE - STAGE 4] 📄 Generating Final Report with RAG...")
-    final_report = chat_with_rag_llm(tools_response_json, doctors_response_str, drugs_response)
+    final_report = chat_with_rag_llm(rag_llm, tools_response_json, json.loads(doctors_response_str), drugs_response)
     print("   -> ✅ Success.")
 
     print("\n--- [END] Health Analysis Request Finished Successfully ---")
