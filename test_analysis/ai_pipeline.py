@@ -75,7 +75,7 @@ try:
     chunks = text_splitter.split_documents(documents)
 
     print("🧠 [INIT] Creating embeddings and FAISS vector store for Knowledge Base...")
-    model_name_embedding = "/home/amir/.cache/huggingface/hub/models--BAAI--bge-large-en-v1.5/snapshots/d4aa6901d3a41ba39fb536a557fa166f842b0e09"
+    model_name_embedding = "/home/amir/.cache/huggingface/hub/models--BAAI--bge-small-en-v1.5/snapshots/5c38ec7c405ec4b44b94cc5a9bb96e735b38267a"
 
     model_kwargs = {"device": "cpu"}
     encode_kwargs = {"normalize_embeddings": True}
