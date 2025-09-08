@@ -179,6 +179,9 @@ class HealthProfile(models.Model):
         blank=True, # Good practice for adding new fields to existing models
         help_text="The AI model used to generate the last report."
     )
+    report_task_id = models.CharField(max_length=100, blank=True, null=True)
+    report_ready = models.BooleanField(default=False)
+    report_error = models.TextField(blank=True, null=True)
     def __str__(self):
         return f"Health Profile for {self.user.username}"
 

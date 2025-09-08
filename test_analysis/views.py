@@ -1,67 +1,16 @@
-# test_analysis/views.py
-
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.forms import modelformset_factory
+from django.urls import reverse  # ✅ اضافه شد
 from .forms import HealthProfileForm, PreviousJobFormSet, ReferralFormSet
 from .models import HealthProfile, PreviousJob, Referral
-from openai import OpenAI
 import markdown2
 from . import ai_pipeline
-
-
-def format_profile_for_llm(profile):
-
-    prompt_data = f"Analyze the following occupational health profile for {profile.user.username} and provide personalized wellness and safety advice.\n\n"
-    # --- Section 1 & 2: Personal and Occupational Info ---
-    prompt_data += "== Personal & Current Occupational Information ==\n"
-    prompt_data += f"- Age: {profile.age}\n" if profile.age else ""
-    prompt_data += f"- Date of Birth: {profile.date_of_birth}\n" if profile.date_of_birth else ""
-    prompt_data += f"- Gender: {'1' if profile.gender == 'Male' else '0'}\n"  # Corrected for model
-    prompt_data += f"- Marital Status: {profile.marital_status}\n" if profile.marital_status else ""
-    prompt_data += f"- Children: {profile.children_count}\n"
-    prompt_data += f"- Current Job: {profile.current_job_title}\n" if profile.current_job_title else ""
-    prompt_data += f"- Current Job Duties: {profile.current_job_duties}\n\n" if profile.current_job_duties else "\n"
-    if profile.province_of_residence:
-        prompt_data += f"- Province of Residence: {profile.province_of_residence}\n"
-    # (The rest of the function remains the same as your original)
-    # ... (Keep the rest of the function as it was)
-    # --- Section 4: Medical History ---
-    prompt_data += "== Medical & Lifestyle History ==\n"
-    if profile.has_disease_history:
-        prompt_data += f"- History of significant disease: Yes. Details: {profile.disease_history_details}\n"
-    prompt_data += f"- History of Diabetes: {'1' if profile.has_diabetes else '0'}\n"
-    if profile.has_allergies:
-        prompt_data += f"- History of allergies: Yes. Details: {profile.allergy_details}\n"
-    if profile.has_surgery_history:
-        prompt_data += f"- History of surgery: Yes. Details: {profile.surgery_details}\n"
-    if profile.has_hospitalization_history:
-        prompt_data += f"- History of hospitalization: Yes. Reason: {profile.hospitalization_reason}\n"
-    if profile.is_on_medication:
-        prompt_data += f"- Currently on medication: Yes. Details: {profile.medication_details}\n"
-    prompt_data += f"- On blood pressure medication: {'1' if profile.on_bp_meds else '0'}\n"
-    prompt_data += f"- Currently smokes: {'1' if profile.is_currently_smoking else '0'}\n"
-    if profile.is_currently_smoking and profile.smoking_details:
-        prompt_data += f"- Cigarettes per day: {profile.smoking_details}\n"  # Assuming smoking_details is cigsPerDay
-    else:
-        prompt_data += f"- Cigarettes per day: 0\n"
-
-    # --- Section 5 & 6 & 7: Examination and Paraclinical ---
-    prompt_data += "== Examination & Paraclinical Findings ==\n"
-    if profile.exam_systolic_bp and profile.exam_diastolic_bp:
-        prompt_data += f"- Systolic BP: {profile.exam_systolic_bp}\n"
-        prompt_data += f"- Diastolic BP: {profile.exam_diastolic_bp}\n"
-    prompt_data += f"- Heart Rate: {profile.exam_pulse_rate} bpm\n" if profile.exam_pulse_rate else ""
-    prompt_data += f"- BMI: {profile.bmi}\n" if profile.bmi else ""
-    prompt_data += f"- Total Cholesterol: {profile.lab_total_cholesterol} mg/dL\n" if profile.lab_total_cholesterol else ""
-    prompt_data += f"- Glucose: {profile.lab_glucose} mg/dL\n" if profile.lab_glucose else ""
-
-    # ... (any other fields you need for the prompt) ...
-    return prompt_data
+from .tasks import generate_health_report
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET  # ✅ فقط این را بگیر
 
 
 def get_llm_advice(profile_text, selected_model):
-
     try:
         final_report = ai_pipeline.run_health_analysis_pipeline(profile_text, selected_model)
         return final_report
@@ -97,25 +46,52 @@ def create_or_update_health_profile(request):
                 job.profile = profile
                 job.save()
             job_formset.save_m2m()
+            for obj in job_formset.deleted_objects:  # ✅
+                obj.delete()
 
             referrals = referral_formset.save(commit=False)
             for referral in referrals:
                 referral.profile = profile
                 referral.save()
             referral_formset.save_m2m()
+            for obj in referral_formset.deleted_objects:  # ✅
+                obj.delete()
 
             # Generate the text summary from the saved profile
-            profile_text_for_llm = format_profile_for_llm(profile)
-            selected_model = request.POST.get('selected_model', 'cloud_gpt')
-            profile.model_used_for_advice = selected_model
-            # Call our NEW, powerful pipeline
-            advice = get_llm_advice(profile_text_for_llm, selected_model)
+            # profile_text_for_llm = format_profile_for_llm(profile)
+            # selected_model = request.POST.get('selected_model', 'cloud_gpt')
+            # profile.model_used_for_advice = selected_model
+            # # Call our NEW, powerful pipeline
+            # advice = get_llm_advice(profile_text_for_llm, selected_model)
+            #
+            # # Save the final report to the profile
+            # profile.llm_advice = advice
+            # profile.save()
 
-            # Save the final report to the profile
-            profile.llm_advice = advice
+            # test_analysis/views.py (درون create_or_update_health_profile، بخش POST و valid)
+
+            selected_model = request.POST.get('selected_model', 'cloud_gpt')
+
+            profile.report_ready = False
+            profile.report_error = None
+            profile.model_used_for_advice = selected_model
             profile.save()
 
-            return redirect('profile_detail')
+            try:
+                task = generate_health_report.apply_async(
+                    args=[profile.id, selected_model],
+                    ignore_result=True  # تأکید بر عدم انتظار نتیجه
+                )
+                profile.report_task_id = task.id or ''
+                profile.save(update_fields=['report_task_id'])
+            except Exception as e:
+                # لاگ و Fail-safe: باز هم می‌فرستیم صفحه پردازش تا پیام خطا را ببینند
+                profile.report_error = f"Celery enqueue failed: {e}"
+                profile.report_ready = False
+                profile.save(update_fields=['report_error', 'report_ready'])
+
+            return redirect('health_processing')
+
         else:
             # Your debugging code for form errors
             print("\n--- FORM VALIDATION FAILED ---")
@@ -152,3 +128,30 @@ def profile_detail_view(request):
         'html_advice': html_advice,
     }
     return render(request, 'test_analysis/profile_detail.html', context)
+
+
+@login_required
+def processing_page(request):
+    # فقط صفحه‌ای که مودال را نشان می‌دهد
+    profile = get_object_or_404(HealthProfile, user=request.user)
+    return render(request, 'test_analysis/processing.html', {'profile': profile})
+
+
+@login_required
+@require_GET
+def report_status(request):
+    profile = get_object_or_404(HealthProfile, user=request.user)
+    return JsonResponse({
+        "ready": profile.report_ready,
+        "error": bool(profile.report_error),
+        "error_msg": profile.report_error or "",
+        "detail_url": request.build_absolute_uri(
+            # صفحه‌ی گزارش موجود خودت
+            reverse('profile_detail')
+        ),
+    })
+
+
+@login_required
+def minigame_page(request):
+    return render(request, 'test_analysis/minigame.html', {})

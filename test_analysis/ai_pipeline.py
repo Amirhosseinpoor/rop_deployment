@@ -275,6 +275,7 @@ def run_health_analysis_pipeline(profile_text_summary, selected_model='cloud_gpt
     print("\n[PIPELINE - STAGE 1] 🩺 Running Disease Prediction...")
     tools_response_str = chat_with_tools_llm(client, params["model_name"], profile_text_summary)
     try:
+        print(tools_response_str)
         tools_response_json = json.loads(tools_response_str)
         if not tools_response_json:
             raise json.JSONDecodeError("Empty JSON object returned", tools_response_str, 0)

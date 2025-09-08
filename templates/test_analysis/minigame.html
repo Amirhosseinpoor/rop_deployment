@@ -1,0 +1,117 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Pacman Fullscreen</title>
+    <style>
+      html, body { height: 100%; margin: 0; background: #0f172a; }
+      iframe { border: 0; width: 100vw; height: 100vh; display: block; }
+
+      /* Floating bar */
+      .floating-bar {
+        position: fixed;
+        top: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(15, 23, 42, 0.85);
+        color: #fff;
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 999px;
+        padding: 10px 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        z-index: 9999;
+        font-family: sans-serif;
+        backdrop-filter: blur(8px);
+      }
+      .floating-bar .dot {
+        width: 8px; height: 8px; border-radius: 50%;
+        display: inline-block;
+        background: #f59e0b; /* amber: processing */
+        box-shadow: 0 0 0 2px rgba(245, 158, 11, .25);
+      }
+      .floating-bar.ready .dot {
+        background: #10b981; /* emerald: ready */
+        box-shadow: 0 0 0 2px rgba(16, 185, 129, .25);
+      }
+      .floating-bar .btn {
+        background: #10b981;
+        color: #0f172a;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-weight: 800;
+        border: 0;
+        cursor: pointer;
+      }
+      .floating-bar .btn[disabled] {
+        opacity: .5; cursor: not-allowed;
+      }
+      .floating-bar .link {
+        color: #cbd5e1; text-decoration: none; font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Game -->
+    <iframe src="{% static 'pacman/index.html' %}"></iframe>
+
+    <!-- Floating status bar -->
+    <div id="float" class="floating-bar">
+      <span class="dot" aria-hidden="true"></span>
+      <span id="statusText">گزارش در حال پردازش است…</span>
+      <button id="viewBtn" class="btn" disabled>مشاهده گزارش</button>
+      <a class="link" href="{% url 'health_processing' %}">برگشت به وضعیت</a>
+    </div>
+
+    <script>
+      (function(){
+        const floatBar = document.getElementById('float');
+        const statusText = document.getElementById('statusText');
+        const viewBtn = document.getElementById('viewBtn');
+        let detailUrl = null;
+        let stop = false;
+
+        async function check(){
+          try{
+            const url = new URL("{% url 'health_processing_status' %}", window.location.origin);
+            url.searchParams.set('_', Date.now().toString());
+            const res = await fetch(url, { headers: { 'X-Requested-With': 'fetch' }, cache: 'no-store' });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const data = await res.json();
+
+            if (data.error) {
+              statusText.textContent = 'خطا در تولید گزارش: ' + (data.error_msg || 'نامشخص');
+              floatBar.classList.remove('ready');
+              viewBtn.disabled = true;
+              return;
+            }
+
+            if (data.ready){
+              detailUrl = data.detail_url;
+              statusText.textContent = '🎉 گزارش آماده است.';
+              floatBar.classList.add('ready');
+              viewBtn.disabled = false;
+            } else {
+              statusText.textContent = 'گزارش در حال پردازش است…';
+              floatBar.classList.remove('ready');
+              viewBtn.disabled = true;
+            }
+          } catch(e){
+            // در سکوت چند ثانیه بعدی دوباره تلاش می‌کنیم
+          } finally {
+            if (!stop) setTimeout(check, 5000);
+          }
+        }
+
+        viewBtn.addEventListener('click', function(){
+          if (detailUrl) window.location.assign(detailUrl);
+        });
+
+        check();
+      })();
+    </script>
+  </body>
+</html>

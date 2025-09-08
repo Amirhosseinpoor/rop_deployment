@@ -229,3 +229,8 @@ SOCIALACCOUNT_PROVIDERS = {
         }
     }
 }
+CELERY_TASK_ALWAYS_EAGER = False                       # حتماً False
+CELERY_TASK_IGNORE_RESULT = True
+CELERY_ACKS_LATE = True
+CELERY_TASK_TIME_LIMIT = 60 * 10                       # 10 دقیقه سقف
+CELERY_TASK_SOFT_TIME_LIMIT = 60 * 9
