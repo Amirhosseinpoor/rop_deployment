@@ -54,71 +54,75 @@ def get_model_params(selected_model):
             "api_key": METIS_API_KEY,
             "base_url": BASE_URL
         }
-try:
-    print("📚 [INIT] Loading Knowledge Base documents from PDF files...")
-    folders = glob("knowledge_base/*")
-    documents = []
-    for folder in folders:
-        folder_name = os.path.basename(folder)
-        loader = DirectoryLoader(
-            folder,
-            glob="**/*.pdf",
-            loader_cls=PyPDFLoader
-        )
-        folder_docs = loader.load()
-        for doc in folder_docs:
-            doc.metadata["doc_type"] = folder_name
-            documents.append(doc)
-    print(f"   -> Successfully loaded {len(documents)} documents in total.")
+# ai_pipeline.py (کد جدید جایگزین)
 
-    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-    chunks = text_splitter.split_documents(documents)
+# متغیرهای گلوبال را با None مقداردهی اولیه می‌کنیم
+# این متغیرها در هر ورکر سلری به صورت مستقل پر خواهند شد
+VECTORSTORE = None
+CSV_VECTORSTORE = None
 
-    print("🧠 [INIT] Creating embeddings and FAISS vector store for Knowledge Base...")
-    model_name_embedding = "/home/amir/.cache/huggingface/hub/models--BAAI--bge-small-en-v1.5/snapshots/5c38ec7c405ec4b44b94cc5a9bb96e735b38267a"
+def get_vectorstore():
+    """
+    Knowledge Base اصلی (PDF ها) را فقط در صورت نیاز بارگذاری می‌کند.
+    این تابع تضمین می‌کند که هر ورکر فقط یک بار این کار را انجام دهد.
+    """
+    global VECTORSTORE
+    if VECTORSTORE is None:
+        try:
+            print("🚀 [WORKER LAZY LOAD] Initializing Knowledge Base Vectorstore...")
+            folders = glob("knowledge_base/*")
+            documents = []
+            for folder in folders:
+                folder_name = os.path.basename(folder)
+                loader = DirectoryLoader(
+                    folder, glob="**/*.pdf", loader_cls=PyPDFLoader
+                )
+                folder_docs = loader.load()
+                for doc in folder_docs:
+                    doc.metadata["doc_type"] = folder_name
+                    documents.append(doc)
 
-    model_kwargs = {"device": "cpu"}
-    encode_kwargs = {"normalize_embeddings": True}
+            text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+            chunks = text_splitter.split_documents(documents)
+            model_name_embedding = "/home/amir/.cache/huggingface/hub/models--BAAI--bge-small-en-v1.5/snapshots/5c38ec7c405ec4b44b94cc5a9bb96e735b38267a"
+            embeddings = HuggingFaceEmbeddings(
+                model_name=model_name_embedding,
+                model_kwargs={"device": "cpu"},
+                encode_kwargs={"normalize_embeddings": True},
+            )
+            VECTORSTORE = FAISS.from_documents(chunks, embedding=embeddings)
+            print("   -> ✅ Knowledge Base Vectorstore loaded successfully.")
+        except Exception as e:
+            print(f"🔥🔥🔥 [INIT-ERROR] CRITICAL FAILURE during Knowledge Base RAG setup: {e}")
+            VECTORSTORE = None
+    return VECTORSTORE
 
-    embeddings = HuggingFaceEmbeddings(
-        model_name=model_name_embedding,
-        model_kwargs=model_kwargs,
-        encode_kwargs=encode_kwargs
-    )
-
-    vectorstore = FAISS.from_documents(chunks, embedding=embeddings)
-    print(f"   -> ✅ Knowledge Base vector store created with {vectorstore.index.ntotal} vectors.")
-
-except Exception as e:
-    print(f"🔥🔥🔥 [INIT-ERROR] CRITICAL FAILURE during Knowledge Base RAG setup: {e}")
-    vectorstore = None  # Ensure vectorstore exists but is None if setup fails
-
-print("💊 [INIT] Loading Drugstore data from CSV file...")
-csv_path = "data_csv/drugstores.csv"
-csv_loader = CSVLoader(file_path=csv_path)
-csv_docs = csv_loader.load()
-for doc in csv_docs:
-    doc.metadata["doc_type"] = "csv"
-
-text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-csv_chunks = text_splitter.split_documents(csv_docs)
-
-csv_embeddings = HuggingFaceEmbeddings(
-    model_name="/home/amir/.cache/huggingface/hub/models--BAAI--bge-small-en-v1.5/snapshots/5c38ec7c405ec4b44b94cc5a9bb96e735b38267a",
-
-    model_kwargs={"device": "cpu"},
-    encode_kwargs={"normalize_embeddings": True}
-)
-
-csv_vectorstore = FAISS.from_documents(csv_chunks, embedding=csv_embeddings)
-csv_vectorstore.save_local("vectorstores/csv_index")
-print(f"   -> ✅ Drugstore vector store created with {csv_vectorstore.index.ntotal} vectors.")
-
-print("=======================================================================")
-print("✅ [INIT] AI Pipeline Initialized and Ready.")
-print("=======================================================================")
-
-
+def get_csv_vectorstore():
+    """
+    Vectorstore مربوط به داروخانه‌ها (CSV) را فقط در صورت نیاز بارگذاری می‌کند.
+    """
+    global CSV_VECTORSTORE
+    if CSV_VECTORSTORE is None:
+        try:
+            print("🚀 [WORKER LAZY LOAD] Initializing Drugstore CSV Vectorstore...")
+            csv_path = "data_csv/drugstores.csv"
+            loader = CSVLoader(file_path=csv_path)
+            docs = loader.load()
+            for doc in docs:
+                doc.metadata["doc_type"] = "csv"
+            text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+            chunks = text_splitter.split_documents(docs)
+            csv_embeddings = HuggingFaceEmbeddings(
+                model_name="/home/amir/.cache/huggingface/hub/models--BAAI--bge-small-en-v1.5/snapshots/5c38ec7c405ec4b44b94cc5a9bb96e735b38267a",
+                model_kwargs={"device": "cpu"},
+                encode_kwargs={"normalize_embeddings": True},
+            )
+            CSV_VECTORSTORE = FAISS.from_documents(chunks, embedding=csv_embeddings)
+            print("   -> ✅ Drugstore CSV Vectorstore loaded successfully.")
+        except Exception as e:
+            print(f"🔥🔥🔥 [INIT-ERROR] CRITICAL FAILURE during CSV RAG setup: {e}")
+            CSV_VECTORSTORE = None
+    return CSV_VECTORSTORE
 tools_hypertension = [{"type": "function", "function": hypertention_function}]
 def chat_with_tools_llm(client, model_name, message_text):
     messages = [{"role": "system", "content": system_prompt_tools_llm}, {"role": "user", "content": message_text}]
@@ -149,8 +153,14 @@ def chat_with_doctors_llm(client, model_name, message_text):
 tools_drugs = [{"type": "function", "function": scrape_drugs_function}]
 
 def chat_with_drugs_llm(llm, user_message):
+    # از تابع جدید برای گرفتن vectorstore استفاده می‌کنیم
+    csv_vectorstore = get_csv_vectorstore()
+    if not csv_vectorstore:
+        # در صورت عدم بارگذاری موفق، یک پیام خطا برمی‌گردانیم
+        return json.dumps({"error": "Drugstore database could not be loaded."})
 
     csv_retriever = csv_vectorstore.as_retriever()
+    # ... بقیه کد بدون تغییر
 
 
     system_prompt = """
@@ -231,9 +241,11 @@ QA_PROMPT = PromptTemplate(input_variables=["context", "question"], template=SYS
 
 
 def chat_with_rag_llm(llm, tools_response, doctors_response, drugs_response):
+    # از تابع جدید برای گرفتن vectorstore استفاده می‌کنیم
+    vectorstore = get_vectorstore()
     if not vectorstore:
         return "خطا: پایگاه دانش به درستی بارگذاری نشده است. امکان تولید گزارش کامل وجود ندارد."
-
+    # ...
 
     memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
     retriever = vectorstore.as_retriever()
@@ -254,14 +266,9 @@ def chat_with_rag_llm(llm, tools_response, doctors_response, drugs_response):
 
 
 def run_health_analysis_pipeline(profile_text_summary, selected_model='cloud_gpt'):
-    # --- EFFICIENCY IMPROVEMENT ---
-    # 1. Get model parameters once.
+    # مدل‌ها و کلاینت‌ها در اینجا و فقط در صورت نیاز ساخته می‌شوند
     params = get_model_params(selected_model)
-
-    # 2. Create client instances once.
     client = OpenAI(api_key=params["api_key"], base_url=params["base_url"])
-
-    # Create LangChain-compatible LLM objects for the agent-based chains
     agent_llm = ChatOpenAI(
         base_url=params["base_url"], api_key=params["api_key"],
         temperature=0.2, model_name=params["model_name"]

@@ -7,53 +7,59 @@
   <title>در حال تولید گزارش | MediverseAI</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    :root {
+      --ring: 0 0% 100% / .15;
+    }
     @keyframes spin { to { transform: rotate(360deg) } }
     @keyframes pulseBar { 0% { width: 10% } 50% { width: 70% } 100% { width: 10% } }
-    @keyframes popIn { 0% { transform: scale(.95); opacity: 0 } 100% { transform: scale(1); opacity: 1 } }
+    @keyframes popIn { 0% { transform: translateY(6px); opacity: 0 } 100% { transform: translateY(0); opacity: 1 } }
     .spinner { animation: spin 1s linear infinite; }
     .progress-worm { animation: pulseBar 2.4s ease-in-out infinite; }
     .pop-in { animation: popIn .25s ease-out both; }
     .btn-disabled { opacity: .5; pointer-events: none; }
   </style>
 </head>
-<body class="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 text-slate-800">
-  <main class="max-w-xl mx-auto px-6 py-10">
-    <!-- کارت اصلی -->
-    <section class="bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-100">
-      <!-- هدر -->
-      <header class="bg-gradient-to-l from-indigo-600 via-violet-600 to-fuchsia-500 p-6 text-white">
-        <div class="flex items-center gap-4">
-          <div class="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center backdrop-blur">
+<body class="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 text-slate-800">
+  <main class="max-w-2xl mx-auto px-4 md:px-6 py-10">
+    <!-- کارت اصلی / هرو -->
+    <section class="relative overflow-hidden rounded-3xl border border-slate-200/60 shadow-2xl bg-white">
+      <!-- هدر با گرادیان لطیف -->
+      <header class="relative p-6 md:p-8 bg-gradient-to-l from-indigo-600 via-violet-600 to-fuchsia-500 text-white">
+        <div class="absolute inset-0 bg-[radial-gradient(600px_200px_at_80%_-50%,rgba(255,255,255,.25),transparent)]"></div>
+        <div class="relative flex items-start gap-5">
+          <div class="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center backdrop-blur-sm ring-1 ring-white/20">
             <svg class="w-8 h-8 opacity-95" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M12 3v2m0 14v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M3 12h2m14 0h2M6.35 17.65l1.42-1.42m8.46-8.46 1.42-1.42" stroke-width="1.5" stroke-linecap="round"/>
               <circle cx="12" cy="12" r="4" stroke-width="1.5"/>
             </svg>
           </div>
-          <div>
-            <h1 class="text-lg font-extrabold">گزارش شما در حال آماده‌سازی است</h1>
-            <p class="text-white/80 text-sm mt-1">می‌تونی منتظر بمونی یا یک بازی کوچیک انجام بدی تا زمان بگذره.</p>
+          <div class="flex-1">
+            <h1 class="text-xl md:text-2xl font-extrabold leading-tight">گزارش شما در حال آماده‌سازی است</h1>
+            <p class="text-white/85 text-sm mt-2">می‌توانید منتظر بمانید یا یک بازی کوچیک انجام دهید تا زمان بگذرد. ما وضعیت را خودکار بررسی می‌کنیم.</p>
           </div>
         </div>
       </header>
 
       <!-- بدنه -->
-      <div class="p-6">
-        <!-- وضعیت -->
-        <div class="flex items-center gap-4">
+      <div class="p-6 md:p-8">
+        <!-- وضعیت پردازش -->
+        <div class="flex items-start gap-4">
           <div class="relative">
-            <svg class="w-12 h-12 text-indigo-600 spinner" viewBox="0 0 24 24">
+            <svg class="w-12 h-12 text-indigo-600 spinner" viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="12" cy="12" r="9" class="text-indigo-100" stroke="currentColor" stroke-width="4" fill="none" opacity=".35"/>
               <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="4" stroke-linecap="round" fill="none"/>
             </svg>
           </div>
           <div class="flex-1">
-            <p class="font-bold">در حال پردازش…</p>
-            <p class="text-sm text-slate-500 mt-0.5">
-              این کار ممکن است کمی زمان ببرد. می‌تونی بازی کنی؛ ما خودمان نتیجه را بررسی می‌کنیم.
-            </p>
+            <div class="flex flex-wrap items-center gap-2">
+              <p class="font-bold">در حال پردازش…</p>
+              <span id="stateBadge" class="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">بررسی هر ۵ ثانیه</span>
+            </div>
+            <p class="text-sm text-slate-500 mt-1">این کار ممکن است کمی زمان ببرد. اگر آماده شد، به‌صورت خودکار هدایت می‌شوید.</p>
+
             <!-- نوار پیشرفت -->
-            <div class="mt-3 h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-              <div class="progress-worm h-full bg-indigo-600/90 rounded-full"></div>
+            <div class="mt-4 h-2.5 w-full bg-slate-100 rounded-full overflow-hidden ring-1 ring-slate-200/50">
+              <div class="progress-worm h-full bg-indigo-600/90 rounded-full" style="width: 10%"></div>
             </div>
             <p id="elapsed" class="text-xs text-slate-400 mt-1" aria-live="polite">گذشته: ۰ ثانیه</p>
           </div>
@@ -62,183 +68,166 @@
         <!-- باکس آماده -->
         <div id="readyBox" class="hidden mt-6 p-4 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 pop-in">
           <div class="flex items-center gap-3">
-            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
               <path d="M5 13l4 4L19 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
             <div class="flex-1">
               <p class="font-bold">🎉 گزارش آماده شد!</p>
-              <p class="text-emerald-700/80 text-sm mt-0.5">می‌تونی همین حالا گزارش را ببینی.</p>
+              <p class="text-emerald-700/80 text-sm mt-0.5">می‌توانید همین حالا مشاهده کنید یا اجازه دهید خودکار منتقل شوید.</p>
             </div>
-            <a id="viewBtn" href="#" class="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-600 text-white font-bold hover:bg-emerald-700">
-              مشاهده گزارش
-              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M9 18l6-6-6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </a>
           </div>
         </div>
 
         <!-- باکس خطا -->
         <div id="errorBox" class="hidden mt-6 p-4 rounded-xl bg-red-50 text-red-700 border border-red-200 pop-in"></div>
 
-        <!-- دکمه‌ها -->
-        <div class="mt-8 flex flex-wrap gap-3">
-          <a href="{% url 'health_minigame' %}"
-             class="flex-1 md:flex-none md:w-auto px-5 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-sm inline-flex items-center justify-center gap-2">
-            بازی می‌کنم
-            <span aria-hidden="true">🎮</span>
-          </a>
-
-          <button id="stayBtn"
-                  class="flex-1 md:flex-none md:w-auto px-5 py-3 rounded-xl bg-slate-200 text-slate-800 font-bold hover:bg-slate-300 shadow-sm">
-            همین‌جا می‌مانم
-          </button>
-
-          <!-- دکمه‌ی همیشه‌نمایان برای مشاهده گزارش -->
-          <a id="viewBtnTop" href="#"
-             class="flex-1 md:flex-none md:w-auto px-5 py-3 rounded-xl bg-emerald-600 text-white font-bold shadow-sm inline-flex items-center justify-center gap-2 btn-disabled"
+        <!-- اکشن‌ها: یک CTA واحد + گزینه‌های ثانویه -->
+        <div class="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <!-- CTA واحد: در ابتدا غیرفعال، بعد از آماده‌شدن فعال می‌شود -->
+          <a id="viewBtn"
+             href="#"
+             class="sm:col-span-2 px-5 py-3 rounded-xl bg-emerald-600 text-white font-bold shadow-sm inline-flex items-center justify-center gap-2 btn-disabled"
              aria-disabled="true">
-            مشاهده گزارش
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
               <path d="M9 18l6-6-6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
+            مشاهده گزارش
+          </a>
+
+          <!-- اکشن‌های ثانویه -->
+          <a href="{% url 'health_minigame' %}" class="px-5 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-sm inline-flex items-center justify-center gap-2">
+            بازی می‌کنم <span aria-hidden="true">🎮</span>
           </a>
         </div>
 
-        <p class="text-xs text-slate-400 mt-4 text-center">هر ۵ ثانیه یک بار وضعیت بررسی می‌شود.</p>
+        <p class="text-xs text-slate-400 mt-4 text-center">هر ۵ ثانیه یک‌بار وضعیت بررسی می‌شود.</p>
       </div>
     </section>
   </main>
-<script>
-  // --- element refs
-  const readyBox   = document.getElementById('readyBox');
-  const errorBox   = document.getElementById('errorBox');
-  const viewBtn    = document.getElementById('viewBtn');     // داخل باکس آماده
-  const viewBtnTop = document.getElementById('viewBtnTop');  // دکمه‌ی همیشه‌نمایان
-  const elapsed    = document.getElementById('elapsed');
 
-  // --- elapsed timer
-  let startTs = Date.now();
-  const fmt = (n) => new Intl.NumberFormat('fa-IR').format(n);
-  (function tickElapsed(){
-    const s = Math.floor((Date.now() - startTs) / 1000);
-    elapsed.textContent = 'گذشته: ' + fmt(s) + ' ثانیه';
-    requestAnimationFrame(tickElapsed);
-  })();
+  <script>
+    // --- Element refs
+    const readyBox = document.getElementById('readyBox');
+    const errorBox = document.getElementById('errorBox');
+    const viewBtn  = document.getElementById('viewBtn');
+    const elapsed  = document.getElementById('elapsed');
+    const stateBadge = document.getElementById('stateBadge');
 
-  let stopPolling = false;
-  let detailUrl = null;
+    // --- Elapsed timer
+    let startTs = Date.now();
+    const fmt = (n) => new Intl.NumberFormat('fa-IR').format(n);
+    (function tickElapsed(){
+      const s = Math.floor((Date.now() - startTs) / 1000);
+      if (elapsed) elapsed.textContent = 'گذشته: ' + fmt(s) + ' ثانیه';
+      requestAnimationFrame(tickElapsed);
+    })();
 
-  // فعال کردن دکمه‌ی بالا
-  function enableTopViewButton(href){
-    viewBtnTop.href = href;
-    viewBtnTop.classList.remove('btn-disabled', 'opacity-50', 'pointer-events-none');
-    viewBtnTop.removeAttribute('aria-disabled');
-  }
+    // --- State
+    let stopPolling = false;
+    let detailUrl = null;
 
-  // روی آماده‌شدن چه کنیم
-  function onReady(url){
-    detailUrl = url;
-    console.log('[processing] ready. detailUrl =', detailUrl);
-
-    // لینک دادن هر دو دکمه
-    if (viewBtn) viewBtn.href = detailUrl;
-    enableTopViewButton(detailUrl);
-
-    // نمایش باکس آماده
-    readyBox.classList.remove('hidden');
-
-    // توقف انیمیشن و پر کردن نوار
-    const bar = document.querySelector('.progress-worm');
-    if (bar){ bar.style.width = '100%'; bar.style.animation = 'none'; }
-
-    // هدایت خودکار (اگر نمی‌خواهی، این خط را بردار)
-    setTimeout(() => { window.location.assign(detailUrl); }, 1200);
-
-    stopPolling = true;
-  }
-
-  // هندلر کلیک روی دکمه‌ها: هدایت اجباری با JS
-  function goToReport(e){
-    if (!detailUrl){
-      e.preventDefault();
-      console.log('[processing] clicked but not ready yet.');
-      return false;
+    function enableViewButton(href){
+      viewBtn.href = href;
+      viewBtn.classList.remove('btn-disabled', 'opacity-50', 'pointer-events-none');
+      viewBtn.removeAttribute('aria-disabled');
+      viewBtn.classList.add('hover:bg-emerald-700');
     }
-    // حتی اگر href درست ست نباشه، این کار می‌کند
-    window.location.assign(detailUrl);
-  }
-  if (viewBtnTop) viewBtnTop.addEventListener('click', goToReport);
-  if (viewBtn)    viewBtn.addEventListener('click', goToReport);
 
-  // یک بار چک فوری روی لود (بدون انتظار)
-  async function checkOnce(){
-    try{
+    function onReady(url){
+      detailUrl = url;
+      console.log('[processing] ready. detailUrl =', detailUrl);
+
+      // فعال‌سازی CTA
+      enableViewButton(detailUrl);
+
+      // نمایش باکس آماده
+      readyBox.classList.remove('hidden');
+
+      // توقف انیمیشن و پر کردن نوار
+      const bar = document.querySelector('.progress-worm');
+      if (bar){ bar.style.width = '100%'; bar.style.animation = 'none'; }
+
+      // تغییر بِج
+      stateBadge.textContent = 'آماده نمایش';
+      stateBadge.className = 'text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200';
+
+      // هدایت خودکار پس از مکث کوتاه (در صورت تمایل این خط را حذف کنید)
+      setTimeout(() => { window.location.assign(detailUrl); }, 1200);
+
+      stopPolling = true;
+    }
+
+    // کلیک روی CTA: هدایت حتی اگر href ست نشده باشد
+    function goToReport(e){
+      if (!detailUrl){
+        e.preventDefault();
+        console.log('[processing] clicked but not ready yet.');
+        return false;
+      }
+      window.location.assign(detailUrl);
+    }
+    if (viewBtn) viewBtn.addEventListener('click', goToReport);
+
+    // --- Networking helpers
+    async function fetchStatus(){
       const url = new URL("{% url 'health_processing_status' %}", window.location.origin);
       url.searchParams.set('_', Date.now().toString()); // ضد کش
       const res = await fetch(url, { headers: { 'X-Requested-With': 'fetch' }, cache: 'no-store' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
-      const data = await res.json();
-      console.log('[processing] first check:', data);
-
-      if (data.error){
-        errorBox.textContent = 'خطا در تولید گزارش: ' + (data.error_msg || 'نامشخص');
-        errorBox.classList.remove('hidden');
-      }
-      if (data.ready){
-        onReady(data.detail_url);
-        return true;
-      }
-      return false;
-    }catch(err){
-      console.warn('[processing] first check error:', err);
-      return false;
+      return res.json();
     }
-  }
 
-  // پولینگ با ضدکش
-  async function poll(){
-    if (stopPolling) return;
-    try{
-      const url = new URL("{% url 'health_processing_status' %}", window.location.origin);
-      url.searchParams.set('_', Date.now().toString());
-      const res = await fetch(url, { headers: { 'X-Requested-With': 'fetch' }, cache: 'no-store' });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const data = await res.json();
-      console.log('[processing] poll:', data);
+    async function checkOnce(){
+      try{
+        const data = await fetchStatus();
+        console.log('[processing] first check:', data);
 
-      if (data.error){
-        errorBox.textContent = 'خطا در تولید گزارش: ' + (data.error_msg || 'نامشخص');
-        errorBox.classList.remove('hidden');
+        if (data.error){
+          errorBox.textContent = 'خطا در تولید گزارش: ' + (data.error_msg || 'نامشخص');
+          errorBox.classList.remove('hidden');
+        }
+        if (data.ready){
+          onReady(data.detail_url);
+          return true;
+        }
+        return false;
+      }catch(err){
+        console.warn('[processing] first check error:', err);
+        return false;
       }
-      if (data.ready){
-        onReady(data.detail_url);
-        return;
-      }
-    }catch(err){
-      console.warn('[processing] poll error:', err);
-    }finally{
-      if (!stopPolling) setTimeout(poll, 5000);
     }
-  }
 
-  // اجرای اولیه
-  (async () => {
-    const alreadyReady = await checkOnce(); // اگر همین الان آماده است، فوری برو
-    if (!alreadyReady) poll();             // وگرنه برو پولینگ
-  })();
+    async function poll(){
+      if (stopPolling) return;
+      try{
+        const data = await fetchStatus();
+        console.log('[processing] poll:', data);
 
-  // اگر کاربر با Back برگشت یا تب را دوباره فعال کرد، یک چک فوری انجام بده
-  document.addEventListener('visibilitychange', () => {
-    if (!stopPolling && document.visibilityState === 'visible') checkOnce();
-  });
+        if (data.error){
+          errorBox.textContent = 'خطا در تولید گزارش: ' + (data.error_msg || 'نامشخص');
+          errorBox.classList.remove('hidden');
+        }
+        if (data.ready){
+          onReady(data.detail_url);
+          return;
+        }
+      }catch(err){
+        console.warn('[processing] poll error:', err);
+      }finally{
+        if (!stopPolling) setTimeout(poll, 5000);
+      }
+    }
 
-  // برای سازگاری با کلاسی که ممکن است قبلاً گذاشته باشی:
-  // مطمئن می‌شیم دکمه‌ی بالا در ابتدا غیرفعاله
-  (function initTopBtn(){
-    viewBtnTop.classList.add('opacity-50', 'pointer-events-none');
-    viewBtnTop.setAttribute('aria-disabled', 'true');
-  })();
-</script>
+    // اجرای اولیه
+    (async () => {
+      const alreadyReady = await checkOnce();
+      if (!alreadyReady) poll();
+    })();
+
+    // اگر کاربر با Back برگشت یا تب را دوباره فعال کرد، یک چک فوری انجام بده
+    document.addEventListener('visibilitychange', () => {
+      if (!stopPolling && document.visibilityState === 'visible') checkOnce();
+    });
+  </script>
 </body>
 </html>
