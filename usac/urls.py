@@ -1,23 +1,31 @@
 from django.urls import path
-from . import views
 from django.contrib.auth import views as auth_views
-
-from .views import export_misclassified_rop_csv, export_misclassified_kc_csv
+from . import views
 
 urlpatterns = [
+    # Auth
     path('', views.custom_login, name='login'),
-    path('signup/', views.signup_view, name='signup'),
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
+
+    # Main
     path('dilemma/', views.dilemma_view, name='dilemma'),
     path('history/', views.history_view, name='history'),
     path('history/export/', views.export_history_csv, name='export_history_csv'),
 
-    path("export/rop/", export_misclassified_rop_csv, name="export_rop_csv"),
-    path("export/kc/", export_misclassified_kc_csv, name="export_kc_csv"),
-]
+    # CSV exports (admin)
+    path("export/rop/", views.export_misclassified_rop_csv, name="export_rop_csv"),
+    path("export/kc/", views.export_misclassified_kc_csv, name="export_kc_csv"),
 
-from .views import send_test_email
+    # Signup flow (role-based)
+    path('signup/choose-role/', views.choose_role_view, name='signup_choose_role'),
+    path('signup/manager/', views.signup_manager_view, name='signup_manager'),
+    path('signup/doctor/', views.signup_doctor_view, name='signup_doctor'),
+    path('signup/employee/', views.signup_employee_view, name='signup_employee'),
 
-urlpatterns += [
-    path('send-test-email/', send_test_email, name='send_test_email'),
+    # Manager area
+    path('managing/', views.manager_dashboard, name='manager_dashboard'),
+    path('managing/member/<int:user_id>/', views.member_detail_view, name='member_detail'),
+
+    # Utils
+    path('send-test-email/', views.send_test_email, name='send_test_email'),
 ]

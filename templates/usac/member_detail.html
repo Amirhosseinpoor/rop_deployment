@@ -1,0 +1,88 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>پرونده کاربر | MediverseAI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png">
+  <style>body{font-family: Vazirmatn, sans-serif}</style>
+</head>
+<body class="bg-slate-100 min-h-screen p-4 md:p-8">
+  <div class="max-w-6xl mx-auto space-y-6">
+    <header class="flex items-center justify-between">
+      <div>
+        <h1 class="text-xl font-extrabold text-slate-800">پرونده {{ member.username }}</h1>
+        <p class="text-slate-500 text-sm">{{ member.email }} · {{ member.profile.role }} · {{ member.profile.national_code }}</p>
+      </div>
+      <a href="{% url 'manager_dashboard' %}" class="text-indigo-600 hover:underline text-sm">بازگشت</a>
+    </header>
+
+    <section class="bg-white rounded-2xl shadow p-6">
+      <h2 class="font-bold text-slate-700 mb-3">پرونده سلامت</h2>
+      {% if health_profile %}
+        <div class="text-sm">
+          <div>تاریخ بروزرسانی: {{ health_profile.updated_at|default:health_profile.created_at|date:"Y-m-d" }}</div>
+          <a class="text-indigo-600 hover:underline" href="{% url 'profile_detail' %}?user_id={{ member.id }}">نمایش جزئیات</a>
+        </div>
+      {% else %}
+        <div class="text-sm text-slate-500">پرونده‌ای ثبت نشده است.</div>
+      {% endif %}
+    </section>
+
+    <section class="bg-white rounded-2xl shadow p-6">
+      <h2 class="font-bold text-slate-700 mb-3">نتایج ROP</h2>
+      <div class="overflow-auto">
+        <table class="min-w-full text-sm border">
+          <thead class="bg-slate-50">
+            <tr>
+              <th class="p-2 border">فایل</th>
+              <th class="p-2 border">کلاس</th>
+              <th class="p-2 border">احتمال</th>
+              <th class="p-2 border">تاریخ</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for s in single_results %}
+            <tr>
+              <td class="p-2 border">{{ s.file_name }}</td>
+              <td class="p-2 border">{{ s.predicted_class }}</td>
+              <td class="p-2 border">{{ s.probability|floatformat:3 }}</td>
+              <td class="p-2 border">{{ s.timestamp|date:"Y-m-d H:i" }}</td>
+            </tr>
+          {% empty %}
+            <tr><td class="p-2 border text-center" colspan="4">رکوردی موجود نیست.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="bg-white rounded-2xl shadow p-6">
+      <h2 class="font-bold text-slate-700 mb-3">نتایج KC</h2>
+      <div class="overflow-auto">
+        <table class="min-w-full text-sm border">
+          <thead class="bg-slate-50">
+            <tr>
+              <th class="p-2 border">برچسب‌ها</th>
+              <th class="p-2 border">احتمال‌ها</th>
+              <th class="p-2 border">تاریخ</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for d in double_results %}
+            <tr>
+              <td class="p-2 border">L: {{ d.left_label }} | R: {{ d.right_label }} | Z: {{ d.z_class_label }}</td>
+              <td class="p-2 border">L: {{ d.left_probability|floatformat:3 }} | R: {{ d.right_probability|floatformat:3 }} | Z: {{ d.z_class_probability|floatformat:3 }}</td>
+              <td class="p-2 border">{{ d.created_at|date:"Y-m-d H:i" }}</td>
+            </tr>
+          {% empty %}
+            <tr><td class="p-2 border text-center" colspan="3">رکوردی موجود نیست.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

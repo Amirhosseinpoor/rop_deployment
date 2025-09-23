@@ -18,8 +18,12 @@ def export_misclassified_rop(modeladmin, request, queryset):
         'Corrected Class',
         'Stage Class',
         'Corrected Stage',
+        'Zone Class',
+        'Corrected Zone',
         'Probability',
         'Stage Probability',
+        'Zone Probability',
+        'Final Decision',  # NEW
         'Comment',
         'Image URL',
         'Execution Time',
@@ -35,8 +39,12 @@ def export_misclassified_rop(modeladmin, request, queryset):
             obj.corrected_class or "",
             obj.stage_class or "",
             obj.stage_corrected_class or "",
+            obj.zone_class or "",
+            obj.zone_corrected_class or "",
             f"{obj.probability:.4f}",
-            f"{obj.stage_probability:.4f}" if obj.stage_probability else "",
+            f"{obj.stage_probability:.4f}" if obj.stage_probability is not None else "",
+            f"{obj.zone_probability:.4f}" if obj.zone_probability is not None else "",
+            obj.final_decision or "",  # NEW
             obj.review_comment or "",
             request.build_absolute_uri(obj.image_url) if obj.image_url else "",
             obj.execution_time,
@@ -46,7 +54,13 @@ def export_misclassified_rop(modeladmin, request, queryset):
     return response
 
 class PredictionLogAdmin(admin.ModelAdmin):
-    list_display = ('user', 'file_name', 'predicted_class', 'classification_status', 'timestamp')
+    list_display = (
+        'user', 'file_name',
+        'predicted_class', 'stage_class', 'zone_class',
+        'final_decision',                       # NEW
+        'classification_status', 'timestamp'
+    )
     actions = [export_misclassified_rop]
+
 
 admin.site.register(PredictionLog, PredictionLogAdmin)

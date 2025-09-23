@@ -15,6 +15,7 @@
             font-family: 'Inter', 'Poppins', sans-serif;
             background-color: #f7f9fc;
         }
+
         .main-container-bg {
             background-color: #ffffff;
         }
@@ -27,22 +28,32 @@
             max-width: 90%;
             animation: fadeIn 0.5s ease-out;
         }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .user-message {
             margin-left: auto;
         }
+
         .assistant-message {
             margin-right: auto;
         }
+
         .message-wrapper {
             display: flex;
             align-items: flex-start;
             gap: 1rem;
         }
+
         .user-message .message-wrapper {
             flex-direction: row-reverse;
         }
@@ -54,6 +65,7 @@
             position: relative;
             margin-top: 0.25rem;
         }
+
         .avatar {
             width: 100%;
             height: 100%;
@@ -67,77 +79,177 @@
         .avatar-wrapper.thinking::after {
             content: '';
             position: absolute;
-            top: -3px; left: -3px; right: -3px; bottom: -3px;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
             border-radius: 50%;
             border: 2px solid transparent;
             border-top-color: #4338ca; /* indigo-700 */
             animation: spin 1s linear infinite;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
 
         .message-content {
             color: #1f2937; /* gray-800 */
             line-height: 1.75;
         }
+
         .user-message .message-content p {
             background-color: #eef2ff; /* indigo-50 */
             color: #3730a3; /* indigo-800 */
             padding: 0.75rem 1.25rem;
             border-radius: 1.5rem;
         }
-        .prose { font-size: 1rem; }
-        .prose p:first-child { margin-top: 0; }
-        .prose p:last-child { margin-bottom: 0; }
-        @keyframes pulse { 50% { opacity: 0.5; } }
-        .thinking-text { animation: pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        .thinking-details summary {
-            cursor: pointer; padding: 0.25rem 0.75rem; margin-top: 1rem; border-radius: 9999px;
-            background-color: #f3f4f6; color: #4b5563; font-size: 0.8rem; font-weight: 500;
-            display: inline-flex; align-items: center; gap: 0.5rem; outline: none; transition: background-color 0.2s;
+
+        .prose {
+            font-size: 1rem;
         }
-        .thinking-details summary:hover { background-color: #e5e7eb; }
-        .thinking-details summary::-webkit-details-marker { display: none; }
-        .thinking-details[open] summary svg.chevron { transform: rotate(180deg); }
+
+        .prose p:first-child {
+            margin-top: 0;
+        }
+
+        .prose p:last-child {
+            margin-bottom: 0;
+        }
+
+        @keyframes pulse {
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .thinking-text {
+            animation: pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        .thinking-details summary {
+            cursor: pointer;
+            padding: 0.25rem 0.75rem;
+            margin-top: 1rem;
+            border-radius: 9999px;
+            background-color: #f3f4f6;
+            color: #4b5563;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            outline: none;
+            transition: background-color 0.2s;
+        }
+
+        .thinking-details summary:hover {
+            background-color: #e5e7eb;
+        }
+
+        .thinking-details summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .thinking-details[open] summary svg.chevron {
+            transform: rotate(180deg);
+        }
+
         .thinking-details pre {
-            background-color: #f8f9fa; border: 1px solid #e8eaed; color: #3c4043;
-            padding: 1rem; border-radius: 8px; margin-top: 0.75rem; white-space: pre-wrap;
-            word-wrap: break-word; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
-            font-size: 0.8rem; position: relative;
+            background-color: #f8f9fa;
+            border: 1px solid #e8eaed;
+            color: #3c4043;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 0.75rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+            font-size: 0.8rem;
+            position: relative;
         }
 
         .prose pre {
-            background-color: #202124 !important; padding: 1rem !important;
-            border-radius: 8px !important; position: relative;
+            background-color: #202124 !important;
+            padding: 1rem !important;
+            border-radius: 8px !important;
+            position: relative;
         }
-        .prose code { color: #e8eaed !important; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace !important; }
+
+        .prose code {
+            color: #e8eaed !important;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;
+        }
+
         .copy-btn {
-            position: absolute; top: 10px; right: 10px; background-color: #3c4043; color: white;
-            border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;
-            font-size: 12px; opacity: 0; transition: opacity 0.2s;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #3c4043;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.2s;
         }
-        pre:hover .copy-btn { opacity: 1; }
-        .copy-btn:hover { background-color: #5f6368; }
+
+        pre:hover .copy-btn {
+            opacity: 1;
+        }
+
+        .copy-btn:hover {
+            background-color: #5f6368;
+        }
 
         .chat-input-form {
-            background-color: #f0f2f5; border-radius: 1.5rem; padding: 0.5rem;
-            padding-left: 1.25rem; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1);
+            background-color: #f0f2f5;
+            border-radius: 1.5rem;
+            padding: 0.5rem;
+            padding-left: 1.25rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
         }
-        .chat-input-form input { background: transparent; border: none; outline: none; width: 100%; height: 100%; }
+
+        .chat-input-form input {
+            background: transparent;
+            border: none;
+            outline: none;
+            width: 100%;
+            height: 100%;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen py-12 px-4 flex flex-col items-center">
 
 <header class="w-full bg-white shadow-md border-b border-gray-200 px-6 py-3 flex justify-between items-center fixed top-0 left-0 z-50">
-    <div class="flex items-center space-x-3"><img src="{% static 'icons/mediversai_logo_final.png' %}" class="h-8 opacity-90" alt="MediversAI"><h1 class="text-lg font-semibold text-gray-800">ROP Detection</h1></div>
+    <div class="flex items-center space-x-3"><img src="{% static 'icons/mediversai_logo_final.png' %}"
+                                                  class="h-8 opacity-90" alt="MediversAI">
+        <h1 class="text-lg font-semibold text-gray-800">ROP Detection</h1></div>
     {% if user.is_authenticated %}
-    <div class="flex items-center space-x-6 text-sm">
-        <a href="{% url 'history' %}" class="text-gray-700 hover:underline">History</a>
-        <a href="{% url 'double_home' %}" class="text-gray-700 hover:underline">KC AI</a>
-        <div class="relative group">
-            <button class="flex items-center space-x-1 text-gray-700 font-medium focus:outline-none"><span>{{ user.username }}</span><svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg></button>
-            <div class="absolute right-0 mt-2 w-28 bg-white border rounded-md shadow-md opacity-0 group-hover:opacity-100 z-50"><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="block w-full px-4 py-2 text-red-600 text-sm hover:bg-gray-50 text-left">Logout</button></form></div>
+        <div class="flex items-center space-x-6 text-sm">
+            <a href="{% url 'history' %}" class="text-gray-700 hover:underline">History</a>
+            <a href="{% url 'double_home' %}" class="text-gray-700 hover:underline">KC AI</a>
+            <div class="relative group">
+                <button class="flex items-center space-x-1 text-gray-700 font-medium focus:outline-none">
+                    <span>{{ user.username }}</span>
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2"
+                         viewBox="0 0 24 24">
+                        <path d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div class="absolute right-0 mt-2 w-28 bg-white border rounded-md shadow-md opacity-0 group-hover:opacity-100 z-50">
+                    <form method="post" action="{% url 'logout' %}">{% csrf_token %}
+                        <button type="submit"
+                                class="block w-full px-4 py-2 text-red-600 text-sm hover:bg-gray-50 text-left">Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
-    </div>
     {% endif %}
 </header>
 
@@ -148,36 +260,111 @@
         <form method="post" enctype="multipart/form-data" class="space-y-6 text-center">
             {% csrf_token %}
             <div id="upload-box" class="flex justify-center">
-                <label id="upload-label" class="cursor-pointer w-96 h-60 flex flex-col items-center justify-center bg-gray-50 border-2 border-dashed border-blue-400 rounded-xl hover:bg-blue-50 transition relative overflow-hidden">
+                <label id="upload-label"
+                       class="cursor-pointer w-96 h-60 flex flex-col items-center justify-center bg-gray-50 border-2 border-dashed border-blue-400 rounded-xl hover:bg-blue-50 transition relative overflow-hidden">
                     <div id="upload-content" class="flex flex-col items-center justify-center space-y-1">
-                        <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12l1.41 1.41L11 7.83v8.34h2V7.83l5.59 5.58L20 12l-8-8-8 8z"/></svg>
+                        <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M4 12l1.41 1.41L11 7.83v8.34h2V7.83l5.59 5.58L20 12l-8-8-8 8z"/>
+                        </svg>
                         <span class="text-sm text-blue-600">Select an image</span>
                     </div>
                     <input type="file" name="file" accept="image/*" class="hidden" onchange="load(event)">
                 </label>
             </div>
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-8 rounded-full shadow-sm transition inline-flex items-center gap-2">
-                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+            <button type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-8 rounded-full shadow-sm transition inline-flex items-center gap-2">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clip-rule="evenodd"/>
+                </svg>
                 <span>Submit</span>
             </button>
         </form>
     {% else %}
         <div class="space-y-10">
-            <div class="text-center">{% if result.image_data %}<div class="w-full flex justify-center"><img src="{{ result.image_data }}" class="h-64 rounded shadow-md" alt="Uploaded Image"></div>{% endif %}</div>
-            <div class="grid md:grid-cols-2 gap-6 text-center">
-                <div class="bg-white border rounded-xl p-6 shadow-sm"><h3 class="text-lg font-semibold text-blue-600 mb-2">Class Prediction</h3><p class="text-gray-700 text-sm"><span class="font-medium">Result:</span> {{ result.predictions.class_name }}</p><p class="text-gray-500 text-xs"><span class="font-medium">Probability:</span> {{ result.predictions.class_prob }}</p></div>
-                <div class="bg-white border rounded-xl p-6 shadow-sm"><h3 class="text-lg font-semibold text-purple-600 mb-2">Stage Prediction</h3><p class="text-gray-700 text-sm"><span class="font-medium">Stage:</span> {{ result.stage_prediction.stage_name }}</p><p class="text-gray-500 text-xs"><span class="font-medium">Probability:</span> {{ result.stage_prediction.stage_prob }}</p></div>
+            <div class="text-center">{% if result.image_data %}
+                <div class="w-full flex justify-center"><img src="{{ result.image_data }}"
+                                                             class="h-64 rounded shadow-md" alt="Uploaded Image">
+                </div>{% endif %}</div>
+            <div class="grid md:grid-cols-4 gap-6 text-center">
+                <div class="bg-white border rounded-xl p-6 shadow-sm"><h3
+                        class="text-lg font-semibold text-blue-600 mb-2">Plus Prediction</h3>
+                    <p class="text-gray-700 text-sm"><span
+                            class="font-medium">Result:</span> {{ result.predictions.class_name }}</p>
+                    <p class="text-gray-500 text-xs"><span
+                            class="font-medium">Probability:</span> {{ result.predictions.class_prob }}</p></div>
+                <div class="bg-white border rounded-xl p-6 shadow-sm"><h3
+                        class="text-lg font-semibold text-purple-600 mb-2">Stage Prediction</h3>
+                    <p class="text-gray-700 text-sm"><span
+                            class="font-medium">Stage:</span> {{ result.stage_prediction.stage_name }}</p>
+                    <p class="text-gray-500 text-xs"><span
+                            class="font-medium">Probability:</span> {{ result.stage_prediction.stage_prob }}</p></div>
+                <div class="bg-white border rounded-xl p-6 shadow-sm"><h3
+                        class="text-lg font-semibold text-blue-600 mb-2">Zone Prediction</h3>
+                    <p class="text-gray-700 text-sm"><span
+                            class="font-medium">Result:</span> {{ result.zone_prediction.zone_name }}</p>
+                    <p class="text-gray-500 text-xs"><span
+                            class="font-medium">Probability:</span> {{ result.zone_prediction.zone_prob }}</p></div>
+                <div class="bg-white border rounded-xl p-6 shadow-sm">
+                    <h3 class="text-lg font-semibold text-red-600 mb-2">Final Decision</h3>
+                    <p class="text-gray-700 text-sm">
+                        <span class="font-medium">Decision:</span>
+                        {{ result.final_decision }}
+                    </p>
+                    <p class="text-gray-500 text-xs">
+                        <span class="font-medium">Based on:</span>
+                        {{ result.predictions.class_name }} · {{ result.stage_prediction.stage_name }}
+                        · {{ result.zone_prediction.zone_name }}
+                    </p>
+                </div>
+
             </div>
             <div class="bg-gray-100 border border-gray-200 rounded-xl p-6 shadow-sm space-y-4 mt-8 text-left">
                 <form method="post">
                     {% csrf_token %}
                     <input type="hidden" name="feedback_mode" value="true">
-                    <div class="grid sm:grid-cols-2 gap-4">
-                        <div><label class="block text-xs font-medium text-gray-600 mb-1">Correct Stage</label><select name="stage_corrected_class" class="w-full px-3 py-2 text-sm border rounded-md focus:ring-blue-500 focus:border-blue-500"><option value="">-- Select --</option><option value="Stage 0">Stage 0</option><option value="Stage 1">Stage 1</option><option value="Stage 2">Stage 2</option><option value="Stage 3">Stage 3</option></select></div>
-                        <div><label class="block text-xs font-medium text-gray-600 mb-1">Correct Class</label><select name="corrected_class" class="w-full px-3 py-2 text-sm border rounded-md focus:ring-purple-500 focus:border-purple-500"><option value="">-- Select --</option><option value="Normal">Normal</option><option value="Plus">Plus</option></select></div>
+                    <div class="grid sm:grid-cols-3 gap-4">
+                        <div><label class="block text-xs font-medium text-gray-600 mb-1">Correct Stage</label><select
+                                name="stage_corrected_class"
+                                class="w-full px-3 py-2 text-sm border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">-- Select --</option>
+                            <option value="Normal">Normal</option>
+                            <option value="Stage 0">Stage 0</option>
+                            <option value="Stage 1">Stage 1</option>
+                            <option value="Stage 2">Stage 2</option>
+                            <option value="Stage 3">Stage 3</option>
+                            <option value="Stage 4">Stage 4</option>
+                            <option value="Stage 5">Stage 5</option>
+                        </select></div>
+                        <div><label class="block text-xs font-medium text-gray-600 mb-1">Correct Class</label><select
+                                name="corrected_class"
+                                class="w-full px-3 py-2 text-sm border rounded-md focus:ring-purple-500 focus:border-purple-500">
+                            <option value="">-- Select --</option>
+                            <option value="No Plus">No Plus</option>
+                            <option value="Plus">Plus</option>
+                        </select></div>
+                        <div><label class="block text-xs font-medium text-gray-600 mb-1">Correct Zone</label><select
+                                name="corrected_class"
+                                class="w-full px-3 py-2 text-sm border rounded-md focus:ring-purple-500 focus:border-purple-500">
+                            <option value="">-- Select --</option>
+                            <option value="Zone 1">Zone 1</option>
+                            <option value="Zone 2">Zone 2</option>
+                            <option value="Zone 3">Zone 3</option>
+                        </select></div>
+
                     </div>
-                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Comment</label><textarea name="review_comment" rows="3" class="w-full px-3 py-2 text-sm border rounded-md focus:ring-indigo-500 resize-none" placeholder="Optional notes or explanation..."></textarea></div>
-                    <div class="text-center mt-4"><button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-full text-sm shadow-md">Submit Feedback</button></div>
+                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Comment</label><textarea
+                            name="review_comment" rows="3"
+                            class="w-full px-3 py-2 text-sm border rounded-md focus:ring-indigo-500 resize-none"
+                            placeholder="Optional notes or explanation..."></textarea></div>
+                    <div class="text-center mt-4">
+                        <button type="submit"
+                                class="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-full text-sm shadow-md">
+                            Submit Feedback
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -185,7 +372,8 @@
         <div class="bg-gray-50 border border-gray-200 rounded-xl p-6 shadow-sm space-y-4 mt-8">
             <div class="w-full max-w-4xl mx-auto">
                 <div class="flex items-center justify-center gap-3 mb-6">
-                    <div class="avatar-wrapper"><img src="{% static 'icons/gemini.png' %}" alt="AI" class="avatar"></div>
+                    <div class="avatar-wrapper"><img src="{% static 'icons/gemini.png' %}" alt="AI" class="avatar">
+                    </div>
                     <h3 class="text-2xl font-semibold text-gray-800">Chat with Medical Assistant</h3>
                 </div>
                 <div id="chat-messages" class="h-[32rem] overflow-y-auto p-4 mb-4"></div>
@@ -193,8 +381,13 @@
                     <div class="flex-grow flex items-center chat-input-form">
                         <input type="text" id="chat-input" class="p-2" placeholder="Ask about the results...">
                     </div>
-                    <button id="send-btn" class="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold w-12 h-12 rounded-lg flex items-center justify-center transition-all duration-200">
-                        <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                    <button id="send-btn"
+                            class="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold w-12 h-12 rounded-lg flex items-center justify-center transition-all duration-200">
+                        <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                  clip-rule="evenodd"/>
+                        </svg>
                     </button>
                 </div>
             </div>
@@ -222,139 +415,152 @@
 </script>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    if (!document.getElementById('chat-messages')) return;
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!document.getElementById('chat-messages')) return;
 
-    const sendBtn = document.getElementById('send-btn');
-    const chatInput = document.getElementById('chat-input');
-    const chatMessages = document.getElementById('chat-messages');
-    const contextDiv = document.getElementById('prediction-context');
-    const predictionContext = contextDiv ? contextDiv.dataset.context : '{}';
-    let chatHistory = [];
+        const sendBtn = document.getElementById('send-btn');
+        const chatInput = document.getElementById('chat-input');
+        const chatMessages = document.getElementById('chat-messages');
+        const contextDiv = document.getElementById('prediction-context');
+        const predictionContext = contextDiv ? contextDiv.dataset.context : '{}';
+        let chatHistory = [];
 
-    const userAvatarSvg = `<div class="avatar-wrapper"><div class="avatar bg-gray-200"><svg class="w-6 h-6 text-gray-600" fill="currentColor" viewBox="0 0 16 16"><path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/></svg></div></div>`;
-    const aiAvatarHtml = `<div class="avatar-wrapper"><img src="{% static 'icons/gemini.png' %}" alt="AI" class="avatar"></div>`;
-    const computationIconSvg = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+        const userAvatarSvg = `<div class="avatar-wrapper"><div class="avatar bg-gray-200"><svg class="w-6 h-6 text-gray-600" fill="currentColor" viewBox="0 0 16 16"><path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/></svg></div></div>`;
+        const aiAvatarHtml = `<div class="avatar-wrapper"><img src="{% static 'icons/gemini.png' %}" alt="AI" class="avatar"></div>`;
+        const computationIconSvg = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
 
-    async function typewriter(element, text, speed = 15) {
-        element.innerHTML = '▌';
-        for (let i = 0; i < text.length; i++) {
-            element.innerHTML = text.substring(0, i + 1) + '▌';
-            await new Promise(res => setTimeout(res, speed));
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+        async function typewriter(element, text, speed = 15) {
+            element.innerHTML = '▌';
+            for (let i = 0; i < text.length; i++) {
+                element.innerHTML = text.substring(0, i + 1) + '▌';
+                await new Promise(res => setTimeout(res, speed));
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            element.innerHTML = text;
         }
-        element.innerHTML = text;
-    }
 
-    function addCopyButtons(element) {
-        element.querySelectorAll('pre').forEach(pre => {
-            const btn = document.createElement('button');
-            btn.className = 'copy-btn';
-            btn.innerText = 'Copy';
-            btn.onclick = () => {
-                const code = pre.querySelector('code').innerText;
-                navigator.clipboard.writeText(code).then(() => {
-                    btn.innerText = 'Copied!';
-                    setTimeout(() => { btn.innerText = 'Copy'; }, 2000);
-                });
-            };
-            pre.appendChild(btn);
-        });
-    }
+        function addCopyButtons(element) {
+            element.querySelectorAll('pre').forEach(pre => {
+                const btn = document.createElement('button');
+                btn.className = 'copy-btn';
+                btn.innerText = 'Copy';
+                btn.onclick = () => {
+                    const code = pre.querySelector('code').innerText;
+                    navigator.clipboard.writeText(code).then(() => {
+                        btn.innerText = 'Copied!';
+                        setTimeout(() => {
+                            btn.innerText = 'Copy';
+                        }, 2000);
+                    });
+                };
+                pre.appendChild(btn);
+            });
+        }
 
-    async function addMessage(role, data) {
-        const messageWrapper = document.createElement('div');
-        messageWrapper.className = `chat-message ${role}-message`;
-        const messageContentWrapper = document.createElement('div');
-        messageContentWrapper.className = 'message-wrapper';
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'message-content';
+        async function addMessage(role, data) {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = `chat-message ${role}-message`;
+            const messageContentWrapper = document.createElement('div');
+            messageContentWrapper.className = 'message-wrapper';
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
 
-        if (role === 'user') {
-            contentDiv.innerHTML = `<p>${data}</p>`;
-            messageContentWrapper.innerHTML = userAvatarSvg;
-            messageContentWrapper.appendChild(contentDiv);
-        } else {
-            const answerDiv = document.createElement('div');
-            answerDiv.className = 'prose prose-sm max-w-none';
-            contentDiv.appendChild(answerDiv);
-            messageContentWrapper.innerHTML = aiAvatarHtml;
-            messageContentWrapper.appendChild(contentDiv);
+            if (role === 'user') {
+                contentDiv.innerHTML = `<p>${data}</p>`;
+                messageContentWrapper.innerHTML = userAvatarSvg;
+                messageContentWrapper.appendChild(contentDiv);
+            } else {
+                const answerDiv = document.createElement('div');
+                answerDiv.className = 'prose prose-sm max-w-none';
+                contentDiv.appendChild(answerDiv);
+                messageContentWrapper.innerHTML = aiAvatarHtml;
+                messageContentWrapper.appendChild(contentDiv);
 
-            await typewriter(answerDiv, data.final_answer || '');
+                await typewriter(answerDiv, data.final_answer || '');
 
-            answerDiv.innerHTML = marked.parse(data.final_answer || '');
+                answerDiv.innerHTML = marked.parse(data.final_answer || '');
 
-            // FIXED BLOCK
-            const thinkingHtml = `
+                // FIXED BLOCK
+                const thinkingHtml = `
                 <details class="thinking-details">
                     <summary>${computationIconSvg} <span>Show computation</span></summary>
                     <pre><code>${data.thinking_process || 'No computation available.'}</code></pre>
                 </details>`;
-            // END FIXED BLOCK
+                // END FIXED BLOCK
 
-            contentDiv.insertAdjacentHTML('beforeend', thinkingHtml);
-        }
+                contentDiv.insertAdjacentHTML('beforeend', thinkingHtml);
+            }
 
-        messageWrapper.appendChild(messageContentWrapper);
-        chatMessages.appendChild(messageWrapper);
-        addCopyButtons(messageWrapper);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    };
+            messageWrapper.appendChild(messageContentWrapper);
+            chatMessages.appendChild(messageWrapper);
+            addCopyButtons(messageWrapper);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        };
 
-    async function handleSend() {
-        const query = chatInput.value.trim();
-        if (!query) return;
-        await addMessage('user', query);
-        chatInput.value = '';
-        sendBtn.disabled = true;
+        async function handleSend() {
+            const query = chatInput.value.trim();
+            if (!query) return;
+            await addMessage('user', query);
+            chatInput.value = '';
+            sendBtn.disabled = true;
 
-        const thinkingMsg = document.createElement('div');
-        thinkingMsg.id = 'thinking';
-        thinkingMsg.className = 'chat-message assistant-message';
-        thinkingMsg.innerHTML = `<div class="avatar-wrapper thinking"><img src="{% static 'icons/gemini.png' %}" alt="AI" class="avatar"></div><div class="message-content"><p class="thinking-text bg-gray-100 p-3 rounded-lg">Thinking...</p></div>`;
-        chatMessages.appendChild(thinkingMsg);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+            const thinkingMsg = document.createElement('div');
+            thinkingMsg.id = 'thinking';
+            thinkingMsg.className = 'chat-message assistant-message';
+            thinkingMsg.innerHTML = `<div class="avatar-wrapper thinking"><img src="{% static 'icons/gemini.png' %}" alt="AI" class="avatar"></div><div class="message-content"><p class="thinking-text bg-gray-100 p-3 rounded-lg">Thinking...</p></div>`;
+            chatMessages.appendChild(thinkingMsg);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        try {
-            const response = await fetch('http://127.0.0.1:8001/chat/', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ query: query, prediction_context: predictionContext, chat_history: chatHistory.slice(-4) })
-            });
-            if (!response.ok) { throw new Error(`API Error: ${response.statusText}`); }
-            const data = await response.json();
+            try {
+                const response = await fetch('http://127.0.0.1:8001/chat/', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        query: query,
+                        prediction_context: predictionContext,
+                        chat_history: chatHistory.slice(-4)
+                    })
+                });
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.statusText}`);
+                }
+                const data = await response.json();
 
-            chatMessages.removeChild(thinkingMsg);
-            await addMessage('assistant', data);
+                chatMessages.removeChild(thinkingMsg);
+                await addMessage('assistant', data);
 
-            chatHistory.push({role: 'user', content: query});
-            chatHistory.push({role: 'assistant', content: data.final_answer});
+                chatHistory.push({role: 'user', content: query});
+                chatHistory.push({role: 'assistant', content: data.final_answer});
 
-        } catch (error) {
-            console.error('Error:', error);
-            if (document.getElementById('thinking')) { chatMessages.removeChild(document.getElementById('thinking')); }
-            const errorData = {
-                final_answer: 'Sorry, I encountered an error. Please check the console or try again.',
-                thinking_process: JSON.stringify({ error: error.message }, null, 2)
-            };
-            await addMessage('assistant', errorData);
-        } finally {
-            sendBtn.disabled = false;
-        }
-    };
+            } catch (error) {
+                console.error('Error:', error);
+                if (document.getElementById('thinking')) {
+                    chatMessages.removeChild(document.getElementById('thinking'));
+                }
+                const errorData = {
+                    final_answer: 'Sorry, I encountered an error. Please check the console or try again.',
+                    thinking_process: JSON.stringify({error: error.message}, null, 2)
+                };
+                await addMessage('assistant', errorData);
+            } finally {
+                sendBtn.disabled = false;
+            }
+        };
 
-    chatMessages.innerHTML = '';
-    addMessage('assistant', {final_answer: 'Hello! I am your medical assistant. You can ask me questions about the diagnostic results above.', thinking_process: 'Initial greeting protocol.'});
+        chatMessages.innerHTML = '';
+        addMessage('assistant', {
+            final_answer: 'Hello! I am your medical assistant. You can ask me questions about the diagnostic results above.',
+            thinking_process: 'Initial greeting protocol.'
+        });
 
-    sendBtn.addEventListener('click', handleSend);
-    chatInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSend();
-        }
+        sendBtn.addEventListener('click', handleSend);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+            }
+        });
     });
-});
 </script>
 
 </body>

@@ -1,0 +1,62 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>انتخاب نقش | MediverseAI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png">
+  <style>body{font-family: Vazirmatn, sans-serif}</style>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
+  <div class="bg-white w-full max-w-xl rounded-2xl shadow-xl p-8">
+    <div class="text-center mb-6">
+      <img src="{% static 'icons/mediversai_logo_final-03.png' %}" class="h-10 mx-auto mb-2" />
+      <h1 class="text-xl font-extrabold text-slate-800">انتخاب نقش</h1>
+      <p class="text-slate-500 text-sm mt-1">ابتدا موقعیت خود را مشخص کنید.</p>
+    </div>
+
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <label class="border rounded-xl p-4 text-center cursor-pointer hover:shadow-md">
+          <input class="hidden" type="radio" name="role" value="manager" required>
+          <div class="font-bold text-indigo-700">مدیر</div>
+          <div class="text-xs text-slate-500 mt-1">ثبت شرکت + حساب مدیر</div>
+        </label>
+        <label class="border rounded-xl p-4 text-center cursor-pointer hover:shadow-md">
+          <input class="hidden" type="radio" name="role" value="doctor" required>
+          <div class="font-bold text-indigo-700">پزشک</div>
+          <div class="text-xs text-slate-500 mt-1">ثبت‌نام با کد ملی دعوت</div>
+        </label>
+        <label class="border rounded-xl p-4 text-center cursor-pointer hover:shadow-md">
+          <input class="hidden" type="radio" name="role" value="employee" required>
+          <div class="font-bold text-indigo-700">کارمند</div>
+          <div class="text-xs text-slate-500 mt-1">ثبت‌نام با کد ملی دعوت</div>
+        </label>
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="text-red-600 text-sm">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <button class="w-full mt-4 py-3 rounded-full bg-indigo-600 text-white font-bold hover:bg-indigo-700">
+        ادامه
+      </button>
+    </form>
+
+    <p class="text-center text-xs text-slate-500 mt-4">
+      قبلاً ثبت‌نام کرده‌اید؟
+      <a class="text-indigo-600 hover:underline" href="{% url 'login' %}">ورود</a>
+    </p>
+  </div>
+
+  <script>
+    // click anywhere on card to set the radio
+    document.querySelectorAll('label input[type="radio"]').forEach(r => {
+      const card = r.parentElement;
+      card.addEventListener('click', () => { r.checked = true; });
+    });
+  </script>
+</body>
+</html>

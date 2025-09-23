@@ -48,13 +48,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'single_rop',
     'double_rop',
-    'usac',
     'test_analysis',
     'django.contrib.sites',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    'usac.apps.UsacConfig',
 ]
 SITE_ID = 1
 MIDDLEWARE = [
