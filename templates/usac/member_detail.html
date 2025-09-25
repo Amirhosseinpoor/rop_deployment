@@ -1,88 +1,240 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="fa" dir="rtl" class="h-full" data-theme>
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>پرونده کاربر | MediverseAI</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png">
-  <style>body{font-family: Vazirmatn, sans-serif}</style>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81'},
+          },
+          boxShadow: { soft: '0 10px 25px -10px rgba(0,0,0,.12)' }
+        }
+      },
+      darkMode: 'class'
+    }
+  </script>
+  <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    html, body { font-family: Vazirmatn, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; }
+    .glass { background: rgba(255,255,255,.7); backdrop-filter: blur(10px); }
+    .dark .glass { background: rgba(17,24,39,.6); }
+  </style>
 </head>
-<body class="bg-slate-100 min-h-screen p-4 md:p-8">
+<body class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 text-slate-800 dark:text-slate-100 p-4 md:p-8">
   <div class="max-w-6xl mx-auto space-y-6">
-    <header class="flex items-center justify-between">
-      <div>
-        <h1 class="text-xl font-extrabold text-slate-800">پرونده {{ member.username }}</h1>
-        <p class="text-slate-500 text-sm">{{ member.email }} · {{ member.profile.role }} · {{ member.profile.national_code }}</p>
+    <!-- Header -->
+    <header class="sticky top-4 z-40 glass rounded-2xl border border-slate-200/60 dark:border-slate-700/50 shadow-soft px-5 py-4">
+      <div class="flex items-center justify-between gap-4">
+        <div class="min-w-0">
+          <h1 class="text-xl md:text-2xl font-extrabold truncate">پرونده {{ member.username }}</h1>
+          <p class="text-slate-500 dark:text-slate-400 text-sm truncate">{{ member.email }} · {{ member.profile.role }} · {{ member.profile.national_code }}</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="themeToggle" class="inline-flex items-center justify-center rounded-full border border-slate-300 dark:border-slate-700 p-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="تغییر تم">
+            <svg id="sun" class="w-5 h-5 hidden dark:inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+            <svg id="moon" class="w-5 h-5 dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </button>
+          <a href="{% url 'manager_dashboard' %}" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white/80 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 text-primary-700 dark:text-primary-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/><path d="M19 12H9"/></svg>
+            بازگشت
+          </a>
+        </div>
       </div>
-      <a href="{% url 'manager_dashboard' %}" class="text-indigo-600 hover:underline text-sm">بازگشت</a>
     </header>
 
-    <section class="bg-white rounded-2xl shadow p-6">
-      <h2 class="font-bold text-slate-700 mb-3">پرونده سلامت</h2>
+    <!-- Health profile card -->
+    <section class="glass rounded-2xl p-6 border border-slate-200/60 dark:border-slate-700/50 shadow-soft">
+      <div class="flex items-center justify-between gap-3 mb-3">
+        <h2 class="font-bold text-slate-800 dark:text-slate-100">پرونده سلامت</h2>
+        {% if health_profile %}
+          <a class="inline-flex items-center gap-2 text-sm px-3 py-1.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white transition" href="{% url 'profile_detail' %}?user_id={{ member.id }}">
+            مشاهده جزئیات
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </a>
+        {% endif %}
+      </div>
       {% if health_profile %}
-        <div class="text-sm">
+        <div class="text-sm text-slate-600 dark:text-slate-300">
           <div>تاریخ بروزرسانی: {{ health_profile.updated_at|default:health_profile.created_at|date:"Y-m-d" }}</div>
-          <a class="text-indigo-600 hover:underline" href="{% url 'profile_detail' %}?user_id={{ member.id }}">نمایش جزئیات</a>
+          <div class="mt-1 inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            پرونده فعال
+          </div>
         </div>
       {% else %}
         <div class="text-sm text-slate-500">پرونده‌ای ثبت نشده است.</div>
       {% endif %}
     </section>
 
-    <section class="bg-white rounded-2xl shadow p-6">
-      <h2 class="font-bold text-slate-700 mb-3">نتایج ROP</h2>
-      <div class="overflow-auto">
-        <table class="min-w-full text-sm border">
-          <thead class="bg-slate-50">
+    <!-- Quick stats -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="glass rounded-2xl p-4 border border-slate-200/60 dark:border-slate-700/50 shadow-soft">
+        <div class="text-xs text-slate-500">کل نتایج ROP</div>
+        <div class="text-2xl font-extrabold mt-1">{% if single_results %}{{ single_results|length }}{% else %}0{% endif %}</div>
+      </div>
+      <div class="glass rounded-2xl p-4 border border-slate-200/60 dark:border-slate-700/50 shadow-soft">
+        <div class="text-xs text-slate-500">کل نتایج KC</div>
+        <div class="text-2xl font-extrabold mt-1">{% if double_results %}{{ double_results|length }}{% else %}0{% endif %}</div>
+      </div>
+      <div class="glass rounded-2xl p-4 border border-slate-200/60 dark:border-slate-700/50 shadow-soft">
+        <div class="text-xs text-slate-500">آخرین ROP</div>
+        <div class="text-sm mt-1">{% if single_results %}{{ single_results.0.timestamp|date:"Y-m-d H:i" }}{% else %}—{% endif %}</div>
+      </div>
+      <div class="glass rounded-2xl p-4 border border-slate-200/60 dark:border-slate-700/50 shadow-soft">
+        <div class="text-xs text-slate-500">آخرین KC</div>
+        <div class="text-sm mt-1">{% if double_results %}{{ double_results.0.created_at|date:"Y-m-d H:i" }}{% else %}—{% endif %}</div>
+      </div>
+    </section>
+
+    <!-- ROP Results -->
+    <section class="glass rounded-2xl border border-slate-200/60 dark:border-slate-700/50 shadow-soft overflow-hidden">
+      <div class="px-5 py-4 flex items-center justify-between gap-3 border-b border-slate-200/60 dark:border-slate-700/50">
+        <div class="flex items-center gap-3">
+          <h3 class="font-bold">نتایج ROP</h3>
+          <span class="text-xs text-slate-500">(کامل)</span>
+        </div>
+        <div class="relative">
+          <input id="searchRop" type="search" placeholder="جستجو در جدول..." class="ps-9 pe-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/50 focus:ring-4 focus:ring-primary-200 outline-none" />
+          <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm" id="ropTable">
+          <thead class="bg-slate-50/80 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300">
             <tr>
-              <th class="p-2 border">فایل</th>
-              <th class="p-2 border">کلاس</th>
-              <th class="p-2 border">احتمال</th>
-              <th class="p-2 border">تاریخ</th>
+              <th class="px-4 py-2 text-right">تاریخ</th>
+              <th class="px-4 py-2 text-right">فایل</th>
+              <th class="px-4 py-2 text-right">کلاس</th>
+              <th class="px-4 py-2 text-right">احتمال کلاس</th>
+              <th class="px-4 py-2 text-right">مرحله</th>
+              <th class="px-4 py-2 text-right">احتمال مرحله</th>
+              <th class="px-4 py-2 text-right">زون</th>
+              <th class="px-4 py-2 text-right">احتمال زون</th>
+              <th class="px-4 py-2 text-right">نتیجه نهایی</th>
+              <th class="px-4 py-2 text-right">زمان اجرا</th>
+              <th class="px-4 py-2 text-right">تصاویر</th>
             </tr>
           </thead>
           <tbody>
-          {% for s in single_results %}
+          {% if single_results %}
+            {% for s in single_results %}
+              <tr class="border-t border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                <td class="px-4 py-2 whitespace-nowrap">{{ s.timestamp|date:"Y-m-d H:i" }}</td>
+                <td class="px-4 py-2">{{ s.file_name }}</td>
+                <td class="px-4 py-2">{{ s.predicted_class }}</td>
+                <td class="px-4 py-2">{{ s.probability|floatformat:3 }}</td>
+                <td class="px-4 py-2">{{ s.stage_class }}</td>
+                <td class="px-4 py-2">{{ s.stage_probability|floatformat:3 }}</td>
+                <td class="px-4 py-2">{{ s.zone_class }}</td>
+                <td class="px-4 py-2">{{ s.zone_probability|floatformat:3 }}</td>
+                <td class="px-4 py-2 font-semibold">{{ s.final_decision|default:"—" }}</td>
+                <td class="px-4 py-2">{{ s.execution_time }} ms</td>
+                <td class="px-4 py-2 space-x-2 space-x-reverse">
+                  {% if s.image_url %}
+                    <a class="inline-flex items-center gap-1 text-primary-600 hover:underline" href="{{ s.image_url }}" target="_blank">اصل تصویر</a>
+                  {% endif %}
+                  {% if s.segmented_image_url %}
+                    <a class="inline-flex items-center gap-1 text-primary-600 hover:underline" href="{{ s.segmented_image_url }}" target="_blank">عروق/ماسک</a>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
             <tr>
-              <td class="p-2 border">{{ s.file_name }}</td>
-              <td class="p-2 border">{{ s.predicted_class }}</td>
-              <td class="p-2 border">{{ s.probability|floatformat:3 }}</td>
-              <td class="p-2 border">{{ s.timestamp|date:"Y-m-d H:i" }}</td>
+              <td colspan="11" class="px-4 py-6 text-center text-slate-500">رکوردی موجود نیست.</td>
+            </tr>
+          {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- KC Results -->
+    <section class="glass rounded-2xl p-6 border border-slate-200/60 dark:border-slate-700/50 shadow-soft">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-bold text-slate-800 dark:text-slate-100">نتایج KC</h2>
+        <div class="relative">
+          <input id="searchKc" type="search" placeholder="جستجو در KC..." class="ps-9 pe-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/50 focus:ring-4 focus:ring-primary-200 outline-none" />
+          <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        </div>
+      </div>
+      <div class="overflow-auto rounded-xl border border-slate-200 dark:border-slate-700">
+        <table class="min-w-full text-sm" id="kcTable">
+          <thead class="bg-slate-50/80 dark:bg-slate-800/50">
+            <tr>
+              <th class="p-2 text-right">برچسب‌ها</th>
+              <th class="p-2 text-right">احتمال‌ها</th>
+              <th class="p-2 text-right">تاریخ</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+          {% for d in double_results %}
+            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+              <td class="p-2 whitespace-nowrap">
+                <span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-200">L: {{ d.left_label }}</span>
+                <span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900/30 dark:text-fuchsia-200">R: {{ d.right_label }}</span>
+                <span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">Z: {{ d.z_class_label }}</span>
+              </td>
+              <td class="p-2 whitespace-nowrap">
+                L: {{ d.left_probability|floatformat:3 }} · R: {{ d.right_probability|floatformat:3 }} · Z: {{ d.z_class_probability|floatformat:3 }}
+              </td>
+              <td class="p-2 whitespace-nowrap">{{ d.created_at|date:"Y-m-d H:i" }}</td>
             </tr>
           {% empty %}
-            <tr><td class="p-2 border text-center" colspan="4">رکوردی موجود نیست.</td></tr>
+            <tr>
+              <td class="p-2 text-center text-slate-500" colspan="3">رکوردی موجود نیست.</td>
+            </tr>
           {% endfor %}
           </tbody>
         </table>
       </div>
     </section>
 
-    <section class="bg-white rounded-2xl shadow p-6">
-      <h2 class="font-bold text-slate-700 mb-3">نتایج KC</h2>
-      <div class="overflow-auto">
-        <table class="min-w-full text-sm border">
-          <thead class="bg-slate-50">
-            <tr>
-              <th class="p-2 border">برچسب‌ها</th>
-              <th class="p-2 border">احتمال‌ها</th>
-              <th class="p-2 border">تاریخ</th>
-            </tr>
-          </thead>
-          <tbody>
-          {% for d in double_results %}
-            <tr>
-              <td class="p-2 border">L: {{ d.left_label }} | R: {{ d.right_label }} | Z: {{ d.z_class_label }}</td>
-              <td class="p-2 border">L: {{ d.left_probability|floatformat:3 }} | R: {{ d.right_probability|floatformat:3 }} | Z: {{ d.z_class_probability|floatformat:3 }}</td>
-              <td class="p-2 border">{{ d.created_at|date:"Y-m-d H:i" }}</td>
-            </tr>
-          {% empty %}
-            <tr><td class="p-2 border text-center" colspan="3">رکوردی موجود نیست.</td></tr>
-          {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </section>
+    <footer class="py-6 text-center text-xs text-slate-500 dark:text-slate-400">ساخته‌شده با ❤️ در MediverseAI</footer>
   </div>
+
+  <script>
+    // Theme toggle with localStorage
+    const root = document.documentElement;
+    const toggle = document.getElementById('themeToggle');
+    const stored = localStorage.getItem('theme');
+    if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      root.classList.add('dark');
+    }
+    toggle?.addEventListener('click', () => {
+      root.classList.toggle('dark');
+      localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+      document.getElementById('sun')?.classList.toggle('hidden');
+      document.getElementById('moon')?.classList.toggle('hidden');
+    });
+
+    // Simple client-side filters
+    function attachFilter(inputId, tableId) {
+      const input = document.getElementById(inputId);
+      const table = document.getElementById(tableId);
+      if (!input || !table) return;
+      input.addEventListener('input', () => {
+        const q = input.value.trim().toLowerCase();
+        table.querySelectorAll('tbody tr').forEach(tr => {
+          const text = tr.innerText.toLowerCase();
+          // keep empty-state rows visible
+          if (tr.querySelector('[colspan]')) return;
+          tr.style.display = text.includes(q) ? '' : 'none';
+        });
+      });
+    }
+    attachFilter('searchRop', 'ropTable');
+    attachFilter('searchKc', 'kcTable');
+  </script>
 </body>
 </html>

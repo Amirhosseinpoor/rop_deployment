@@ -4,6 +4,10 @@ from django.contrib import messages
 from django.db import connection
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
+# NEW imports (add near the top of views.py)
+from django.db.models import Q
+from django.core.serializers.json import DjangoJSONEncoder
+import json
 
 import csv
 
@@ -20,6 +24,18 @@ from test_analysis.models import HealthProfile
 # -----------------------
 # Helpers
 # -----------------------
+
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def role_based_redirect(request):
+    """Redirect user after login based on role."""
+    role = getattr(getattr(request.user, "profile", None), "role", None)
+    if role == UserProfile.ROLE_MANAGER:
+        return redirect("manager_dashboard")
+    return redirect("dilemma")
+
+
 def _table_exists(table_name: str) -> bool:
     """Avoid touching tables that aren't migrated yet."""
     try:
@@ -85,7 +101,14 @@ def custom_login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect('dilemma')
+            # redirect by role
+            try:
+                if hasattr(user, "profile") and user.profile.role == UserProfile.ROLE_MANAGER:
+                    return redirect("manager_dashboard")
+            except Exception:
+                pass
+            return redirect("dilemma")
+
         return render(request, 'usac/login.html', {'error': 'Invalid credentials'})
 
     return render(request, 'usac/login.html')
@@ -356,7 +379,6 @@ def _staff_signup(request, role):
         form = StaffSignupForm(role=role)
     return render(request, 'usac/signup_staff.html', {'form': form, 'role': role})
 
-
 # -----------------------
 # Manager dashboard
 # -----------------------
@@ -376,6 +398,10 @@ def manager_dashboard(request):
             'doctors': User.objects.none(),
             'employees': User.objects.none(),
             'invitations': Invitation.objects.none(),
+            # Charts: empty payloads
+            'bmi_bins_json': json.dumps({}, ensure_ascii=False),
+            'risks_json': json.dumps({}, ensure_ascii=False),
+            'opinions_json': json.dumps({}, ensure_ascii=False),
         }
         messages.warning(request, "شرکت شما یافت نشد. اگر همین الان ثبت‌نام کرده‌اید، یکبار خارج و وارد شوید یا ثبت‌نام مدیر را دوباره انجام دهید.")
         return render(request, 'usac/manager_dashboard.html', context)
@@ -393,6 +419,7 @@ def manager_dashboard(request):
 
     invitations = Invitation.objects.filter(company=company).order_by('-created_at')
 
+    # Handle invite POST
     if request.method == 'POST':
         national_code = (request.POST.get('national_code') or '').strip()
         add_role = request.POST.get('invite_role', UserProfile.ROLE_EMPLOYEE)
@@ -415,14 +442,57 @@ def manager_dashboard(request):
         messages.success(request, "کد ملی ذخیره شد. کاربر می‌تواند با این کد ملی ثبت‌نام کند.")
         return redirect('manager_dashboard')
 
+    # =========================
+    #   ANALYTICS / CHART DATA
+    # =========================
+    # Health profiles for *employees* of this company
+    profiles = HealthProfile.objects.filter(user__in=employees)
+
+    # BMI distribution (WHO)
+    bmi_bins = {
+        "کم‌وزن (<18.5)": profiles.filter(bmi__lt=18.5).count(),
+        "نرمال (18.5–24.9)": profiles.filter(bmi__gte=18.5, bmi__lt=25).count(),
+        "اضافه‌وزن (25–29.9)": profiles.filter(bmi__gte=25, bmi__lt=30).count(),
+        "چاق (≥30)": profiles.filter(bmi__gte=30).count(),
+        "نامشخص": profiles.filter(Q(bmi__isnull=True) | Q(bmi__lte=0)).count(),
+    }
+
+    # Health risks prevalence
+    risks = {
+        "دیابت": profiles.filter(has_diabetes=True).count(),
+        "سیگار": profiles.filter(is_currently_smoking=True).count(),
+        "داروی فشار خون": profiles.filter(on_bp_meds=True).count(),
+    }
+
+    # Final medical opinion distribution
+    fit = profiles.filter(opinion_fit=True).count()
+    conditional = profiles.filter(opinion_fit_with_conditions=True).count()
+    unfit = profiles.filter(opinion_unfit=True).count()
+    unspecified = profiles.filter(
+        Q(opinion_fit=False) &
+        Q(opinion_fit_with_conditions=False) &
+        Q(opinion_unfit=False)
+    ).count()
+
+    opinions = {
+        "بلامانع": fit,
+        "مشروط": conditional,
+        "عدم صلاحیت": unfit,
+        "نامشخص": unspecified,
+    }
+
     context = {
         'company': company,
         'doctors': doctors,
         'employees': employees,
         'invitations': invitations,
+
+        # Chart payloads (JSON)
+        'bmi_bins_json': json.dumps(bmi_bins, cls=DjangoJSONEncoder, ensure_ascii=False),
+        'risks_json': json.dumps(risks, cls=DjangoJSONEncoder, ensure_ascii=False),
+        'opinions_json': json.dumps(opinions, cls=DjangoJSONEncoder, ensure_ascii=False),
     }
     return render(request, 'usac/manager_dashboard.html', context)
-
 
 @login_required(login_url='')
 @user_passes_test(is_manager, login_url='')

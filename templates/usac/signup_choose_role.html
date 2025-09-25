@@ -1,61 +1,97 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="fa" dir="rtl" class="h-full" data-theme>
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>انتخاب نقش | MediverseAI</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png">
-  <style>body{font-family: Vazirmatn, sans-serif}</style>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81'},
+          },
+          boxShadow: { soft: '0 10px 25px -10px rgba(0,0,0,.12)' }
+        }
+      },
+      darkMode: 'class'
+    }
+  </script>
+  <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    html, body { font-family: Vazirmatn, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; }
+    .glass { background: rgba(255,255,255,.75); backdrop-filter: blur(12px); }
+    .dark .glass { background: rgba(17,24,39,.7); }
+    label.active { border-color: #6366f1; background-color: #eef2ff; }
+    .dark label.active { border-color: #818cf8; background-color: #312e81; }
+  </style>
 </head>
-<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
-  <div class="bg-white w-full max-w-xl rounded-2xl shadow-xl p-8">
-    <div class="text-center mb-6">
-      <img src="{% static 'icons/mediversai_logo_final-03.png' %}" class="h-10 mx-auto mb-2" />
-      <h1 class="text-xl font-extrabold text-slate-800">انتخاب نقش</h1>
-      <p class="text-slate-500 text-sm mt-1">ابتدا موقعیت خود را مشخص کنید.</p>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 min-h-screen flex items-center justify-center p-4 text-slate-800 dark:text-slate-100">
+  <div class="glass w-full max-w-xl rounded-3xl shadow-soft border border-slate-200/60 dark:border-slate-700/50 p-8">
+    <div class="text-center mb-8">
+      <img src="{% static 'icons/mediversai_logo_final-03.png' %}" class="h-12 mx-auto mb-3" alt="MediverseAI" />
+      <h1 class="text-2xl font-extrabold">انتخاب نقش</h1>
+      <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">ابتدا موقعیت خود را مشخص کنید.</p>
     </div>
 
-    <form method="post" class="space-y-4">
+    <form method="post" class="space-y-6">
       {% csrf_token %}
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <label class="border rounded-xl p-4 text-center cursor-pointer hover:shadow-md">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <label class="border rounded-2xl p-6 flex flex-col items-center text-center cursor-pointer hover:shadow-md transition group">
           <input class="hidden" type="radio" name="role" value="manager" required>
-          <div class="font-bold text-indigo-700">مدیر</div>
+          <div class="w-10 h-10 mb-3 rounded-full flex items-center justify-center bg-primary-100 text-primary-700 group-hover:bg-primary-200">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div class="font-bold text-primary-700">مدیر</div>
           <div class="text-xs text-slate-500 mt-1">ثبت شرکت + حساب مدیر</div>
         </label>
-        <label class="border rounded-xl p-4 text-center cursor-pointer hover:shadow-md">
+        <label class="border rounded-2xl p-6 flex flex-col items-center text-center cursor-pointer hover:shadow-md transition group">
           <input class="hidden" type="radio" name="role" value="doctor" required>
-          <div class="font-bold text-indigo-700">پزشک</div>
+          <div class="w-10 h-10 mb-3 rounded-full flex items-center justify-center bg-emerald-100 text-emerald-700 group-hover:bg-emerald-200">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+          </div>
+          <div class="font-bold text-emerald-700">پزشک</div>
           <div class="text-xs text-slate-500 mt-1">ثبت‌نام با کد ملی دعوت</div>
         </label>
-        <label class="border rounded-xl p-4 text-center cursor-pointer hover:shadow-md">
+        <label class="border rounded-2xl p-6 flex flex-col items-center text-center cursor-pointer hover:shadow-md transition group">
           <input class="hidden" type="radio" name="role" value="employee" required>
-          <div class="font-bold text-indigo-700">کارمند</div>
+          <div class="w-10 h-10 mb-3 rounded-full flex items-center justify-center bg-amber-100 text-amber-700 group-hover:bg-amber-200">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3v18h18"/></svg>
+          </div>
+          <div class="font-bold text-amber-700">کارمند</div>
           <div class="text-xs text-slate-500 mt-1">ثبت‌نام با کد ملی دعوت</div>
         </label>
       </div>
 
       {% if form.non_field_errors %}
-        <div class="text-red-600 text-sm">{{ form.non_field_errors }}</div>
+        <div class="text-rose-600 text-sm">{{ form.non_field_errors }}</div>
       {% endif %}
 
-      <button class="w-full mt-4 py-3 rounded-full bg-indigo-600 text-white font-bold hover:bg-indigo-700">
+      <button class="w-full py-3 rounded-2xl bg-primary-600 hover:bg-primary-700 text-white font-bold shadow-soft transition">
         ادامه
       </button>
     </form>
 
-    <p class="text-center text-xs text-slate-500 mt-4">
+    <p class="text-center text-xs text-slate-500 dark:text-slate-400 mt-6">
       قبلاً ثبت‌نام کرده‌اید؟
-      <a class="text-indigo-600 hover:underline" href="{% url 'login' %}">ورود</a>
+      <a class="text-primary-600 hover:underline" href="{% url 'login' %}">ورود</a>
     </p>
   </div>
 
   <script>
-    // click anywhere on card to set the radio
-    document.querySelectorAll('label input[type="radio"]').forEach(r => {
-      const card = r.parentElement;
-      card.addEventListener('click', () => { r.checked = true; });
+    // clickable card selection
+    document.querySelectorAll('label input[type="radio"]').forEach(radio => {
+      const card = radio.parentElement;
+      card.addEventListener('click', () => {
+        document.querySelectorAll('label').forEach(l => l.classList.remove('active'));
+        radio.checked = true;
+        card.classList.add('active');
+      });
     });
   </script>
 </body>

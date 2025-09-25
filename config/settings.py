@@ -167,7 +167,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://arasai.ir",
     "https://www.arasai.ir",
 ]
-LOGIN_REDIRECT_URL = 'dilemma'
+LOGIN_REDIRECT_URL = 'role_based_redirect'
+
 LOGOUT_REDIRECT_URL = 'login'
 import os
 

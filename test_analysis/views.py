@@ -114,21 +114,41 @@ def create_or_update_health_profile(request):
     return render(request, 'test_analysis/profile_form.html', context)
 
 
+# test_analysis/views.py
+from django.contrib.auth.models import User
+from django.http import HttpResponseForbidden
+from usac.models import UserProfile  # for role check
+
 @login_required
 def profile_detail_view(request):
     """
-    Displays the complete profile, including the final report.
+    - Employee/doctor: sees their own profile
+    - Manager: may see profiles of users in their company via ?user_id=<id>
     """
-    profile = get_object_or_404(HealthProfile, user=request.user)
-    # The final report from the pipeline might already contain markdown
-    html_advice = markdown2.markdown(profile.llm_advice or "No advice generated.")
+    target_user = request.user
+    user_id = request.GET.get("user_id")
 
-    context = {
+    if user_id and str(request.user.id) != str(user_id):
+        # only managers can view others, and only within their company
+        try:
+            if hasattr(request.user, "profile") and request.user.profile.role == UserProfile.ROLE_MANAGER:
+                target_user = get_object_or_404(
+                    User,
+                    pk=user_id,
+                    profile__company__manager=request.user  # company scoping
+                )
+            else:
+                return HttpResponseForbidden("دسترسی ندارید.")
+        except Exception:
+            return HttpResponseForbidden("دسترسی ندارید.")
+
+    profile = get_object_or_404(HealthProfile, user=target_user)
+    html_advice = markdown2.markdown(profile.llm_advice or "No advice generated.")
+    return render(request, 'test_analysis/profile_detail.html', {
         'profile': profile,
         'html_advice': html_advice,
-    }
-    return render(request, 'test_analysis/profile_detail.html', context)
-
+        'viewed_user': target_user,  # optional for template
+    })
 
 @login_required
 def processing_page(request):

@@ -28,4 +28,6 @@ urlpatterns = [
 
     # Utils
     path('send-test-email/', views.send_test_email, name='send_test_email'),
+    path('redirect/', views.role_based_redirect, name='role_based_redirect'),
+
 ]

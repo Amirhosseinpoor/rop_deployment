@@ -1,36 +1,118 @@
 {% load static %}
-<!DOCTYPE html><html lang="fa" dir="rtl"><head>
-<meta charset="UTF-8"><title>ثبت‌نام مدیر | MediverseAI</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png">
-<style>body{font-family:Vazirmatn, sans-serif}</style></head>
-<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
-  <div class="bg-white w-full max-w-3xl rounded-2xl shadow-xl p-8">
-    <div class="text-center mb-6">
-      <img src="{% static 'icons/mediversai_logo_final-03.png' %}" class="h-10 mx-auto mb-2">
-      <h1 class="text-xl font-extrabold text-slate-800">ثبت‌نام مدیر و شرکت</h1>
-      <p class="text-slate-500 text-sm mt-1">اطلاعات شرکت و حساب مدیر را تکمیل کنید.</p>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="h-full" data-theme>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ثبت‌نام مدیر | MediverseAI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { primary:{50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81'}}, boxShadow:{soft:'0 10px 30px -12px rgba(0,0,0,.18)'} } },
+      darkMode:'class'
+    }
+  </script>
+  <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    html, body { font-family: Vazirmatn, ui-sans-serif, system-ui; }
+    .glass { background: rgba(255,255,255,.75); backdrop-filter: blur(12px); }
+    .dark .glass { background: rgba(17,24,39,.7); }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 min-h-screen flex items-center justify-center p-4 text-slate-800 dark:text-slate-100">
+  <!-- سوییچ تم -->
+  <button id="themeToggle" class="fixed top-4 left-4 z-10 inline-flex items-center justify-center rounded-full border border-slate-300 dark:border-slate-700 p-2 bg-white/70 dark:bg-slate-900/70 backdrop-blur hover:bg-white dark:hover:bg-slate-800 transition" title="تغییر تم">
+    <svg id="sun" class="w-5 h-5 hidden dark:inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    <svg id="moon" class="w-5 h-5 dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+
+  <div class="glass w-full max-w-4xl rounded-3xl shadow-soft border border-slate-200/60 dark:border-slate-700/50 p-6 sm:p-10">
+    <div class="text-center mb-8">
+      <img src="{% static 'icons/mediversai_logo_final-03.png' %}" class="h-12 mx-auto mb-3" alt="MediverseAI" />
+      <h1 class="text-2xl font-extrabold">ثبت‌نام مدیر و شرکت</h1>
+      <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">اطلاعات شرکت و حساب مدیر را تکمیل کنید.</p>
     </div>
-    <form method="post" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+    <form method="post" class="grid grid-cols-1 md:grid-cols-2 gap-4" novalidate>
       {% csrf_token %}
-      <div class="md:col-span-2"><h2 class="font-bold text-slate-700 mb-2">حساب مدیر</h2></div>
-      <div>{{ form.username.label_tag }} {{ form.username }}</div>
-      <div>{{ form.email.label_tag }} {{ form.email }}</div>
-      <div>{{ form.phone.label_tag }} {{ form.phone }}</div>
-      <div>{{ form.password1.label_tag }} {{ form.password1 }}</div>
-      <div>{{ form.password2.label_tag }} {{ form.password2 }}</div>
-      <div class="md:col-span-2 mt-4"><h2 class="font-bold text-slate-700 mb-2">اطلاعات شرکت</h2></div>
-      <div class="md:col-span-2">{{ form.company_name.label_tag }} {{ form.company_name }}</div>
-      <div class="md:col-span-2">{{ form.company_address.label_tag }} {{ form.company_address }}</div>
-      <div>{{ form.company_email.label_tag }} {{ form.company_email }}</div>
-      <div>{{ form.company_phone.label_tag }} {{ form.company_phone }}</div>
-      {% if form.errors %}<div class="md:col-span-2 text-red-600 text-sm">{{ form.errors }}</div>{% endif %}
+
+      <div class="md:col-span-2"><h2 class="text-lg font-bold text-slate-800 dark:text-white mb-2">حساب مدیر</h2></div>
+      <div class="field">{{ form.username.label_tag }} {{ form.username }}</div>
+      <div class="field">{{ form.email.label_tag }} {{ form.email }}</div>
+      <div class="field">{{ form.phone.label_tag }} {{ form.phone }}</div>
+      <div class="field">{{ form.password1.label_tag }} {{ form.password1 }}</div>
+      <div class="field">{{ form.password2.label_tag }} {{ form.password2 }}</div>
+
+      <div class="md:col-span-2 mt-4"><h2 class="text-lg font-bold text-slate-800 dark:text-white mb-2">اطلاعات شرکت</h2></div>
+      <div class="field md:col-span-2">{{ form.company_name.label_tag }} {{ form.company_name }}</div>
+      <div class="field md:col-span-2">{{ form.company_address.label_tag }} {{ form.company_address }}</div>
+      <div class="field">{{ form.company_email.label_tag }} {{ form.company_email }}</div>
+      <div class="field">{{ form.company_phone.label_tag }} {{ form.company_phone }}</div>
+
+      {% if form.errors %}
+        <div class="md:col-span-2 bg-rose-50 dark:bg-rose-900/30 border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-200 text-sm rounded-xl px-4 py-2">{{ form.errors }}</div>
+      {% endif %}
+
       <div class="md:col-span-2 mt-2">
-        <button class="w-full py-3 rounded-full bg-indigo-600 text-white font-bold hover:bg-indigo-700">ثبت‌نام</button>
+        <button class="w-full py-3 rounded-2xl bg-primary-600 hover:bg-primary-700 text-white font-bold shadow-soft transition">ثبت‌نام</button>
       </div>
     </form>
-    <p class="text-center text-xs text-slate-500 mt-4">قبلاً حساب دارید؟
-      <a class="text-indigo-600 hover:underline" href="{% url 'login' %}">ورود</a></p>
+
+    <p class="text-center text-xs text-slate-500 dark:text-slate-400 mt-6">قبلاً حساب دارید؟
+      <a class="text-primary-600 hover:underline" href="{% url 'login' %}">ورود</a></p>
   </div>
-  <script>document.querySelectorAll('input,textarea').forEach(el=>el.classList.add('w-full','border','border-slate-300','rounded-lg','p-2'))</script>
-</body></html>
+
+  <script>
+    // تم تیره/روشن
+    const root = document.documentElement;
+    const toggle = document.getElementById('themeToggle');
+    const stored = localStorage.getItem('theme');
+    if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      root.classList.add('dark');
+    }
+    toggle?.addEventListener('click', () => {
+      root.classList.toggle('dark');
+      localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+      document.getElementById('sun')?.classList.toggle('hidden');
+      document.getElementById('moon')?.classList.toggle('hidden');
+    });
+
+    // زیباسازی کنترل‌ها (بدون تغییر بک‌اند)
+    const base = 'w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/50 px-3 py-2.5 placeholder-slate-400 focus:ring-4 focus:ring-primary-200 focus:border-primary-500 outline-none';
+    document.querySelectorAll('input, textarea, select').forEach(el => {
+      el.classList.add(...base.split(' '));
+      if (el.tagName.toLowerCase() === 'textarea') el.classList.add('min-h-[110px]');
+    });
+
+    // فارسی‌سازی لیبل‌ها و placeholderها در صورت انگلیسی بودن
+    (function(){
+      const fa = {
+        username:{label:'نام کاربری', placeholder:'نام کاربری'},
+        email:{label:'ایمیل', placeholder:'ایمیل'},
+        phone:{label:'شماره', placeholder:'شماره تماس'},
+        password1:{label:'رمز عبور', placeholder:'رمز عبور'},
+        password2:{label:'تأیید رمز عبور', placeholder:'تکرار رمز عبور'},
+        company_name:{label:'نام شرکت', placeholder:'نام شرکت'},
+        company_address:{label:'آدرس شرکت', placeholder:'نشانی دقیق شرکت'},
+        company_email:{label:'ایمیل شرکت', placeholder:'example@company.com'},
+        company_phone:{label:'تلفن شرکت', placeholder:'شماره تماس شرکت'}
+      };
+      Object.keys(fa).forEach(name => {
+        const input = document.querySelector(`[name="${name}"]`);
+        if (!input) return;
+        if (!input.placeholder || /username|password|email|phone|Company|Address|Company Email|Password|Email|Username|Phone/i.test(input.placeholder)) {
+          input.placeholder = fa[name].placeholder;
+        }
+        let label = input.previousElementSibling;
+        if (!(label && label.tagName === 'LABEL') && input.id) {
+          label = document.querySelector(`label[for="${input.id}"]`);
+        }
+        if (label) label.textContent = fa[name].label;
+      });
+    })();
+  </script>
+</body>
+</html>
