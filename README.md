@@ -1,5 +1,9 @@
 branch manager
 rop page
+
+
+** templates file -> index.html **
+also the pictures or another assets are placed in static file 
 1) an upload page
 2) after submiting the user will be redirected to the results page
 3) a page that carry results ( now both the upload page and results page place in one html code)
