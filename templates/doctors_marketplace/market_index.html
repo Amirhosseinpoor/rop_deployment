@@ -1,0 +1,345 @@
+{% load static dm_extras %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>بازار پزشکان</title>
+
+  <!-- فونت فارسی -->
+  <link rel="preconnect" href="https://fonts.bunny.net">
+  <link href="https://fonts.bunny.net/css?family=vazirmatn:300,400,600,800" rel="stylesheet" />
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        container: { center: true, padding: '1rem' },
+        extend: {
+          fontFamily: { sans: ['Vazirmatn','ui-sans-serif','system-ui'] },
+          colors: {
+            brand: { 50:'#f5f3ff', 100:'#ede9fe', 500:'#7c3aed', 600:'#6d28d9', 700:'#5b21b6' },
+            ink: { 900:'#0b1220' }
+          },
+          boxShadow: {
+            soft: '0 10px 30px rgba(0,0,0,0.08)',
+            glass: '0 20px 60px rgba(0,0,0,.12)'
+          },
+          backdropBlur: { xs: '2px' },
+          transitionTimingFunction: {
+            smooth: 'cubic-bezier(.22,.61,.36,1)'
+          },
+          keyframes: {
+            fadeSlideUp: { '0%':{opacity:0,transform:'translateY(16px)'},
+                           '100%':{opacity:1,transform:'translateY(0)'} },
+            shimmer: {
+              '0%': { backgroundPosition: '200% 0' },
+              '100%': { backgroundPosition: '-200% 0' }
+            },
+            floaty: { '0%':{transform:'translateY(0)'},
+                      '50%':{transform:'translateY(-6px)'},
+                      '100%':{transform:'translateY(0)'} }
+          },
+          animation: {
+            fadeSlideUp: 'fadeSlideUp .7s smooth both',
+            shimmer: 'shimmer 2s linear infinite',
+            floaty: 'floaty 6s ease-in-out infinite'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Glass helpers */
+    .glass{background:rgba(255,255,255,.65);backdrop-filter:blur(10px)}
+    .dark .glass{background:rgba(17,24,39,.5);border-color:rgba(255,255,255,.08)}
+    /* Line clamp */
+    .line-clamp-3{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+    /* Reduce motion respect */
+    @media (prefers-reduced-motion: reduce){
+      *{animation: none!important; transition: none!important}
+    }
+    /* Hover 3D tilt (subtle) */
+    .tilt:hover{transform: perspective(800px) rotateX(3deg) rotateY(-3deg) translateZ(0)}
+    .tilt{transition: transform .4s cubic-bezier(.22,.61,.36,1)}
+    /* Skeleton block */
+    .skeleton{
+      background: linear-gradient(90deg, rgba(0,0,0,0.06) 25%, rgba(0,0,0,0.12) 37%, rgba(0,0,0,0.06) 63%);
+      background-size: 400% 100%;
+    }
+  </style>
+</head>
+
+<body class="bg-gradient-to-br from-gray-50 to-brand-50 dark:from-ink-900 dark:to-gray-900 text-gray-800 dark:text-gray-100 min-h-screen font-sans">
+  <!-- هدر شیشه‌ای با پارالاکس -->
+  <header id="appHeader" class="border-b border-white/30 dark:border-white/10 sticky top-0 z-40 glass">
+    <div class="container flex items-center justify-between py-4">
+      <div class="flex items-center gap-3">
+        <div class="relative">
+          <img src="{% static 'icons/mediversai_logo_final-032.png' %}" class="h-9 w-9 animate-floaty" alt="لوگو">
+          <span class="sr-only">Mediverse AI</span>
+        </div>
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight">بازار پزشکان</h1>
+      </div>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- کلید تم با آیکون متحرک -->
+        <button id="themeToggle" class="relative overflow-hidden text-xs border rounded-full px-3 py-1 hover:bg-black/5 dark:hover:bg-white/10 transition">
+          <span class="flex items-center gap-2">
+            <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition" viewBox="0 0 24 24" fill="currentColor"><path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.8 1.42-1.42zm10.48 0l1.8-1.79 1.41 1.41-1.79 1.8-1.42-1.42zM12 4V1h-0v3h0zm0 19v-3h0v3h0zM4 12H1v0h3v0zm19 0h-3v0h3v0zM6.76 19.16l-1.42 1.42-1.79-1.8 1.41-1.41 1.8 1.79zm10.48 0l1.42 1.42 1.79-1.8-1.41-1.41-1.8 1.79zM12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12z"/></svg>
+            <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 hidden transition" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 0 1 11.21 3 7 7 0 1 0 21 12.79z"/></svg>
+            تغییر تم
+          </span>
+        </button>
+
+        {% if user.is_authenticated %}
+          <a href="{% url 'logout' %}" class="text-sm text-red-600 dark:text-red-400 hover:underline">خروج</a>
+        {% else %}
+          <a href="{% url 'account_login' %}" class="text-sm text-brand-600 hover:underline">ورود</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- نوار ابزار جست‌وجو/فیلتر -->
+    <div class="container pb-4">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+        <div class="lg:col-span-8">
+          <div class="relative">
+            <input id="searchInput" type="search" placeholder="جست‌وجوی پزشک، تخصص یا کلمات کلیدی…"
+              class="w-full rounded-2xl border bg-white/70 dark:bg-white/5 backdrop-blur px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+            <svg class="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"/></svg>
+          </div>
+        </div>
+        <div class="lg:col-span-4">
+          <div class="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
+            <!-- فیلترهای نمونه؛ در صورت نیاز می‌تونی گسترش بدی -->
+            <button data-chip class="chip active">همه</button>
+            <button data-chip class="chip">قلب و عروق</button>
+            <button data-chip class="chip">اورولوژی</button>
+            <button data-chip class="chip">غدد (دیابت)</button>
+            <button data-chip class="chip">فشارخون</button>
+            <button data-chip class="chip">هماتولوژی</button>
+            <button data-chip class="chip">مشاوره خانواده</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- قهرمان (Hero) زیبا -->
+  <section class="relative">
+    <div class="absolute inset-0 pointer-events-none">
+      <div class="h-32 bg-gradient-to-b from-white/60 to-transparent dark:from-white/0"></div>
+    </div>
+    <div class="container pt-6 pb-2">
+      <div class="rounded-3xl glass border border-white/50 dark:border-white/10 shadow-glass p-6 flex flex-col md:flex-row items-center gap-6">
+        <div class="flex-1">
+          <h2 class="text-2xl sm:text-3xl font-extrabold leading-tight">
+            پزشک مناسب خود را سریع پیدا کنید
+          </h2>
+          <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
+            کارت‌های زیر را مرور کنید، فیلتر بزنید و با یک کلیک گفتگو را شروع کنید. همه‌چیز ساده، فارسی و امن.
+          </p>
+        </div>
+        <div class="w-full md:w-auto">
+          <a href="#cardsGrid" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-600 text-white hover:bg-brand-700 transition focus:outline-none focus:ring-2 focus:ring-brand-500">
+            مرور پزشکان
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 16l4-4H8l4 4z"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- گرید کارت‌ها -->
+  <main id="cardsGrid" class="container pb-20 pt-6">
+    <!-- اسکلت هنگام لود اولیه (در صورت کند بودن سرور) -->
+    <div id="skeleton" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for i in "123456" %}
+      <div class="rounded-2xl border glass p-5 shadow-soft">
+        <div class="flex items-center gap-4">
+          <div class="h-16 w-16 rounded-full skeleton animate-shimmer"></div>
+          <div class="flex-1 space-y-2">
+            <div class="h-4 w-2/3 rounded skeleton animate-shimmer"></div>
+            <div class="h-3 w-1/2 rounded skeleton animate-shimmer"></div>
+            <div class="h-3 w-5/6 rounded skeleton animate-shimmer"></div>
+          </div>
+        </div>
+        <div class="mt-4 space-y-2">
+          <div class="h-3 w-full rounded skeleton animate-shimmer"></div>
+          <div class="h-3 w-5/6 rounded skeleton animate-shimmer"></div>
+          <div class="h-3 w-4/6 rounded skeleton animate-shimmer"></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div id="cards" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for d in doctors %}
+        <a href="{% url 'doctors_marketplace:doctor_detail' d.slug %}"
+           class="card block rounded-2xl glass border border-white/50 dark:border-white/10 hover:shadow-xl shadow-soft transition will-change-transform tilt opacity-0"
+           data-specialty="{{ d.specialization_fa|default:d.get_specialization_display }}"
+           data-search="{{ d.name_fa|default:d.name }} {{ d.specialization_fa|default:d.get_specialization_display }} {{ d.headline_fa|default:d.headline }} {{ d.bio_fa|default:d.bio }} {{ d.tags_fa|default:'' }}">
+          <div class="p-5 flex items-center gap-4">
+            <img
+              src="{% if d.avatar %}{{ d.avatar.url }}{% else %}{% static 'avatars/doctor-default.png' %}{% endif %}"
+              class="h-16 w-16 rounded-2xl object-cover ring-2 ring-white/80 dark:ring-white/20"
+              alt="آواتار">
+            <div class="min-w-0">
+              <div class="text-base font-bold truncate">{{ d.name_fa|default:d.name }}</div>
+              <div class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{{ d.specialization_fa|default:d.get_specialization_display }}</div>
+              {% if d.headline_fa or d.headline %}
+                <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-3">{{ d.headline_fa|default:d.headline }}</div>
+              {% endif %}
+            </div>
+          </div>
+          <div class="px-5 pb-5">
+            <p class="text-sm text-gray-700 dark:text-gray-300 line-clamp-3">
+              {{ d.bio_fa|default:d.bio|default:"ارائهٔ راهنمایی تخصصی، مرور آزمایش‌ها و پیشنهاد گام‌های بعدی." }}
+            </p>
+
+            {% if d.tags_fa %}
+              <div class="mt-3 flex flex-wrap gap-1.5">
+                {% for t in d.tags_fa|split:","|slice:":5" %}
+                  <span class="text-[11px] px-2 py-1 rounded-full bg-white/70 dark:bg-white/10 text-gray-700 dark:text-gray-200 border border-white/60 dark:border-white/10">
+                    {{ t }}
+                  </span>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            <div class="mt-4 flex items-center justify-between">
+              <span class="text-xs text-gray-500 dark:text-gray-400">پزشک هوشمند</span>
+              <span class="text-[11px] text-brand-600 group inline-flex items-center gap-1">
+                شروع گفتگو
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 transition group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M9 18l6-6-6-6v12z"/></svg>
+              </span>
+            </div>
+          </div>
+        </a>
+      {% empty %}
+        <div class="col-span-full text-center text-gray-500 dark:text-gray-300 border border-dashed rounded-2xl p-8">
+          هنوز پزشکی ثبت نشده است.
+        </div>
+      {% endfor %}
+    </div>
+  </main>
+
+  <!-- پابرگ -->
+  <footer class="border-t border-white/50 dark:border-white/10 glass">
+    <div class="container py-8 text-xs text-gray-600 dark:text-gray-300 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <span>© {{ now|date:"Y" }} مدی‌ورس‌اِی‌آی — گفتگوهای شما امن و محرمانه است.</span>
+      <div class="flex items-center gap-4">
+        <a href="#" class="hover:text-brand-600">حریم خصوصی</a>
+        <a href="#" class="hover:text-brand-600">قوانین</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- اسکریپت‌ها -->
+  <script>
+    // تم
+    const themeToggle = document.getElementById('themeToggle');
+    const root = document.documentElement;
+    const sun = document.getElementById('sunIcon');
+    const moon = document.getElementById('moonIcon');
+
+    function applyThemeIcon() {
+      const dark = root.classList.contains('dark');
+      sun.classList.toggle('hidden', dark);
+      moon.classList.toggle('hidden', !dark);
+    }
+
+    themeToggle.onclick = () => {
+      root.classList.toggle('dark');
+      localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+      applyThemeIcon();
+    };
+    if (localStorage.getItem('theme') === 'dark') root.classList.add('dark');
+    applyThemeIcon();
+
+    // پارالاکس هدر
+    const header = document.getElementById('appHeader');
+    window.addEventListener('scroll', () => {
+      const y = window.scrollY;
+      header.style.backdropFilter = `blur(${Math.min(12, 2 + y/60)}px)`;
+      header.style.background = root.classList.contains('dark')
+        ? `rgba(17,24,39,${Math.min(.7, .3 + y/600)})`
+        : `rgba(255,255,255,${Math.min(.9, .5 + y/600)})`;
+    }, { passive: true });
+
+    // اسکلتی → محتوای واقعی + انیمیشن ورود stagger
+    const skeleton = document.getElementById('skeleton');
+    const cards = document.getElementById('cards');
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        skeleton.classList.add('hidden');
+        cards.classList.remove('hidden');
+        // Stagger
+        const items = cards.querySelectorAll('.card');
+        items.forEach((el, i) => {
+          el.style.animation = `fadeSlideUp .6s cubic-bezier(.22,.61,.36,1) ${i * 70}ms both`;
+          el.style.opacity = '1';
+        });
+      }, 300); // تأخیر کوتاه برای حس نرمی
+    });
+
+    // جست‌وجوی زنده
+    const searchInput = document.getElementById('searchInput');
+    const cardList = () => Array.from(document.querySelectorAll('#cards .card'));
+    function normalize(s){ return (s||'').toString().toLowerCase(); }
+
+    function applyFilters(){
+      const q = normalize(searchInput.value);
+      const activeChip = document.querySelector('.chip.active');
+      const chipText = activeChip ? activeChip.textContent.trim() : 'همه';
+      const showAll = chipText === 'همه';
+
+      cardList().forEach(card => {
+        const hay = normalize(card.dataset.search);
+        const spec = (card.dataset.specialty || '').trim();
+        const matchText = !q || hay.includes(q);
+        const matchChip = showAll || spec.includes(chipText);
+        const show = matchText && matchChip;
+        card.style.display = show ? '' : 'none';
+      });
+    }
+
+    searchInput.addEventListener('input', applyFilters);
+
+    // چیپ‌ها
+    document.querySelectorAll('[data-chip]').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        applyFilters();
+      });
+    });
+
+    // استایل چیپ‌ها با JS تزریق می‌کنیم تا فایل تمیز بمونه
+    document.querySelectorAll('[data-chip]').forEach(chip=>{
+      chip.classList.add('chip-base');
+    });
+
+    // استایل‌های کمکی چیپ‌ها
+    const style = document.createElement('style');
+    style.textContent = `
+      .chip-base{font-size:.75rem;border-radius:9999px;border:1px solid rgba(0,0,0,.06);padding:.45rem .8rem;background:rgba(255,255,255,.7);backdrop-filter:blur(6px);transition:.25s}
+      .dark .chip-base{border-color:rgba(255,255,255,.08);background:rgba(255,255,255,.06)}
+      .chip-base:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,0,0,.08)}
+      .chip.active{color:white;background:#6d28d9;border-color:transparent}
+    `;
+    document.head.appendChild(style);
+
+    // لینک “مرور پزشکان”
+    document.querySelectorAll('a[href="#cardsGrid"]').forEach(a=>{
+      a.addEventListener('click', e=>{
+        e.preventDefault();
+        document.getElementById('cardsGrid').scrollIntoView({behavior:'smooth', block:'start'});
+      });
+    });
+  </script>
+</body>
+</html>

@@ -15,6 +15,7 @@ urlpatterns = [
     path('health/', include('test_analysis.urls')),  # prefix تمیز
     path('rop/', include('single_rop.urls')),
     path('kc/', include('double_rop.urls')),
+    path('market/', include('doctors_marketplace.urls')),
 ]
 
 if settings.DEBUG:

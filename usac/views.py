@@ -144,6 +144,7 @@ def dilemma_view(request):
             'is_manager': is_manager_flag,
             'is_doctor': is_doctor_flag,
             'is_employee': is_employee_flag,
+            'is_superuser': request.user.is_superuser,  # NEW
         }
     )
 

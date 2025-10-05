@@ -1,0 +1,194 @@
+{% load static dm_extras %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <title>استودیو پزشکان</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        container: { center: true, padding: '1rem' },
+        extend: {
+          fontFamily: { sans: ['Vazirmatn','ui-sans-serif','system-ui'] },
+          colors: {
+            brand: { 50:'#eef2ff', 100:'#e0e7ff', 500:'#6366f1', 600:'#5458e6', 700:'#4f46e5' },
+            mint:  { 500:'#10b981', 600:'#0ea371' },
+            rose:  { 500:'#ef4444', 600:'#dc2626' }
+          },
+          boxShadow: {
+            soft: '0 10px 30px rgba(0,0,0,.08)',
+            glass: '0 20px 60px rgba(0,0,0,.12)',
+            glow:  '0 6px 24px rgba(99,102,241,.25)'
+          },
+          keyframes: {
+            fade: { '0%':{opacity:0, transform:'translateY(8px)'}, '100%':{opacity:1, transform:'none'} },
+            pop:  { '0%':{opacity:0, transform:'scale(.98)'},     '100%':{opacity:1, transform:'scale(1)'} },
+            floaty: { '0%':{transform:'translateY(0)'},'50%':{transform:'translateY(-4px)'},'100%':{transform:'translateY(0)'} },
+            shimmer: { '0%':{backgroundPosition:'200% 0'}, '100%':{backgroundPosition:'-200% 0'} }
+          },
+          animation: {
+            fade: 'fade .45s ease-out both',
+            pop:  'pop .25s ease-out both',
+            floaty: 'floaty 6s ease-in-out infinite',
+            shimmer: 'shimmer 2.5s linear infinite'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .glass{background:rgba(255,255,255,.7);backdrop-filter:blur(10px)}
+    .dark .glass{background:rgba(17,24,39,.6)}
+    .line-clamp-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .chip{font-size:.75rem;border-radius:9999px;border:1px solid rgba(0,0,0,.06);padding:.45rem .9rem;background:rgba(255,255,255,.75);backdrop-filter:blur(6px);transition:.25s}
+    .chip.active{color:white;background:#4f46e5;border-color:transparent;box-shadow:0 8px 24px rgba(79,70,229,.25)}
+    /* Pretty buttons */
+    .btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:.5rem;border-radius:14px;padding:.65rem 1rem;font-weight:700;transition:transform .08s ease, filter .15s, box-shadow .15s}
+    .btn:active{transform:translateY(1px)}
+    .btn-primary{background:linear-gradient(180deg,#6366f1,#4f46e5);color:#fff;box-shadow:0 8px 22px rgba(99,102,241,.25)}
+    .btn-primary:hover{filter:brightness(1.05);box-shadow:0 10px 26px rgba(99,102,241,.32)}
+    .btn-emerald{background:linear-gradient(180deg,#10b981,#0ea371);color:#fff;box-shadow:0 8px 22px rgba(16,185,129,.22)}
+    .btn-emerald:hover{filter:brightness(1.05)}
+    .btn-blue{background:linear-gradient(180deg,#60a5fa,#3b82f6);color:#fff;box-shadow:0 8px 22px rgba(59,130,246,.22)}
+    .btn-red{background:linear-gradient(180deg,#ef4444,#dc2626);color:#fff;box-shadow:0 8px 22px rgba(239,68,68,.22)}
+    .btn-outline{background:#fff;border:1px solid #e5e7eb}
+    .btn-icon{width:1.25rem;height:1.25rem}
+    /* Card hover */
+    .card{transition:transform .2s ease, box-shadow .2s ease}
+    .card:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,.10)}
+  </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-brand-50 min-h-screen text-gray-800">
+  <!-- Header -->
+  <header class="sticky top-0 z-40 glass border-b">
+    <div class="container py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img src="{% static 'icons/mediversai_logo_final-032.png' %}" class="h-8 w-8 animate-floaty" alt="">
+        <h1 class="text-xl sm:text-2xl font-extrabold">استودیو پزشکان</h1>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="{% url 'doctors_marketplace:index' %}" class="btn btn-outline">بازار</a>
+        <a href="{% url 'doctors_marketplace:studio_new' %}" class="btn btn-primary">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          افزودن پزشک
+        </a>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="container pb-4">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+        <div class="lg:col-span-8">
+          <div class="relative">
+            <input id="searchInput" type="search" placeholder="جست‌وجوی نام، تخصص، بیو، برچسب‌ها…"
+              class="w-full rounded-2xl border bg-white/70 backdrop-blur px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-brand-600 transition">
+            <svg class="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"/></svg>
+          </div>
+        </div>
+        <div class="lg:col-span-4">
+          <div class="flex gap-2 overflow-x-auto pb-1">
+            <button data-chip class="chip active">همه</button>
+            <button data-chip class="chip">قلب و عروق</button>
+            <button data-chip class="chip">اورولوژی</button>
+            <button data-chip class="chip">دیابت</button>
+            <button data-chip class="chip">فشارخون</button>
+            <button data-chip class="chip">هماتولوژی</button>
+            <button data-chip class="chip">مشاوره خانواده</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Flash messages -->
+  <main class="container py-6">
+    {% if messages %}
+      <div class="space-y-2 mb-4">
+        {% for m in messages %}
+          {% if m.tags == 'success' %}
+            <div class="p-3 rounded-xl border border-green-200 bg-green-50 text-green-800 animate-fade">{{ m }}</div>
+          {% else %}
+            <div class="p-3 rounded-xl border border-yellow-200 bg-yellow-50 text-yellow-800 animate-fade">{{ m }}</div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Cards -->
+    <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+      {% for d in doctors %}
+      <div class="card rounded-3xl glass border border-white/50 shadow-glass p-5 animate-pop"
+           data-specialty="{{ d.specialization_fa|default:d.get_specialization_display }}"
+           data-search="{{ d.name_fa|default:d.name }} {{ d.specialization_fa|default:d.get_specialization_display }} {{ d.headline_fa|default:d.headline }} {{ d.bio_fa|default:d.bio }} {{ d.tags_fa|default:'' }}">
+        <div class="flex items-center gap-4">
+          <img src="{% if d.avatar %}{{ d.avatar.url }}{% else %}{% static 'avatars/doctor-default.png' %}{% endif %}"
+               class="h-16 w-16 rounded-2xl object-cover ring-2 ring-white/80" alt="">
+          <div class="min-w-0">
+            <div class="text-base font-bold truncate">{{ d.name_fa|default:d.name }}</div>
+            <div class="text-xs text-gray-600 mt-0.5">{{ d.specialization_fa|default:d.get_specialization_display }}</div>
+            {% if d.headline_fa or d.headline %}
+              <div class="text-xs text-gray-500 mt-0.5 line-clamp-2">{{ d.headline_fa|default:d.headline }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        {% with tags=d.tags_fa|default:''|cut:'\r'|cut:'\n'|split:"," %}
+          {% if tags %}
+            <div class="mt-4 flex flex-wrap gap-1.5">
+              {% for t in tags|slice:":5" %}
+                {% if t %}
+                  <span class="text-[11px] px-2 py-1 rounded-full bg-white/80 text-gray-700 border border-white/60">{{ t }}</span>
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <div class="mt-5 grid grid-cols-3 gap-2">
+          <a href="{% url 'doctors_marketplace:studio_edit' d.slug %}" class="btn btn-blue w-full">ویرایش</a>
+          <a href="{% url 'doctors_marketplace:studio_kb' d.slug %}" class="btn btn-emerald w-full">دانش</a>
+          <form method="post" action="{% url 'doctors_marketplace:studio_delete' d.slug %}">
+            {% csrf_token %}
+            <button class="btn btn-red w-full" onclick="return confirm('حذف پزشک؟')">حذف</button>
+          </form>
+        </div>
+      </div>
+      {% empty %}
+        <div class="col-span-full rounded-3xl glass border p-10 text-center text-gray-600 animate-fade">
+          هیچ پزشکی ثبت نشده. از «افزودن پزشک» استفاده کنید.
+          <div class="mt-4">
+            <a href="{% url 'doctors_marketplace:studio_new' %}" class="btn btn-primary">افزودن پزشک</a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </main>
+
+  <script>
+    const searchInput = document.getElementById('searchInput');
+    const chips = Array.from(document.querySelectorAll('[data-chip]'));
+    const cards = Array.from(document.querySelectorAll('#grid > div'));
+    function normalize(s){ return (s||'').toString().toLowerCase(); }
+    function applyFilters(){
+      const q = normalize(searchInput.value);
+      const activeChip = document.querySelector('.chip.active');
+      const chipText = activeChip ? activeChip.textContent.trim() : 'همه';
+      const showAll = chipText === 'همه';
+      cards.forEach(card=>{
+        const hay = normalize(card.dataset.search);
+        const spec = (card.dataset.specialty||'').trim();
+        const matchText = !q || hay.includes(q);
+        const matchChip = showAll || spec.includes(chipText);
+        card.style.display = (matchText && matchChip) ? '' : 'none';
+      });
+    }
+    searchInput.addEventListener('input', applyFilters);
+    chips.forEach(c=>c.addEventListener('click', ()=>{
+      chips.forEach(x=>x.classList.remove('active')); c.classList.add('active'); applyFilters();
+    }));
+  </script>
+</body>
+</html>

@@ -1,0 +1,412 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>گفتگو · {{ session.doctor.name_fa|default:session.doctor.name }}</title>
+
+  <style>
+    :root{
+      /* brighter, high-contrast dark */
+      --bg:#171b22;
+      --panel:#232a36;
+      --panel-2:#26303e;
+      --chip:#303a4a;
+      --text:#f3f4f6;
+      --muted:#b9c1cc;
+      --border:#4a5870;
+      --accent:#6aa9ff;
+      --accent-2:#9cc4ff;
+      --success:#27d3a3;
+      --danger:#ff6b6b;
+      --shadow:0 10px 30px rgba(0,0,0,.25);
+      --radius:14px;
+      --radius-sm:10px;
+      --radius-lg:22px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;background:
+        radial-gradient(1200px 800px at 80% -10%, rgba(92,162,255,.12), transparent 60%),
+        radial-gradient(800px 600px at -10% 20%, rgba(39,211,163,.10), transparent 60%),
+        var(--bg);
+      color:var(--text);
+      font-family:ui-sans-serif, -apple-system, Segoe UI, Tahoma, Geneva, Verdana, sans-serif;
+      overflow:hidden;display:flex
+    }
+
+    /* Layout */
+    .layout{display:grid;grid-template-columns:290px 1fr;gap:0;flex:1;min-width:0}
+    @media (max-width:900px){ .layout{grid-template-columns:1fr} .sidebar{display:none} }
+
+    /* Sidebar */
+    .sidebar{
+      background:var(--panel);border-left:1px solid var(--border);
+      display:flex;flex-direction:column;min-width:0;overflow:auto
+    }
+    .sidebar-header{padding:18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+    .doc-avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;box-shadow: var(--shadow)}
+    .title-wrap{display:flex;flex-direction:column}
+    .doc-name{font-weight:800;font-size:15px}
+    .doc-sub{font-size:12px;color:var(--muted)}
+
+    .sidebar-btn{
+      background:linear-gradient(180deg, var(--chip), var(--panel-2));
+      border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);
+      padding:10px 14px;margin:16px;display:flex;align-items:center;gap:8px;
+      text-decoration:none;box-shadow:var(--shadow);
+      transition:transform .08s ease, background .2s ease,border-color .2s ease, filter .15s
+    }
+    .sidebar-btn:hover{transform:translateY(-1px);border-color:#5a6c8a;filter:brightness(1.05)}
+    .sidebar-btn .ico{width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;background:var(--accent);color:#0b1020;border-radius:50%;font-weight:900}
+
+    .section{padding:16px;border-top:1px solid var(--border)}
+    .section-title{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
+    .section-title::before{content:"▼";font-size:11px;opacity:.8}
+    .chat-list{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+    .chat-item{
+      padding:10px 12px;border-radius:10px;border:1px solid transparent;background:rgba(255,255,255,.02);
+      color:var(--text);text-decoration:none;transition:background .2s,border-color .2s, transform .05s
+    }
+    .chat-item:hover{background:#2a3344;border-color:#5a6c8a}
+    .chat-item.active{background:var(--accent);color:#0b1020}
+
+    .user-footer{margin-top:auto;padding:14px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px}
+    .user-dot{width:36px;height:36px;border-radius:50%;background:var(--accent);color:#0b1020;display:grid;place-items:center;font-weight:900}
+    .username{font-size:13px}
+
+    /* Main */
+    .main{display:flex;flex-direction:column;min-width:0}
+    .chat-header{
+      padding:16px 20px;border-bottom:1px solid var(--border);
+      backdrop-filter:saturate(140%) blur(4px);
+      background:linear-gradient(180deg, rgba(35,42,54,.85), rgba(35,42,54,.6));
+      display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:5
+    }
+    .hdr-id{display:flex;align-items:center;gap:10px}
+    .hdr-name{font-weight:800}
+    .hdr-sub{font-size:12px;color:var(--muted)}
+
+    /* Chat stage */
+    .stage{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}
+
+    /* Centered hero (when no messages) */
+    .hero{
+      position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:18px;text-align:center;padding:24px;pointer-events:none
+    }
+    .hero h1{font-weight:800;letter-spacing:.2px}
+    .hero .sub{color:var(--muted);font-size:14px}
+
+    /* Hero composer */
+    .hero-composer{
+      pointer-events:auto;
+      display:flex;align-items:center;gap:10px;
+      width:min(880px, 92vw);
+      background:linear-gradient(180deg, var(--panel-2), var(--panel));
+      border:1px solid var(--border);
+      border-radius:22px;padding:12px 12px 12px 16px;
+      box-shadow: var(--shadow);
+    }
+    .hero-input{
+      flex:1; min-height:44px; max-height:42vh; resize:none; overflow:auto;
+      background:transparent;border:0;outline:0;color:var(--text);font-size:16px;line-height:1.7;
+    }
+    .hero-send{
+      width:42px;height:42px;border-radius:50%;border:1px solid #4268c6;
+      background:linear-gradient(180deg, var(--accent), var(--accent-2));
+      display:grid;place-items:center;color:#0b1020;font-weight:900;cursor:pointer;
+      box-shadow:0 8px 18px rgba(92,162,255,.35);
+    }
+    .hero-send::after{content:"↩";font-size:18px}
+
+    /* Messages stream */
+    .main, .stage, #messages { min-height:0; }
+    #messages{
+      position:relative;flex:1;overflow:auto;padding:22px 16px 120px;
+      -webkit-overflow-scrolling:touch;
+    }
+    .stream{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+    .stream:empty{display:none}
+
+    .bubble{
+      border-radius:18px;padding:12px 14px;border:1px solid var(--border);
+      background:linear-gradient(180deg, #263040, #232a36);
+      box-shadow: 0 1px 0 rgba(255,255,255,.05) inset;
+    }
+    .bubble.assistant{background:linear-gradient(180deg, #222a38, #1f2632)}
+    .bubble.user{
+      background:linear-gradient(180deg, rgba(106,169,255,.20), rgba(106,169,255,.12));
+      border-color:#6eaefd80
+    }
+    .role{font-size:11px;color:var(--muted);margin-bottom:6px}
+    .msg{white-space:pre-wrap;line-height:1.85;color:var(--text);font-size:15px}
+
+    /* Composer (bottom) */
+    .composer-wrap{
+      position:sticky;bottom:0;z-index:10;
+      background:linear-gradient(180deg, transparent, rgba(35,42,54,.88) 30%, rgba(35,42,54,.96) 100%);
+      padding:12px 16px;border-top:1px solid var(--border)
+    }
+    .composer{margin:0 auto;max-width:900px;display:flex;justify-content:center}
+    .input-zone{position:relative;flex:1}
+    .input{
+      width:100%;padding:16px 56px 16px 152px;border-radius:var(--radius);
+      background:linear-gradient(180deg, var(--panel-2), var(--panel));
+      border:1px solid var(--border);outline:none;color:var(--text);font-size:15px;
+      box-shadow:var(--shadow);transition:border-color .15s, filter .15s;
+      resize:none; line-height:1.6; max-height:40vh; overflow:auto;
+    }
+    .input:hover{filter:brightness(1.04)}
+    .input:focus{border-color:#5a6c8a}
+
+    .chips{position:absolute;bottom:8px;left:8px;display:flex;gap:8px}
+    .chip{
+      background:var(--chip);border:1px solid var(--border);border-radius:999px;padding:6px 10px;font-size:12px;color:var(--text);
+      cursor:pointer;transition:background .15s, transform .05s, filter .15s;display:inline-flex;align-items:center;gap:6px
+    }
+    .chip:hover{background:#3a4961;filter:brightness(1.05)}
+    .chip:active{transform:translateY(1px)}
+
+    .send{
+      position:absolute;bottom:8px;right:8px;width:40px;height:40px;border-radius:50%;
+      border:1px solid #4268c6;background:linear-gradient(180deg, var(--accent), var(--accent-2));
+      display:grid;place-items:center;color:#0b1020;font-weight:900;cursor:pointer;
+      box-shadow:0 8px 18px rgba(92,162,255,.35);
+      transition:transform .08s ease, filter .15s
+    }
+    .send:hover{filter:brightness(1.06)}
+    .send:active{transform:translateY(1px)}
+    .send::after{content:"↩";font-size:18px}
+
+    /* Scrollbar */
+    #messages::-webkit-scrollbar{width:10px}
+    #messages::-webkit-scrollbar-thumb{background:#4a5870;border-radius:999px}
+    #messages::-webkit-scrollbar-track{background:transparent}
+
+    a{text-decoration:none}
+  </style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <img class="doc-avatar" src="{% if session.doctor.avatar %}{{ session.doctor.avatar.url }}{% else %}{% static 'avatars/doctor-default.png' %}{% endif %}" alt="">
+      <div class="title-wrap">
+        <div class="doc-name">{{ session.doctor.name_fa|default:session.doctor.name }}</div>
+        <div class="doc-sub">{{ session.doctor.specialization_fa|default:session.doctor.get_specialization_display }}</div>
+      </div>
+    </div>
+
+    <a class="sidebar-btn" href="{% url 'doctors_marketplace:doctor_detail' session.doctor.slug %}">
+      <span class="ico">⚑</span> صفحهٔ پزشک
+    </a>
+
+    <div class="section">
+      <div class="section-title">همهٔ گفتگوها</div>
+      <div class="chat-list">
+        {% for s in history %}
+          <a href="{% url 'doctors_marketplace:chat' s.id %}" class="chat-item {% if s.id == session.id %}active{% endif %}">
+            {{ s.title|default:"گفتگو" }}
+          </a>
+        {% empty %}
+          <div class="doc-sub">گفتگوی قبلی وجود ندارد</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="user-footer">
+      <div class="user-dot">ش</div>
+      <div class="username">شما</div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <header class="chat-header">
+      <div class="hdr-id">
+        <img class="doc-avatar" src="{% if session.doctor.avatar %}{{ session.doctor.avatar.url }}{% else %}{% static 'avatars/doctor-default.png' %}{% endif %}" alt="">
+        <div>
+          <div class="hdr-name">{{ session.doctor.name_fa|default:session.doctor.name }}</div>
+          <div class="hdr-sub">{{ session.doctor.specialization_fa|default:session.doctor.get_specialization_display }}</div>
+        </div>
+      </div>
+    </header>
+
+    <section class="stage">
+      <!-- Hero (centered when no messages) -->
+      <div id="hero" class="hero" aria-hidden="true">
+        <h1>سلام! چه کمکی از من برمیاد؟</h1>
+        <div class="sub">پرسش خود را در کادر زیر بنویسید یا از چیپ‌ها استفاده کنید.</div>
+
+        <!-- Centered composer -->
+{#        <div class="hero-composer">#}
+{#          <textarea id="heroMsg" rows="1" class="hero-input" placeholder="هرچه می‌خواهید بپرسید…"></textarea>#}
+{#          <button id="heroSend" class="hero-send" aria-label="ارسال"></button>#}
+{#        </div>#}
+
+        <!-- optional quick chips -->
+        <div class="sub" style="opacity:.9">نمونه‌ها: <span data-fill="تحلیل علائم">تحلیل علائم</span> · <span data-fill="سؤال عمومی پزشکی">سؤال عمومی</span></div>
+      </div>
+
+      <!-- Messages -->
+      <div id="messages">
+        <div class="stream">
+          {% for m in messages %}
+            {% if m.role != 'system' %}
+              <div class="bubble {% if m.role == 'assistant' %}assistant{% else %}user{% endif %}">
+                <div class="role">{% if m.role == 'assistant' %}پاسخ دستیار{% else %}کاربر{% endif %}</div>
+                <div class="msg">{{ m.content|linebreaksbr }}</div>
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Composer (bottom) -->
+      <div class="composer-wrap">
+        <form id="composer" class="composer" method="post" action="{% url 'doctors_marketplace:api_send' session.id %}">
+          {% csrf_token %}
+          <div class="input-zone">
+            <!-- textarea (auto-resize) -->
+            <textarea name="message" id="msg" class="input" rows="1" placeholder="پیام خود را بنویسید…" autocomplete="off"></textarea>
+
+            <div class="chips">
+              <button type="button" class="chip" data-fill="+">+</button>
+              <button type="button" class="chip" data-fill="لطفاً با جزئیات فکر کن.">تفکر</button>
+              <button type="button" class="chip" data-fill="جستجو: ">جستجو</button>
+            </div>
+            <button class="send" type="button" aria-label="ارسال"></button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+  const form = document.getElementById('composer');
+  const msgInput = document.getElementById('msg');          // textarea (bottom)
+  const messagesEl = document.getElementById('messages');
+  const stream = messagesEl.querySelector('.stream');
+  const hero = document.getElementById('hero');
+  const heroMsg = document.getElementById('heroMsg');        // textarea (center)
+  const heroSend = document.getElementById('heroSend');
+  const sendBtn = document.querySelector('.send');
+
+  /* ---------- helpers ---------- */
+  const hasAnyMessage = () => stream && stream.children.length > 0;
+
+  const setHeroVisibility = () => {
+    if (!hero) return;
+    const show = !hasAnyMessage();
+    hero.style.display = show ? 'flex' : 'none';
+  };
+
+  const scrollToBottom = () => requestAnimationFrame(() => {
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  });
+
+  function appendBubble(role, text) {
+    const wrap = document.createElement('div');
+    wrap.className = `bubble ${role === 'assistant' ? 'assistant' : 'user'}`;
+    wrap.innerHTML = `<div class="role">${role==='assistant'?'پاسخ دستیار':'کاربر'}</div><div class="msg"></div>`;
+    wrap.querySelector('.msg').textContent = text;
+    stream.appendChild(wrap);
+    setHeroVisibility();
+    scrollToBottom();
+  }
+
+  /* ---------- auto-resize for textareas ---------- */
+  function autoResize(el){
+    if (!el) return;
+    el.style.height = 'auto';
+    const max = Math.round(window.innerHeight * 0.40); // 40vh
+    const next = Math.min(el.scrollHeight, max);
+    el.style.height = next + 'px';
+    el.style.overflowY = (el.scrollHeight > max) ? 'auto' : 'hidden';
+  }
+  ['input','change'].forEach(evt=>{
+    msgInput.addEventListener(evt, ()=>autoResize(msgInput));
+    if (heroMsg) heroMsg.addEventListener(evt, ()=>autoResize(heroMsg));
+  });
+  autoResize(msgInput);
+  if (heroMsg) autoResize(heroMsg);
+
+  /* ---------- hero composer mirrors to bottom composer ---------- */
+  if (heroMsg && heroSend){
+    heroSend.addEventListener('click', ()=>{
+      const val = heroMsg.value.trim();
+      if(!val) return;
+      msgInput.value = val; autoResize(msgInput);
+      heroMsg.value = ''; autoResize(heroMsg);
+      form.requestSubmit();
+    });
+
+    // Enter to send (Shift+Enter for newline) in hero
+    heroMsg.addEventListener('keydown', (e)=>{
+      if (e.key === 'Enter' && !e.shiftKey){
+        e.preventDefault();
+        heroSend.click();
+      }
+    });
+  }
+
+  /* ---------- chips fill ---------- */
+  document.querySelectorAll('[data-fill]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const target = (hero && hero.style.display !== 'none' && heroMsg) ? heroMsg : msgInput;
+      target.value = el.getAttribute('data-fill');
+      target.focus();
+      autoResize(target);
+    });
+  });
+
+  /* ---------- submit flow ---------- */
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = msgInput.value.trim();
+    if (!text) return;
+    const formData = new FormData(form);
+    formData.set('message', text);
+
+    appendBubble('user', text);
+    msgInput.value = '';
+    autoResize(msgInput);
+
+    try {
+      const res = await fetch(form.action, { method: 'POST', body: formData, headers: {'X-Requested-With': 'fetch'} });
+      const data = await res.json();
+      if (data.ok) appendBubble('assistant', data.reply);
+      else appendBubble('assistant', 'خطا: ' + (data.error || 'درخواست ناموفق'));
+    } catch {
+      appendBubble('assistant', 'خطای شبکه. دوباره تلاش کنید.');
+    }
+  });
+
+  // Click send button = submit
+  if (sendBtn) sendBtn.addEventListener('click', () => form.requestSubmit());
+
+  // Enter to send (Shift+Enter for newline) on bottom composer
+  msgInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      form.requestSubmit();
+    }
+  });
+
+  // Auto-scroll when messages change (server push, etc.)
+  const mo = new MutationObserver(scrollToBottom);
+  mo.observe(stream, {childList:true});
+
+  // initial state
+  setHeroVisibility();
+  if (hasAnyMessage()) scrollToBottom();
+</script>
+</body>
+</html>

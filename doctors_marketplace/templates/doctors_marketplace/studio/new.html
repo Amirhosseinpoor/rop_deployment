@@ -1,0 +1,178 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <title>{% if doctor %}ویرایش پزشک{% else %}افزودن پزشک{% endif %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        container: { center: true, padding: '1rem' },
+        extend: {
+          fontFamily: { sans: ['Vazirmatn','ui-sans-serif','system-ui'] },
+          colors: { brand:{500:'#6366f1',600:'#5458e6',700:'#4f46e5'} },
+          boxShadow: { soft:'0 10px 30px rgba(0,0,0,.08)', glass:'0 20px 60px rgba(0,0,0,.12)', glow:'0 8px 26px rgba(99,102,241,.28)' },
+          keyframes: {
+            fade: { '0%':{opacity:0, transform:'translateY(8px)'}, '100%':{opacity:1, transform:'none'} }
+          },
+          animation: { fade: 'fade .4s ease-out both' }
+        }
+      }
+    }
+  </script>
+  <style>
+    .glass{background:rgba(255,255,255,.72);backdrop-filter:blur(10px)}
+    .field{position:relative}
+    .field input[type="text"], .field input[type="file"], .field select, .field textarea{
+      width:100%;border:1px solid #e5e7eb;border-radius:14px;background:rgba(255,255,255,.9);
+      padding:14px 14px 12px; outline:0; transition:border-color .15s, box-shadow .15s
+    }
+    .field input:focus,.field select:focus,.field textarea:focus{border-color:#6366f1; box-shadow:0 0 0 4px rgba(99,102,241,.12)}
+    .field textarea{line-height:1.9}
+    .label-float{
+      position:absolute;right:12px;top:0;transform:translateY(-50%);
+      font-size:.75rem;color:#6b7280;background:white;padding:0 6px;
+    }
+    .btn{display:inline-flex;align-items:center;gap:.5rem;border-radius:14px;padding:.65rem 1rem;font-weight:800;transition:transform .08s ease, filter .15s, box-shadow .15s}
+    .btn:active{transform:translateY(1px)}
+    .btn-primary{background:linear-gradient(180deg,#6366f1,#4f46e5);color:#fff;box-shadow:0 8px 22px rgba(99,102,241,.25)}
+    .btn-outline{background:#fff;border:1px solid #e5e7eb}
+  </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-indigo-50 min-h-screen">
+  <!-- Header -->
+  <header class="sticky top-0 z-40 glass border-b">
+    <div class="container py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img src="{% static 'icons/mediversai_logo_final-032.png' %}" class="h-8 w-8" alt="">
+        <h1 class="text-xl font-extrabold">{% if doctor %}ویرایش پزشک{% else %}افزودن پزشک{% endif %}</h1>
+      </div>
+      <a href="{% url 'doctors_marketplace:studio_index' %}" class="btn btn-outline">بازگشت به استودیو</a>
+    </div>
+  </header>
+
+  <main class="container py-6 animate-fade">
+    {% if messages %}
+      <div class="space-y-2 mb-4">
+        {% for m in messages %}
+          {% if m.tags == 'success' %}
+            <div class="p-3 rounded-xl border border-green-200 bg-green-50 text-green-800">{{ m }}</div>
+          {% else %}
+            <div class="p-3 rounded-xl border border-yellow-200 bg-yellow-50 text-yellow-800">{{ m }}</div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {% csrf_token %}
+
+      <!-- Left: form -->
+      <section class="lg:col-span-8 rounded-3xl glass border p-6 shadow-glass">
+        <!-- Basic -->
+        <h2 class="text-sm font-bold text-gray-700 mb-3">مشخصات پایه</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="field">
+            <label class="label-float">نام (EN)</label>
+            {{ form.name }}
+          </div>
+          <div class="field">
+            <label class="label-float">نام (FA)</label>
+            {{ form.name_fa }}
+          </div>
+          <div class="field">
+            <label class="label-float">اسلاگ</label>
+            {{ form.slug }}
+          </div>
+          <div class="field">
+            <label class="label-float">پرسونا</label>
+            {{ form.persona }}
+          </div>
+          <div class="field">
+            <label class="label-float">تخصص (EN)</label>
+            {{ form.specialization }}
+          </div>
+          <div class="field">
+            <label class="label-float">تخصص (FA)</label>
+            {{ form.specialization_fa }}
+          </div>
+          <div class="field md:col-span-2">
+            <label class="label-float">برچسب‌ها (FA، با ویرگول)</label>
+            {{ form.tags_fa }}
+          </div>
+          <div class="field md:col-span-2">
+            <label class="label-float">هدر (EN)</label>
+            {{ form.headline }}
+          </div>
+          <div class="field md:col-span-2">
+            <label class="label-float">هدر (FA)</label>
+            {{ form.headline_fa }}
+          </div>
+          <div class="field md:col-span-2">
+            <label class="label-float">بیو (EN)</label>
+            {{ form.bio }}
+          </div>
+          <div class="field md:col-span-2">
+            <label class="label-float">بیو (FA)</label>
+            {{ form.bio_fa }}
+          </div>
+        </div>
+
+        <!-- System Prompt -->
+        <h2 class="text-sm font-bold text-gray-700 mt-6 mb-3">سیستم پرامپت (رفتار دستیار)</h2>
+        <div class="field">
+          <label class="label-float">system prompt</label>
+          {{ form.system_prompt }}
+        </div>
+
+        <!-- Active -->
+        <div class="mt-4 flex items-center gap-2">
+          {{ form.is_active }} <span class="text-sm text-gray-700">فعال</span>
+        </div>
+      </section>
+
+      <!-- Right: avatar & actions -->
+      <aside class="lg:col-span-4 space-y-4">
+        <div class="rounded-3xl glass border p-6 shadow-glass">
+          <h3 class="text-sm font-bold text-gray-700 mb-3">آواتار</h3>
+          <div class="flex items-center gap-4">
+            <img id="avatarPreview" src="{% if doctor and doctor.avatar %}{{ doctor.avatar.url }}{% else %}{% static 'avatars/doctor-default.png' %}{% endif %}" class="h-24 w-24 rounded-2xl object-cover ring-2 ring-white/80 shadow-glow" alt="">
+            <div class="field flex-1">
+              {{ form.avatar }}
+              <p class="text-xs text-gray-500 mt-1">PNG/JPG · بهتر است تصویر مربع باشد</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-2xl bg-white/70 border p-4">
+          <div class="text-xs text-gray-600">
+            نکته: اگر «اسلاگ» را خالی بگذارید، از نام انگلیسی ساخته می‌شود.
+          </div>
+        </div>
+      </aside>
+
+      <!-- Sticky save bar -->
+      <div class="fixed inset-x-0 bottom-0 z-40">
+        <div class="container pb-4">
+          <div class="glass border rounded-2xl shadow-glass p-3 flex justify-end gap-3">
+            <a href="{% url 'doctors_marketplace:studio_index' %}" class="btn btn-outline">انصراف</a>
+            <button class="btn btn-primary">ذخیره</button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    // avatar preview
+    const avatarInput = document.querySelector('input[name="avatar"]');
+    const avatarPreview = document.getElementById('avatarPreview');
+    avatarInput?.addEventListener('change', (e)=>{
+      const f = e.target.files?.[0]; if(!f) return;
+      const url = URL.createObjectURL(f); avatarPreview.src = url;
+    });
+  </script>
+</body>
+</html>

@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'usac.apps.UsacConfig',
+    'doctors_marketplace'
 ]
 SITE_ID = 1
 MIDDLEWARE = [

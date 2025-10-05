@@ -107,8 +107,8 @@ You are given:
 1. A disease prediction output.
 2. A list of top 5 doctors.
 3. Medical knowledge (RAG context).
-Your task is to generate a complete, well-explained, and clear **medical report in Persian (Farsi)**. The report **must** include all of the following in Markdown:
-Don't write anything in English. If you encounter with N/A, write it is not accessible in Persian. Write everything in Markdown. Do not use any sticker and emojy. 
+Your task is to generate a complete, well-explained, and clear **medical report in Persian **. The report **must** include all of the following in Markdown:
+write anything in Persian. If you encounter with N/A, write it is not accessible in Persian. Write everything in Markdown. Do not use any sticker and emojy. 
 Wr
 ---
 
@@ -152,7 +152,7 @@ Using the RAG context, explain the disease, symptoms, risks, and risk groups.
     - Services Offered (You should write the services provided in a readable paragraph without summarizing them from `services`, as-is)
     - Score Summary (from `score_summary`)
     - Accepted Insurances (from `accepted_insurances`)
-    - Reservation Link: You can hide the **exact URL** in a word like لینک نوبت دهی.  
+    - Reservation Link: You can hide the **exact URL** in a word like  لینک نوبت دهی.  
       Example:  
       Reservation Link: https://doctoreto.com/doctor/dr-seyed-mokhtar-javdan-nezhad/MRonzZ
 
@@ -180,7 +180,7 @@ Using the RAG context, explain the disease, symptoms, risks, and risk groups.
         Example: Product Link: https://mokamelkhoone.com/products/now-foods-omega-3/
 
     🛑 Do not invent or assume any drug or supplement recommendations.
-    🛑 Do not translate, modify, or shorten any field. Keep the format consistent and clear.
+    ✅ You may translate non-Persian RAG facts into Persian.
     
     ---
     
@@ -206,7 +206,7 @@ Using the RAG context, explain the disease, symptoms, risks, and risk groups.
     🛑 Do not translate or reformat fields.  
     ✅ Present everything in Persian, clearly and politely.
     
-    
+
     ---
         
         
@@ -235,7 +235,7 @@ scrape_drugs_function = {
             "medicine_name": {
                 "type": "string",
                 "description": (
-                    "Name of the medicine or supplement (in English). Example:\n"
+                    "Name of the medicine or supplement (in Persian). Example:\n"
                     "- Magnesium citrate"
 
                 )
