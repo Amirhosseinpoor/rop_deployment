@@ -392,42 +392,69 @@
                 </div>
             </div>
         </div>
-        <div id="prediction-context" data-context="{{ result_json|escapejs }}" style="display: none;"></div>
+        <!-- CRITICAL: Contains the prediction results as a JSON string -->
+        <div id="prediction-context"
+             data-context='{{ result.llm_diagnostic_text|escapejs }}'
+             style="display: none;"></div>
+
     {% endif %}
 </main>
-
 <script>
+    /* ---------- Image preview on upload ---------- */
     function load(event) {
-        if (!document.getElementById('upload-label')) return;
-        const file = event.target.files[0];
+        const file = event.target.files && event.target.files[0];
         if (!file) return;
         const label = document.getElementById('upload-label');
+        if (!label) return;
+
         const oldImg = document.getElementById('preview-image');
         if (oldImg) oldImg.remove();
+
         const preview = document.createElement('img');
         preview.src = URL.createObjectURL(file);
         preview.id = 'preview-image';
         preview.className = 'absolute inset-0 w-full h-full object-contain rounded-xl';
         label.appendChild(preview);
+
         const content = document.getElementById('upload-content');
         if (content) content.classList.add('hidden');
     }
-</script>
 
-<script>
+    /* ---------- Chat widget ---------- */
     document.addEventListener('DOMContentLoaded', () => {
-        if (!document.getElementById('chat-messages')) return;
-
         const sendBtn = document.getElementById('send-btn');
         const chatInput = document.getElementById('chat-input');
         const chatMessages = document.getElementById('chat-messages');
         const contextDiv = document.getElementById('prediction-context');
-        const predictionContext = contextDiv ? contextDiv.dataset.context : '{}';
+
+        if (!sendBtn || !chatInput || !chatMessages || !contextDiv) return;
+
+        // Parse result JSON embedded by Django (should exclude base64 image_data)
+
+        const diagText = contextDiv ? contextDiv.dataset.context || '' : '';
+
+
         let chatHistory = [];
 
-        const userAvatarSvg = `<div class="avatar-wrapper"><div class="avatar bg-gray-200"><svg class="w-6 h-6 text-gray-600" fill="currentColor" viewBox="0 0 16 16"><path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/></svg></div></div>`;
-        const aiAvatarHtml = `<div class="avatar-wrapper"><img src="{% static 'icons/gemini.png' %}" alt="AI" class="avatar"></div>`;
-        const computationIconSvg = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+        const userAvatarSvg = `
+    <div class="avatar-wrapper">
+      <div class="avatar bg-gray-200">
+        <svg class="w-6 h-6 text-gray-600" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
+        </svg>
+      </div>
+    </div>`;
+
+        const aiAvatarHtml = `
+    <div class="avatar-wrapper">
+      <img src="{% static 'icons/gemini.png' %}" alt="AI" class="avatar">
+    </div>`;
+
+        const computationIconSvg = `
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    </svg>`;
 
         async function typewriter(element, text, speed = 15) {
             element.innerHTML = '▌';
@@ -446,60 +473,71 @@
                 btn.innerText = 'Copy';
                 btn.onclick = () => {
                     const code = pre.querySelector('code').innerText;
-                    navigator.clipboard.writeText(code).then(() => {
-                        btn.innerText = 'Copied!';
-                        setTimeout(() => {
-                            btn.innerText = 'Copy';
-                        }, 2000);
-                    });
+                    const el = document.createElement('textarea');
+                    el.value = code;
+                    document.body.appendChild(el);
+                    el.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(el);
+                    btn.innerText = 'Copied!';
+                    setTimeout(() => (btn.innerText = 'Copy'), 2000);
                 };
                 pre.appendChild(btn);
             });
         }
 
         async function addMessage(role, data) {
-            const messageWrapper = document.createElement('div');
-            messageWrapper.className = `chat-message ${role}-message`;
-            const messageContentWrapper = document.createElement('div');
-            messageContentWrapper.className = 'message-wrapper';
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'message-content';
+            const row = document.createElement('div');
+            row.className = `chat-message ${role}-message`;
+
+            const wrap = document.createElement('div');
+            wrap.className = 'message-wrapper';
+
+            const content = document.createElement('div');
+            content.className = 'message-content';
 
             if (role === 'user') {
-                contentDiv.innerHTML = `<p>${data}</p>`;
-                messageContentWrapper.innerHTML = userAvatarSvg;
-                messageContentWrapper.appendChild(contentDiv);
+                content.innerHTML = `<p>${data}</p>`;
+                wrap.innerHTML = userAvatarSvg;
+                wrap.appendChild(content);
             } else {
                 const answerDiv = document.createElement('div');
                 answerDiv.className = 'prose prose-sm max-w-none';
-                contentDiv.appendChild(answerDiv);
-                messageContentWrapper.innerHTML = aiAvatarHtml;
-                messageContentWrapper.appendChild(contentDiv);
+                content.appendChild(answerDiv);
+                wrap.innerHTML = aiAvatarHtml;
+                wrap.appendChild(content);
 
-                await typewriter(answerDiv, data.final_answer || '');
+                const finalAnswer = data.final_answer || '';
+// Clean up structural section titles like "Diagnostic Summary", "User Question", etc.
+                const cleanedAnswer = (finalAnswer || "")
+                    .replace(/^#*\s*Diagnostic Summary[\s\S]*?(?=#*\s*Comprehensive Explanation)/i, "")
+                    .replace(/^#*\s*User Question[\s\S]*?(?=#*\s*Comprehensive Explanation)/i, "")
+                    .replace(/^#*\s*Comprehensive Explanation\s*/i, "")
+                    .trim();
 
-                answerDiv.innerHTML = marked.parse(data.final_answer || '');
+// Typewriter effect for the cleaned text only
+                await typewriter(answerDiv, cleanedAnswer);
+                answerDiv.innerHTML = marked.parse(cleanedAnswer);
 
-                // FIXED BLOCK
+
                 const thinkingHtml = `
-                <details class="thinking-details">
-                    <summary>${computationIconSvg} <span>Show computation</span></summary>
-                    <pre><code>${data.thinking_process || 'No computation available.'}</code></pre>
-                </details>`;
-                // END FIXED BLOCK
-
-                contentDiv.insertAdjacentHTML('beforeend', thinkingHtml);
+        <details class="thinking-details">
+          <summary>${computationIconSvg} <span>Show grounding sources</span></summary>
+          <pre><code>${data.thinking_process || 'No grounding process available.'}</code></pre>
+        </details>`;
+                content.insertAdjacentHTML('beforeend', thinkingHtml);
             }
 
-            messageWrapper.appendChild(messageContentWrapper);
-            chatMessages.appendChild(messageWrapper);
-            addCopyButtons(messageWrapper);
+            row.appendChild(wrap);
+            chatMessages.appendChild(row);
+            addCopyButtons(row);
             chatMessages.scrollTop = chatMessages.scrollHeight;
-        };
+        }
 
         async function handleSend() {
             const query = chatInput.value.trim();
             if (!query) return;
+
             await addMessage('user', query);
             chatInput.value = '';
             sendBtn.disabled = true;
@@ -507,52 +545,76 @@
             const thinkingMsg = document.createElement('div');
             thinkingMsg.id = 'thinking';
             thinkingMsg.className = 'chat-message assistant-message';
-            thinkingMsg.innerHTML = `<div class="avatar-wrapper thinking"><img src="{% static 'icons/gemini.png' %}" alt="AI" class="avatar"></div><div class="message-content"><p class="thinking-text bg-gray-100 p-3 rounded-lg">Thinking...</p></div>`;
+            thinkingMsg.innerHTML =
+                `<div class="avatar-wrapper thinking"><img src="{% static 'icons/gemini.png' %}" alt="AI" class="avatar"></div>` +
+                `<div class="message-content"><p class="thinking-text bg-gray-100 p-3 rounded-lg">Thinking...</p></div>`;
             chatMessages.appendChild(thinkingMsg);
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
             try {
-                const response = await fetch('http://127.0.0.1:8001/chat/', {
+                const apiPayload = {
+                    query: query,
+                    diagnostic_context_text: diagText, // small, direct string
+                    chat_history: JSON.stringify(chatHistory.slice(-4))
+                };
+
+
+                // No trailing slash to avoid 307 redirect
+                const response = await fetch('http://127.0.0.1:8001/chat', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        query: query,
-                        prediction_context: predictionContext,
-                        chat_history: chatHistory.slice(-4)
-                    })
+                    body: JSON.stringify(apiPayload)
                 });
+
                 if (!response.ok) {
-                    throw new Error(`API Error: ${response.statusText}`);
+                    throw new Error(`API Error: ${response.status} ${response.statusText}`);
                 }
+
                 const data = await response.json();
+                const sourceText = (data.context_documents || [])
+                    .map(doc => {
+                        const score = typeof doc.score === 'number' ? doc.score.toFixed(4) : String(doc.score || '');
+                        const content = (doc.content || '').substring(0, 200);
+                        return `Source: ${doc.source}\nScore: ${score}\nContent: ${content}...`;
+                    })
+                    .join('\n\n---\n\n');
+
+                const responseData = {
+                    final_answer: data.answer,
+                    thinking_process:
+                        `User Query:\n${query}\n\n` +
+                        `Diagnostic Context Used (text):\n${diagText}\n\n` +
+                        `--- Retrieved Sources ---\n\n${sourceText}`
+                };
 
                 chatMessages.removeChild(thinkingMsg);
-                await addMessage('assistant', data);
+                await addMessage('assistant', responseData);
 
                 chatHistory.push({role: 'user', content: query});
-                chatHistory.push({role: 'assistant', content: data.final_answer});
-
+                chatHistory.push({role: 'assistant', content: data.answer});
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Error connecting to RAG API:', error);
                 if (document.getElementById('thinking')) {
                     chatMessages.removeChild(document.getElementById('thinking'));
                 }
-                const errorData = {
-                    final_answer: 'Sorry, I encountered an error. Please check the console or try again.',
+                await addMessage('assistant', {
+                    final_answer:
+                        'Sorry, I encountered an error. Please ensure the RAG API is running at **http://127.0.0.1:8001** and try again.',
                     thinking_process: JSON.stringify({error: error.message}, null, 2)
-                };
-                await addMessage('assistant', errorData);
+                });
             } finally {
                 sendBtn.disabled = false;
             }
-        };
+        }
 
+        // Boot greeting
         chatMessages.innerHTML = '';
         addMessage('assistant', {
             final_answer: 'Hello! I am your medical assistant. You can ask me questions about the diagnostic results above.',
             thinking_process: 'Initial greeting protocol.'
         });
 
+        // Bind events
         sendBtn.addEventListener('click', handleSend);
         chatInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -562,6 +624,3 @@
         });
     });
 </script>
-
-</body>
-</html>

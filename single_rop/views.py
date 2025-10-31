@@ -1,12 +1,13 @@
+# webapp/app/views.py
+import json
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.core.files.uploadedfile import InMemoryUploadedFile
+
 from .utils import get_result
 from .models import PredictionLog
-import json
-# Import other necessary modules if needed
+
 
 def home(request):
     if request.method == "POST" and request.POST.get("feedback_mode"):
@@ -30,54 +31,40 @@ def home(request):
         latest_prediction.classification_status = classification_status
         latest_prediction.save()
 
-
-    """
-    Handle GET and POST requests to display the main page with the form.
-    For GET: Display the page.
-    For POST: Process the uploaded image and show the result.
-    """
     result = None
     error = None
     result_json = None
 
     if request.method == "POST":
-        # Check if a file is uploaded
         if "file" in request.FILES:
-            uploaded_file = request.FILES["file"]  # Retrieve the uploaded file
-
-
+            uploaded_file = request.FILES["file"]
             try:
-                # Call the utils.get_result method to process the file
-                result = get_result(image_file=uploaded_file,request=request)
+                result = get_result(image_file=uploaded_file, request=request)
                 if result:
-                    result_json = json.dumps(result)
+                    safe_result = {k: v for k, v in result.items() if k not in ("image_data",)}
+                    result_json = json.dumps(safe_result)
 
             except Exception as ex:
-                error = str(ex)  # Catch and store any error that occurs during prediction
-                print(f"Error during prediction: {error}")  # Debugging print
+                error = str(ex)
+                print(f"Error during prediction: {error}")
 
-    # Render the template with the result (or error, if any)
     return render(request, "index.html", {"result": result, "error": error, "result_json": result_json})
 
 
 @csrf_exempt
 def predict(request):
     """
-    Handle API POST requests to return JSON responses for predictions.
+    Anonymous API endpoint: returns a JSON with diagnostic_context (dict + text)
+    that your RAG service can pass directly as `prediction_context`.
     """
     if request.method == "POST" and "file" in request.FILES:
         uploaded_file = request.FILES["file"]
-
         try:
-            # Call the utils.get_result function to process the uploaded image
-            result = get_result(image_file=uploaded_file, is_api=True)
-
-            return JsonResponse(result)  # Return the prediction as a JSON response
+            result = get_result(image_file=uploaded_file, is_api=True, request=request)
+            return JsonResponse(result)
         except Exception as ex:
-            print(f"Error: {ex}")  # Debugging print
+            print(f"Error: {ex}")
             return JsonResponse({"error": str(ex)}, status=400)
 
-    # If no file is uploaded, return a bad request response
-    print("No file uploaded or invalid request.")  # Debugging print
+    print("No file uploaded or invalid request.")
     return JsonResponse({"error": "No file uploaded or invalid request."}, status=400)
-
