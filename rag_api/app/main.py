@@ -1,16 +1,21 @@
+
+# ============================================
+# main.py
+# ============================================
+
 import uvicorn
+from contextlib import asynccontextmanager
+from typing import List, Optional
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from contextlib import asynccontextmanager
 
-# Import functions from your RAG pipeline
-# FIX: Changed import from absolute path (rag_api.app.rag_pipeline) to
-# a relative path (.app.rag_pipeline) to resolve ModuleNotFoundError when running main.py directly.
 from .rag_pipeline import (
     load_and_process_documents,
     retrieve_and_rerank_documents,
-    generate_answer_with_llm
+    generate_answer_with_llm,
+    retrieve_from_web,
 )
 
 
@@ -22,28 +27,24 @@ async def lifespan(app: FastAPI):
     Initializes the RAG pipeline resources when the application starts
     and cleans up resources when the application shuts down.
     """
-    print("Starting up application and loading RAG pipeline...")
-    # This calls load_and_process_documents() from rag_pipeline.py
+    print("[LIFESPAN] Starting up application and loading RAG pipeline...")
     load_and_process_documents()
     yield
-    print("Shutting down application...")
-    # Optional: Add cleanup logic here if needed (e.g., closing connections)
+    print("[LIFESPAN] Shutting down application...")
+    # Optional: Add cleanup logic here if needed
 
 
 # --- 2. FastAPI App Setup ---
 
-
 app = FastAPI(
-    title="ROP-RAG API Service",
-    version="1.0.0",
-    description="...",
-    # redirect_slashes=True is the FastAPI default; we’ll add both routes below anyway.
+    title="ROP-RAG Agentic API Service",
+    version="1.2.0",
+    description="Agentic RAG API for ROP assistant (Hybrid Local + Web RAG).",
+    lifespan=lifespan,
 )
 
 # Allow CORS for development/frontend access
-origins = [
-    "*",  # Be restrictive in production!
-]
+origins = ["*"]  # tighten in production
 
 app.add_middleware(
     CORSMiddleware,
@@ -54,20 +55,37 @@ app.add_middleware(
 )
 
 
-# --- 3. Pydantic Models for API Data Validation ---
+# --- 3. Pydantic Models ---
 
 class RAGQueryRequest(BaseModel):
     query: str
     chat_history: str = ""
     diagnostic_context_text: str = ""
+    use_web: bool = True  # toggle web RAG on/off
+
+
+class ContextDocument(BaseModel):
+    content: str
+    source: Optional[str] = None
+    sparse_score: Optional[float] = None
+    dense_score: Optional[float] = None
+    hybrid_score: Optional[float] = None
+    rerank_score: Optional[float] = None
+    hybrid_rank: Optional[int] = None
+    retrieval_method: Optional[str] = None
+    origin: Optional[str] = None  # "local" or "web"
 
 
 class RAGQueryResponse(BaseModel):
     """
-    Defines the structure for the outgoing RAG response.
+    Outgoing RAG response.
+    You can see exact retrieved corpus from both local and web,
+    plus the exact (possibly truncated) combined context sent to the LLM.
     """
     answer: str
-    context_documents: list[dict]
+    local_context_documents: List[ContextDocument]
+    web_context_documents: List[ContextDocument]
+    combined_context_truncated: Optional[str] = None
 
 
 # --- 4. API Endpoints ---
@@ -75,66 +93,130 @@ class RAGQueryResponse(BaseModel):
 @app.get("/health")
 def health_check():
     """Simple health check endpoint."""
-    return {"status": "ok", "message": "RAG API is running."}
+    return {"status": "ok", "message": "Agentic RAG API is running."}
 
 
 @app.post("/query_rag", response_model=RAGQueryResponse)
 async def query_rag_endpoint(request: RAGQueryRequest):
     """
-    Accepts a user query, retrieves relevant documents, and generates a grounded answer.
+    Accepts a user query, retrieves relevant documents from:
+      - local hybrid RAG (BM25 + Dense + reranker)
+      - web RAG (Serper + scraping + FAISS + reranker) [optional]
+    and generates a grounded answer combining both contexts.
+
+    You can see:
+      - local_context_documents: exact chunks from local RAG
+      - web_context_documents: exact chunks from web pages
+      - combined_context_truncated: exact text sent to the LLM (after truncation)
     """
     try:
-        # Step 1: Retrieval and Reranking
-        context_docs = retrieve_and_rerank_documents(
+        print("\n========== NEW /query_rag CALL ==========")
+        print(f"[REQUEST] Query: {request.query}")
+        print(f"[REQUEST] use_web: {request.use_web}")
+
+        # --- 1. Local hybrid retrieval ---
+        local_docs = retrieve_and_rerank_documents(
             query=request.query,
-            chat_history=request.chat_history
+            chat_history=request.chat_history,
         )
 
-        # Prepare context documents for the response model
-        response_context = [
-            {"content": doc.page_content, "source": doc.metadata.get("source", "N/A"),
-             "score": doc.metadata.get("score", 0.0)}
-            for doc in context_docs
-        ]
-
-        if not context_docs and not request.diagnostic_context_text:
-            # Fallback if no context is found (allowing LLM to answer only if image data exists)
-            llm_context = []
+        # --- 2. Web RAG (per-query, ephemeral) ---
+        web_docs: List = []
+        if request.use_web:
+            web_docs = retrieve_from_web(
+                user_query=request.query,
+                chat_history=request.chat_history,
+            )
         else:
-            llm_context = context_docs
+            print("[WEB] Skipping web RAG (use_web=False).")
 
-        # Step 2: Generation
-        # IMPORTANT: Pass the new diagnostic_context_text parameter to the LLM function
-        answer = generate_answer_with_llm(
+        print(f"[COMBINE] Local docs: {len(local_docs)}, Web docs: {len(web_docs)}")
+
+        # --- 3. Build separate context lists (so you see exact corpora) ---
+
+        local_context: List[ContextDocument] = []
+        for doc in local_docs:
+            md = doc.metadata or {}
+            local_context.append(
+                ContextDocument(
+                    content=doc.page_content,
+                    source=md.get("source", "N/A"),
+                    sparse_score=md.get("sparse_score"),
+                    dense_score=md.get("dense_score"),
+                    hybrid_score=md.get("hybrid_score"),
+                    rerank_score=md.get("rerank_score"),
+                    hybrid_rank=md.get("hybrid_rank"),
+                    retrieval_method=md.get("retrieval_method"),
+                    origin=md.get("origin", "local"),
+                )
+            )
+
+        web_context: List[ContextDocument] = []
+        for doc in web_docs:
+            md = doc.metadata or {}
+            web_context.append(
+                ContextDocument(
+                    content=doc.page_content,
+                    source=md.get("source", "N/A"),
+                    sparse_score=md.get("sparse_score"),
+                    dense_score=md.get("dense_score"),
+                    hybrid_score=md.get("hybrid_score"),
+                    rerank_score=md.get("rerank_score"),
+                    hybrid_rank=md.get("hybrid_rank"),
+                    retrieval_method=md.get("retrieval_method"),
+                    origin=md.get("origin", "web"),
+                )
+            )
+
+        all_docs = []
+        all_docs.extend(local_docs)
+        all_docs.extend(web_docs)
+
+        if not all_docs and not request.diagnostic_context_text:
+            llm_context = []
+            print("[COMBINE] No retrieval context; answering with diagnostic context only.")
+        else:
+            llm_context = all_docs
+
+        # --- 4. Generation (returns answer + exact combined context) ---
+        answer, used_context_str = generate_answer_with_llm(
             query=request.query,
             context=llm_context,
             chat_history=request.chat_history,
-            diagnostic_context_text=request.diagnostic_context_text  # <-- The essential change
+            diagnostic_context_text=request.diagnostic_context_text,
         )
 
+        print("[RESPONSE] Answer generated.")
         return RAGQueryResponse(
             answer=answer,
-            context_documents=response_context
+            local_context_documents=local_context,
+            web_context_documents=web_context,
+            combined_context_truncated=used_context_str,
         )
 
     except Exception as e:
-        print(f"An error occurred during RAG processing: {e}")
+        print(f"[ERROR] An error occurred during agentic RAG processing: {e}")
         raise HTTPException(
             status_code=500,
-            detail=f"Internal Server Error: Failed to process query. Details: {str(e)}"
+            detail=f"Internal Server Error: Failed to process query. Details: {str(e)}",
         )
 
 
-# New endpoint for /chat to resolve the 404 error
-@app.post("/chat")
-@app.post("/chat/")
+# /chat endpoint mirrors /query_rag
+@app.post("/chat", response_model=RAGQueryResponse)
+@app.post("/chat/", response_model=RAGQueryResponse)
 async def chat_endpoint(request: RAGQueryRequest):
-    # Hard cap the size to avoid accidental blow-ups
+    """
+    Chat-style endpoint that reuses the /query_rag logic.
+    """
     request.diagnostic_context_text = (request.diagnostic_context_text or "")[:4000]
     return await query_rag_endpoint(request)
 
+
 # --- 5. Run Command for Local Development ---
 if __name__ == "__main__":
-    # Note: When running with uvicorn directly, you might need to adjust the import path
-    # and call uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    # Run with:
+    #   python -m rag_api.app.main
+    # or
+    #   uvicorn rag_api.app.main:app --reload
+    uvicorn.run("rag_api.app.main:app", host="0.0.0.0", port=8001, reload=True)

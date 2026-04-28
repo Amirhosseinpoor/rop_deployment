@@ -221,6 +221,99 @@
             width: 100%;
             height: 100%;
         }
+
+        /* ----- Pretty range slider ----- */
+        input.pretty-range {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 0.6rem;
+            border-radius: 9999px;
+            background: linear-gradient(to right, #2563eb 100%, #e5e7eb 0%);
+            outline: none;
+        }
+
+        input.pretty-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 9999px;
+            background: white;
+            border: 2px solid #2563eb; /* indigo-600 */
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .15);
+            cursor: pointer;
+            transition: transform .12s ease;
+        }
+
+        input.pretty-range:active::-webkit-slider-thumb {
+            transform: scale(1.05);
+        }
+
+        input.pretty-range::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 9999px;
+            background: white;
+            border: 2px solid #2563eb;
+            cursor: pointer;
+        }
+
+        /* Bubble over the thumb */
+        .range-bubble {
+            position: absolute;
+            top: -1.85rem;
+            transform: translateX(-50%);
+            background: #111827;
+            color: white;
+            font-size: .70rem;
+            padding: .15rem .45rem;
+            border-radius: 0.35rem;
+            white-space: nowrap;
+            pointer-events: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
+        }
+
+        /* ----- Nice toggle switch ----- */
+        .pretty-switch {
+            position: relative;
+            width: 48px;
+            height: 28px;
+        }
+
+        .pretty-switch input {
+            display: none;
+        }
+
+        .pretty-switch .track {
+            position: absolute;
+            inset: 0;
+            border-radius: 9999px;
+            background: #e5e7eb;
+            transition: background .15s ease;
+            box-shadow: inset 0 0 0 1px #d1d5db;
+        }
+
+        .pretty-switch .thumb {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 22px;
+            height: 22px;
+            border-radius: 9999px;
+            background: white;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
+            transition: transform .18s ease;
+        }
+
+        .pretty-switch input:checked + .track {
+            background: #2563eb33;
+            box-shadow: inset 0 0 0 2px #2563eb;
+        }
+
+        .pretty-switch input:checked + .track + .thumb {
+            transform: translateX(20px);
+        }
+
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen py-12 px-4 flex flex-col items-center">
@@ -260,18 +353,23 @@
         <form method="post" enctype="multipart/form-data" class="space-y-6 text-center">
             {% csrf_token %}
             <div id="upload-box" class="flex justify-center">
-                <label id="upload-label"
-                       class="cursor-pointer w-96 h-60 flex flex-col items-center justify-center bg-gray-50 border-2 border-dashed border-blue-400 rounded-xl hover:bg-blue-50 transition relative overflow-hidden">
+                <label id="upload-label" for="file-input"
+                       class="cursor-pointer w-full max-w-3xl min-h-60 flex flex-col items-center justify-center bg-gray-50 border-2 border-dashed border-blue-400 rounded-2xl hover:bg-blue-50 transition relative overflow-hidden p-4">
                     <div id="upload-content" class="flex flex-col items-center justify-center space-y-1">
                         <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M4 12l1.41 1.41L11 7.83v8.34h2V7.83l5.59 5.58L20 12l-8-8-8 8z"/>
                         </svg>
-                        <span class="text-sm text-blue-600">Select an image</span>
+                        <span class="text-sm text-blue-600">Select one or more images</span>
+                        <span class="text-xs text-gray-500">You can upload multiple fundus photos for the same patient</span>
                     </div>
-                    <input type="file" name="file" accept="image/*" class="hidden" onchange="load(event)">
+                    <input id="file-input" type="file" name="files" accept="image/*" class="hidden" multiple>
+
+                    <div id="preview-grid"
+                         class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 w-full"></div>
                 </label>
             </div>
+
             <button type="submit"
                     class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-8 rounded-full shadow-sm transition inline-flex items-center gap-2">
                 <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -283,11 +381,57 @@
             </button>
         </form>
     {% else %}
+
         <div class="space-y-10">
-            <div class="text-center">{% if result.image_data %}
-                <div class="w-full flex justify-center"><img src="{{ result.image_data }}"
-                                                             class="h-64 rounded shadow-md" alt="Uploaded Image">
-                </div>{% endif %}</div>
+            <div class="text-center">
+                {% if result.image_data %}
+                    <div class="w-full flex flex-col items-center gap-4">
+                        <!-- Canvas -->
+                        <div class="rounded shadow-md bg-white p-2">
+                            <canvas id="vesselCanvas" class="rounded max-h-96"></canvas>
+                        </div>
+
+                        <!-- Controls -->
+                        <div class="w-full max-w-xl flex flex-col gap-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-gray-500">Real photo</span>
+                                <span id="intensityValue" class="text-xs font-medium text-gray-600">100%</span>
+                                <span class="text-xs text-gray-500">Max highlight</span>
+                            </div>
+
+                            <!-- Pretty slider with bubble -->
+                            <div class="relative w-full">
+                                <input id="overlayAlpha" type="range" min="0" max="100" value="100"
+                                       class="pretty-range w-full">
+                                <div id="rangeBubble" class="range-bubble">100%</div>
+                            </div>
+
+                            <!-- Toggle + quick actions -->
+                            <div class="flex items-center gap-4 pt-1">
+                                <label class="pretty-switch">
+                                    <input id="toggleOverlay" type="checkbox" checked>
+                                    <span class="track"></span>
+                                    <span class="thumb"></span>
+                                </label>
+                                <span class="text-sm text-gray-700 select-none">Show highlight</span>
+
+                                <div class="ml-auto flex items-center gap-2">
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sources for JS -->
+                        <div id="overlay-sources"
+                             data-original="{{ result.original_image_data }}"
+                             data-overlay="{{ result.image_data }}"
+                             style="display:none;"></div>
+
+                    </div>
+                {% endif %}
+            </div>
+
+
             <div class="grid md:grid-cols-4 gap-6 text-center">
                 <div class="bg-white border rounded-xl p-6 shadow-sm"><h3
                         class="text-lg font-semibold text-blue-600 mb-2">Plus Prediction</h3>
@@ -321,6 +465,176 @@
                 </div>
 
             </div>
+            {% if results %}
+                <div class="mt-8">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Per-image predictions</h3>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white border rounded-xl shadow-sm">
+                            <thead class="bg-gray-50 text-gray-600 text-sm">
+                            <tr>
+                                <th class="px-4 py-2 text-left">File</th>
+                                <th class="px-4 py-2 text-left">Images</th>
+                                <th class="px-4 py-2 text-left">Plus</th>
+                                <th class="px-4 py-2 text-left">Stage</th>
+                                <th class="px-4 py-2 text-left">Zone</th>
+                                <th class="px-4 py-2 text-left">Final</th>
+                                <th class="px-4 py-2 text-left">Chosen</th>
+                            </tr>
+                            </thead>
+
+                            <tbody class="text-sm">
+                            {% for r in results %}
+                                <tr class="border-t">
+                                    <!-- File -->
+                                    <td class="px-4 py-2">{{ r.file_name|default:"-" }}</td>
+
+                                    <!-- Images (Raw / Segmented / Preview) -->
+                                    {#                                    <td class="px-4 py-2 space-x-2">#}
+                                    {#                                        {% if r.original_image_data or r.image_url %}#}
+                                    {#                                            <a#}
+                                    {#                                                    href="{{ r.image_url|default:r.original_image_data }}"#}
+                                    {#                                                    target="_blank" rel="noopener"#}
+                                    {#                                                    class="text-blue-600 hover:underline"#}
+                                    {#                                                    download="{{ r.file_name|default:'original.jpg' }}">#}
+                                    {##}
+                                    {#                                            </a>#}
+                                    {#                                        {% endif %}#}
+                                    {##}
+                                    {#                                        {% if r.image_data or r.segmented_image_url %}#}
+                                    {#                                            <a#}
+                                    {#                                                    href="{{ r.segmented_image_url|default:r.image_data }}"#}
+                                    {#                                                    target="_blank" rel="noopener"#}
+                                    {#                                                    class="text-purple-600 hover:underline"#}
+                                    {#                                                    download="segmented_{{ forloop.counter0 }}.jpg">#}
+                                    {##}
+                                    {#                                            </a>#}
+                                    {#                                        {% endif %}#}
+                                    <td class="px-4 py-2">
+                                        {% if r.original_image_data or r.image_data or r.image_url or r.segmented_image_url %}
+                                            <button
+                                                    type="button"
+                                                    class="inline-flex items-center px-2 py-1 text-xs border rounded hover:bg-gray-50"
+                                                    data-orig="{{ r.image_url|default:r.original_image_data }}"
+                                                    data-seg="{{ r.segmented_image_url|default:r.image_data }}"
+                                                    data-name="{{ r.file_name|default:'image' }}"
+                                                    onclick="openImagePreview(this)">
+                                                Preview
+                                            </button>
+                                        {% else %}
+                                            <span class="text-gray-400 text-xs">No preview</span>
+                                        {% endif %}
+                                    </td>
+
+
+                                    <!-- Plus -->
+                                    <td class="px-4 py-2">{{ r.predictions.class_name|default:"-" }}</td>
+                                    <!-- Stage -->
+                                    <td class="px-4 py-2">{{ r.stage_prediction.stage_name|default:"-" }}</td>
+                                    <!-- Zone -->
+                                    <td class="px-4 py-2">{{ r.zone_prediction.zone_name|default:"-" }}</td>
+                                    <!-- Final -->
+                                    <td class="px-4 py-2">{{ r.final_decision|default:"-" }}</td>
+                                    <!-- Chosen -->
+                                    <td class="px-4 py-2">
+                                        {% if forloop.counter0 == result.worst_index %}
+                                            <span class="px-2 py-1 text-xs rounded bg-red-50 text-red-700">worst</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+
+                        </table>
+                    </div>
+                </div>
+            {% endif %}
+            <!-- Image preview modal -->
+            <div id="imgPreviewModal"
+                 class="fixed inset-0 z-50 hidden items-center justify-center">
+                <!-- backdrop -->
+                <div class="absolute inset-0 bg-black bg-opacity-40" onclick="closeImagePreview()"></div>
+
+                <!-- dialog -->
+                <div class="relative bg-white w-[95vw] max-w-5xl rounded-2xl shadow-xl p-4 md:p-6">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 id="imgPreviewTitle" class="text-lg font-semibold text-gray-800">Preview</h4>
+                        <button class="text-gray-600 hover:text-gray-900" onclick="closeImagePreview()">✕</button>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="border rounded-lg p-2 bg-gray-50">
+                            <div class="text-sm font-medium text-gray-700 mb-2">Raw</div>
+                            <img id="imgPreviewOrig" src="" alt="raw"
+                                 class="w-full max-h-[70vh] object-contain rounded">
+                            <div class="mt-2 text-right">
+                                <a id="downloadOrig" href="#" download class="text-blue-600 hover:underline text-sm">Download
+                                    raw</a>
+                            </div>
+                        </div>
+
+                        <div class="border rounded-lg p-2 bg-gray-50">
+                            <div class="text-sm font-medium text-gray-700 mb-2">Segmented</div>
+                            <img id="imgPreviewSeg" src="" alt="segmented"
+                                 class="w-full max-h-[70vh] object-contain rounded">
+                            <div class="mt-2 text-right">
+                                <a id="downloadSeg" href="#" download class="text-purple-600 hover:underline text-sm">Download
+                                    segmented</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 text-right">
+                        <button class="px-3 py-1.5 rounded border hover:bg-gray-50" onclick="closeImagePreview()">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ===== Clinical Guidance (static per diagnosis) ===== -->
+            <div class="mt-10">
+                <div class="bg-white border rounded-2xl p-6 md:p-8 shadow-sm">
+                    <div class="flex items-center gap-3 mb-4">
+                        <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/>
+                        </svg>
+                        <h2 class="text-xl md:text-2xl font-semibold text-gray-800">
+                            Clinical Guidance for This Case
+                        </h2>
+                    </div>
+
+                    {% if result.guidance %}
+                        <h3 class="text-lg md:text-xl font-semibold text-gray-900 mb-2">
+                            {{ result.guidance.title }}
+                        </h3>
+                        <p class="text-gray-700 leading-relaxed">
+                            {{ result.guidance.text }}
+                        </p>
+
+                        <!-- Small recap chips -->
+                        <div class="flex flex-wrap gap-2 mt-4">
+        <span class="px-3 py-1 text-xs rounded-full bg-blue-50 text-blue-700">
+          {{ result.zone_prediction.zone_name }}
+        </span>
+                            <span class="px-3 py-1 text-xs rounded-full bg-purple-50 text-purple-700">
+          {{ result.predictions.class_name }}
+        </span>
+                            <span class="px-3 py-1 text-xs rounded-full bg-indigo-50 text-indigo-700">
+          {{ result.stage_prediction.stage_name }}
+        </span>
+                            <span class="px-3 py-1 text-xs rounded-full bg-red-50 text-red-700">
+          {{ result.final_decision }}
+        </span>
+                        </div>
+                    {% else %}
+                        <p class="text-gray-600">No guidance available for this combination.</p>
+                    {% endif %}
+                </div>
+            </div>
+
             <div class="bg-gray-100 border border-gray-200 rounded-xl p-6 shadow-sm space-y-4 mt-8 text-left">
                 <form method="post">
                     {% csrf_token %}
@@ -518,6 +832,47 @@
 // Typewriter effect for the cleaned text only
                 await typewriter(answerDiv, cleanedAnswer);
                 answerDiv.innerHTML = marked.parse(cleanedAnswer);
+                // --- Reference chips (URLs from RAG) ---
+                // --- Inline web sources (URLs from RAG) ---
+                if (Array.isArray(data.sources) && data.sources.length > 0) {
+                    const refsWrapper = document.createElement('div');
+                    refsWrapper.className = 'mt-3 text-xs text-gray-500 flex flex-wrap gap-2 items-center';
+
+                    const labelSpan = document.createElement('span');
+                    labelSpan.textContent = 'Sources:';
+                    labelSpan.className = 'font-medium';
+                    refsWrapper.appendChild(labelSpan);
+
+                    data.sources.forEach(src => {
+                        const url = src.source || '';
+                        if (!url || !url.startsWith('http')) return;   // skip non-URLs
+
+                        let display = url;
+                        try {
+                            const u = new URL(url);
+                            display = u.hostname.replace(/^www\./, '');
+                        } catch (e) {
+                            // fallback: keep full URL
+                        }
+
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.target = '_blank';
+                        link.rel = 'noopener noreferrer';
+                        link.textContent = display;
+                        link.className =
+                            'inline-flex items-center px-2 py-0.5 rounded-full ' +
+                            'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-100';
+
+                        link.title = url;
+                        refsWrapper.appendChild(link);
+                    });
+
+                    // Only append if at least one valid URL
+                    if (refsWrapper.children.length > 1) {
+                        content.appendChild(refsWrapper);
+                    }
+                }
 
 
                 const thinkingHtml = `
@@ -571,21 +926,40 @@
                 }
 
                 const data = await response.json();
-                const sourceText = (data.context_documents || [])
-                    .map(doc => {
-                        const score = typeof doc.score === 'number' ? doc.score.toFixed(4) : String(doc.score || '');
-                        const content = (doc.content || '').substring(0, 200);
-                        return `Source: ${doc.source}\nScore: ${score}\nContent: ${content}...`;
-                    })
-                    .join('\n\n---\n\n');
+
+// ✅ Only care about web documents for references
+                const webDocs = data.web_context_documents || [];
+
+// Plain-text view for the collapsible “Show grounding sources”
+                const sourceText = webDocs.map((doc, idx) => {
+                    const src = doc.source || '';
+                    const snippet = (doc.content || '').substring(0, 200);
+                    const label = src && src.startsWith('http')
+                        ? `[${src}](${src})`
+                        : src || '(web source)';
+
+                    return `Source ${idx + 1}: ${label}\nSnippet: ${snippet}...`;
+                }).join('\n\n---\n\n');
+
+// Structured list for pretty inline links
+                const sources = webDocs.map((doc, idx) => ({
+                    index: idx + 1,
+                    source: doc.source || '',
+                    snippet: (doc.content || '').substring(0, 160)
+                }));
 
                 const responseData = {
                     final_answer: data.answer,
                     thinking_process:
                         `User Query:\n${query}\n\n` +
                         `Diagnostic Context Used (text):\n${diagText}\n\n` +
-                        `--- Retrieved Sources ---\n\n${sourceText}`
+                        (webDocs.length
+                            ? `--- Retrieved Web Sources (truncated) ---\n\n${sourceText}`
+                            : `--- No web sources were used for this answer. ---`),
+
+                    sources: sources
                 };
+
 
                 chatMessages.removeChild(thinkingMsg);
                 await addMessage('assistant', responseData);
@@ -623,4 +997,220 @@
             }
         });
     });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const srcDiv = document.getElementById('overlay-sources');
+        const canvas = document.getElementById('vesselCanvas');
+        const range = document.getElementById('overlayAlpha');
+        const toggle = document.getElementById('toggleOverlay');
+
+        if (!srcDiv || !canvas || !range || !toggle) return;
+
+        const originalSrc = srcDiv.dataset.original || '';
+        const overlaySrc = srcDiv.dataset.overlay || '';
+
+        const ctx = canvas.getContext('2d');
+        const imgOriginal = new Image();
+        const imgOverlay = new Image();
+        imgOriginal.crossOrigin = 'anonymous';
+        imgOverlay.crossOrigin = 'anonymous';
+
+        let readyOriginal = false, readyOverlay = false;
+
+        function fitCanvasToImage(img) {
+            const maxH = 384;
+            const scale = Math.min(1, maxH / img.naturalHeight);
+            canvas.width = Math.round(img.naturalWidth * scale);
+            canvas.height = Math.round(img.naturalHeight * scale);
+        }
+
+        // ✅ only declare these once
+        const bubble = document.getElementById('rangeBubble');
+        const intensityValue = document.getElementById('intensityValue');
+        const btnReal = document.getElementById('btnReal');
+        const btnFull = document.getElementById('btnFull');
+
+        function updateSliderUI() {
+            const min = parseInt(range.min || '0', 10);
+            const max = parseInt(range.max || '100', 10);
+            const val = parseInt(range.value || '0', 10);
+            const pct = ((val - min) * 100) / (max - min);
+            range.style.background = `linear-gradient(to right, #2563eb ${pct}%, #e5e7eb ${pct}%)`;
+            if (bubble) {
+                bubble.textContent = `${val}%`;
+                bubble.style.left = `${pct}%`;
+            }
+            if (intensityValue) intensityValue.textContent = `${val}%`;
+            draw();
+        }
+
+        btnReal?.addEventListener('click', () => {
+            range.value = 0;
+            updateSliderUI();
+        });
+        btnFull?.addEventListener('click', () => {
+            range.value = 100;
+            updateSliderUI();
+        });
+        toggle?.addEventListener('change', updateSliderUI);
+        range.addEventListener('input', updateSliderUI);
+
+        function draw() {
+            if (!readyOriginal) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.globalAlpha = 1.0;
+            ctx.drawImage(imgOriginal, 0, 0, canvas.width, canvas.height);
+            if (toggle.checked && readyOverlay) {
+                const alpha = (parseInt(range.value, 10) || 0) / 100;
+                if (alpha > 0) {
+                    ctx.globalAlpha = alpha;
+                    ctx.drawImage(imgOverlay, 0, 0, canvas.width, canvas.height);
+                }
+            }
+            ctx.globalAlpha = 1.0;
+        }
+
+        imgOriginal.onload = () => {
+            readyOriginal = true;
+            fitCanvasToImage(imgOriginal);
+            imgOverlay.onload = () => {
+                readyOverlay = true;
+                draw();
+            };
+            imgOverlay.src = overlaySrc;
+            draw();
+        };
+
+        imgOriginal.src = originalSrc;
+        updateSliderUI();
+    });
+</script>
+<script>
+    // --- Multi-select accumulator (supports multiple picks + drag & drop) ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const input = document.getElementById('file-input');
+        const label = document.getElementById('upload-label');
+        const grid = document.getElementById('preview-grid');
+        const content = document.getElementById('upload-content');
+
+        if (!input || !label || !grid) return;
+
+        // A DataTransfer lets us build a mutable FileList for the input
+        const dt = new DataTransfer();
+
+        // Rerender preview grid from current dt.files
+        function renderGrid() {
+            grid.innerHTML = '';
+            if (dt.files.length > 0 && content) content.classList.add('hidden');
+            Array.from(dt.files).forEach(file => {
+                const url = URL.createObjectURL(file);
+                const card = document.createElement('div');
+                card.className = 'relative bg-white rounded-xl border shadow-sm overflow-hidden';
+                card.innerHTML = `
+          <img src="${url}" class="w-full h-32 object-cover" />
+          <div class="px-2 py-1 text-xs text-gray-600 truncate">${file.name}</div>
+          <button type="button"
+                  class="absolute top-2 right-2 text-xs bg-white/90 border rounded px-2 py-0.5 hover:bg-white"
+                  data-remove="${file.name}">✕</button>
+        `;
+                grid.appendChild(card);
+            });
+
+            // enable remove buttons
+            grid.querySelectorAll('button[data-remove]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const name = btn.getAttribute('data-remove');
+                    // rebuild dt without this file
+                    const nextDT = new DataTransfer();
+                    Array.from(dt.files).forEach(f => {
+                        if (f.name !== name) nextDT.items.add(f);
+                    });
+                    // swap references
+                    dt.items.clear();
+                    Array.from(nextDT.files).forEach(f => dt.items.add(f));
+                    // sync input and rerender
+                    input.files = dt.files;
+                    renderGrid();
+                });
+            });
+        }
+
+        // Add files, avoiding duplicates by name (simple heuristic)
+        function addFiles(fileList) {
+            const existingNames = new Set(Array.from(dt.files).map(f => f.name));
+            Array.from(fileList).forEach(file => {
+                if (!existingNames.has(file.name)) {
+                    dt.items.add(file);
+                    existingNames.add(file.name);
+                }
+            });
+            input.files = dt.files;     // keep <input> in sync
+            renderGrid();
+        }
+
+        // When user picks from the OS file picker (can do this multiple times)
+        input.addEventListener('change', (e) => addFiles(e.target.files));
+
+        // Clicking the big label opens the picker
+        {#label.addEventListener('click', () => input.click());#}
+        input.addEventListener('click', () => {
+            input.value = '';
+        }); // ریست قبل از انتخاب
+
+        // Drag & drop support on the label zone
+        ;['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev =>
+            label.addEventListener(ev, e => {
+                e.preventDefault();
+                e.stopPropagation();
+            }, false)
+        );
+        label.addEventListener('dragover', () => label.classList.add('ring', 'ring-blue-400'));
+        label.addEventListener('dragleave', () => label.classList.remove('ring', 'ring-blue-400'));
+        label.addEventListener('drop', (e) => {
+            label.classList.remove('ring', 'ring-blue-400');
+            if (e.dataTransfer?.files?.length) addFiles(e.dataTransfer.files);
+        });
+
+        // Optional: allow paste of images (Ctrl/Cmd+V)
+        document.addEventListener('paste', (e) => {
+            const files = Array.from(e.clipboardData?.files || []);
+            if (files.length) addFiles(files);
+        });
+
+        // Initial render
+        renderGrid();
+    });
+</script>
+
+<script>
+    function openImagePreview(btn) {
+        const orig = btn.getAttribute('data-orig') || '';
+        const seg = btn.getAttribute('data-seg') || '';
+        const name = btn.getAttribute('data-name') || 'image';
+
+        const modal = document.getElementById('imgPreviewModal');
+        const imgO = document.getElementById('imgPreviewOrig');
+        const imgS = document.getElementById('imgPreviewSeg');
+        const dlO = document.getElementById('downloadOrig');
+        const dlS = document.getElementById('downloadSeg');
+        const ttl = document.getElementById('imgPreviewTitle');
+
+        imgO.src = orig;
+        imgS.src = seg;
+        dlO.href = orig;
+        dlS.href = seg;
+        dlO.setAttribute('download', `${name}_raw.jpg`);
+        dlS.setAttribute('download', `${name}_segmented.jpg`);
+        ttl.textContent = `Preview — ${name}`;
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeImagePreview() {
+        const modal = document.getElementById('imgPreviewModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
 </script>

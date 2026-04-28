@@ -15,7 +15,7 @@ from torchvision import transforms
 from torchvision.models import efficientnet_b4, EfficientNet_B4_Weights
 from torchvision.models import efficientnet_b6
 from django.core.files.base import ContentFile
-
+from .rop_guidance import ROP_GUIDANCE
 from segmentation_models_pytorch import UnetPlusPlus
 
 # Allow-list target for PyTorch safe loader
@@ -31,7 +31,9 @@ model_seg = None
 model_plus = None
 model_stage = None
 model_zone = None
-
+STAGE_ORDER = ["Stage 5", "Stage 4", "Stage 3", "Stage 2", "Stage 1", "Stage 0", "Normal"]
+ZONE_ORDER  = ["Zone 1", "Zone 2", "Zone 3"]
+PLUS_ORDER  = ["Plus", "No Plus"]
 class_names = ["No Plus", "Plus"]
 
 normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
@@ -43,6 +45,29 @@ simple_transform = transforms.Compose([
     normalize
 ])
 
+
+def _severity_index(label: str, order: list[str]) -> int:
+    try:
+        return order.index(label)
+    except ValueError:
+        return len(order)
+
+def decide_label(predictions: list[str], severity_order: list[str]) -> str:
+    """
+    Majority vote first; if tie, pick the worst according to severity_order.
+    """
+    counts = {}
+    for p in predictions:
+        counts[p] = counts.get(p, 0) + 1
+    max_count = max(counts.values())
+    max_labels = [lab for lab, c in counts.items() if c == max_count]
+    if len(max_labels) == 1:
+        return max_labels[0]
+    for lab in severity_order:
+        if lab in max_labels:
+            return lab
+    # fallback
+    return max_labels[0]
 
 def load_checkpoint_forgiving(model: nn.Module, path: str, device, strict: bool = False):
     try:
@@ -201,193 +226,282 @@ def get_prediction(image_bytes, model_plus):
 
 
 def compute_final_decision(zone_label: str, stage_label: str, plus_label: str) -> str:
-    if stage_label in {"Stage 4", "Stage 5"}:
+    """
+    Decision system (from the attached flowchart):
+
+    PLUS  ➜ Treatment
+
+    NO PLUS:
+      • Zone 1:
+          - Stage 3   ➜ Treatment
+          - Stage 1–2 ➜ Follow-up ≤ 1 week
+          - No ROP    ➜ Follow-up 1–2 weeks
+      • Zone 2:
+          - Stage 3   ➜ Follow-up ≤ 1 week
+          - Stage 2   ➜ Follow-up 1–2 weeks
+          - Stage 1   ➜ Follow-up 2 weeks
+          - No ROP    ➜ Follow-up 2–3 weeks
+      • Zone 3:
+          - Stage 1–2 ➜ Follow-up 2–3 weeks
+    """
+
+    # Normalize inputs
+    z = zone_label.strip().lower().replace("zone", "").strip()
+    s = stage_label.strip().lower().replace("stage", "").strip()
+    p = plus_label.strip().lower()
+
+    # PLUS: immediate treatment regardless of zone/stage
+    if p == "plus":
         return "Treatment"
 
-    if zone_label == "Zone 1":
-        if plus_label == "Plus":
+    # NO PLUS cases
+    if z == "1":
+        if s == "3":
             return "Treatment"
-        else:
-            if stage_label == "Stage 3":
-                return "Treatment"
-            if stage_label in {"Stage 1", "Stage 2"}:
-                return "Follow-up ≤ 1 week"
-            if stage_label in {"Normal", "Stage 0"}:
-                return "Follow-up 1–2 weeks"
+        if s in {"1-2", "1–2", "1", "2"}:
+            return "Follow-up ≤ 1 week"
+        if stage_label.strip().lower() in {"no rop", "norop"}:
+            return "Follow-up 1–2 weeks"
 
-    if zone_label == "Zone 2":
-        if plus_label == "Plus":
-            return "Treatment"
-        else:
-            if stage_label == "Stage 3":
-                return "Follow-up ≤ 1 week"
-            if stage_label == "Stage 2":
-                return "Follow-up 1–2 weeks"
-            if stage_label == "Stage 1":
-                return "Follow-up 2 weeks"
-            if stage_label in {"Normal", "Stage 0"}:
-                return "Follow-up 2–3 weeks"
+    elif z == "2":
+        if s == "3":
+            return "Follow-up ≤ 1 week"
+        if s == "2":
+            return "Follow-up 1–2 weeks"
+        if s == "1":
+            return "Follow-up 2 weeks"
+        if stage_label.strip().lower() in {"no rop", "norop"}:
+            return "Follow-up 2–3 weeks"
 
-    if zone_label == "Zone 3":
-        return "Follow-up 2–3 weeks"
+    elif z == "3":
+        if s in {"1-2", "1–2", "1", "2"}:
+            return "Follow-up 2–3 weeks"
 
+    # Fallback if something doesn't match the diagram’s branches
     return "Follow-up"
+def _norm(s: str) -> str:
+    return s.strip().lower()
+
+def get_guidance(zone_label: str, plus_label: str, stage_label: str, final_decision: str) -> dict:
+    key = (_norm(zone_label), _norm(plus_label), _norm(stage_label))
+    if key in ROP_GUIDANCE:
+        return ROP_GUIDANCE[key]
+
+    # Fallback: generic text from the decision tree if exact triple not found
+    return {
+        "title": f"{zone_label} · {plus_label} · {stage_label} → {final_decision}",
+        "text": (
+            f"Guidance not found in the static table for this exact combination. "
+            f"Apply standard management for **{final_decision}** and follow local protocols."
+        )
+    }
+def _predict_single_image(image_file, request=None):
+    """
+    Runs the full pipeline for ONE image and returns the same structure you already return in get_result,
+    plus a few small extras to aid aggregation.
+    """
+    start_time = datetime.datetime.now()
+
+    seg_model = get_segmentation_model()
+    plus_model = get_classification_model()
+    stage_model = get_stage_model()
+    zone_model  = get_zone_model()
+
+    # --- segmentation for Plus input ---
+    image_file.seek(0)
+    mask = predict_mask(image_file, seg_model, device)
+    _, mask_buffer = cv2.imencode('.jpg', mask)
+    mask_bytes = mask_buffer.tobytes()
+
+    # --- Plus / No-Plus ---
+    class_name, class_prob = get_prediction(mask_bytes, plus_model)
+
+    # --- Stage ---
+    image_file.seek(0)
+    image_bytes = image_file.read()
+    stage_tensor = transform_image(image_bytes).to(device)
+    with torch.inference_mode():
+        stage_output = stage_model(stage_tensor)
+        stage_probs = torch.softmax(stage_output, dim=1)
+        stage_label_idx = torch.argmax(stage_probs, dim=1).item()
+    stage_names = ['Normal', 'Stage 0', 'Stage 1', 'Stage 2', 'Stage 3', 'Stage 4', 'Stage 5']
+    stage_name = stage_names[stage_label_idx]
+    stage_prob = stage_probs[0, stage_label_idx].item()
+
+    # --- Zone (Z1/Z2 logits, else Z3) ---
+    zone_tensor = transform_image(image_bytes).to(device)
+    with torch.inference_mode():
+        zone_logits_full = zone_model(zone_tensor)      # [1, 7]
+        zone_logits = zone_logits_full[:, :2]
+        zone_probs = torch.softmax(zone_logits, dim=1)
+        max_prob, pred_12 = torch.max(zone_probs, dim=1)
+    if max_prob.item() < 0.5:
+        zone_label = "Zone 3"
+        zone_conf = 1.0 - max_prob.item()
+    else:
+        zone_label = "Zone 1" if pred_12.item() == 0 else "Zone 2"
+        zone_conf = max_prob.item()
+
+    # --- Final decision ---
+    final_decision = compute_final_decision(
+        zone_label=zone_label,
+        stage_label=stage_name,
+        plus_label=class_name
+    )
+
+    # --- Guidance ---
+    stage_key = stage_name if stage_name.lower().startswith("stage") else ("Normal" if stage_name.lower() == "normal" else stage_name)
+    guidance = get_guidance(zone_label, class_name, stage_key, final_decision)
+
+    # --- Vessel overlay for this image ---
+    image_file.seek(0)
+    segmented_image = vessels(image_file, seg_model, device)
+    _, seg_buffer = cv2.imencode('.jpg', segmented_image)
+    encoded_string = base64.b64encode(seg_buffer.tobytes()).decode('utf-8')
+    overlay_data = f'data:image/jpeg;base64,{encoded_string}'
+    original_data = f"data:image/jpeg;base64,{base64.b64encode(image_bytes).decode('utf-8')}"
+    end_time = datetime.datetime.now()
+    execution_time = f'{round((end_time - start_time).total_seconds() * 1000)} ms'
+    file_name = getattr(image_file, "name", "uploaded_image.jpg")
+
+    diag_ctx = {
+        "predictions": {"class_name": class_name, "class_prob": f"{class_prob:.3f}"},
+        "stage_prediction": {"stage_name": stage_name, "stage_prob": f"{stage_prob:.3f}"},
+        "zone_prediction": {"zone_name": zone_label, "zone_prob": f"{zone_conf:.3f}"},
+        "final_decision": final_decision
+    }
+    diag_ctx_text = (
+        f"Plus disease: {class_name} (p={class_prob:.3f}). "
+        f"Stage: {stage_name} (p={stage_prob:.3f}). "
+        f"Zone: {zone_label} (p={zone_conf:.3f}). "
+        f"Final decision: {final_decision}."
+    )
+
+    # (Optional) logging as before — identical to your code
+    image_url = None
+    segmented_image_url = None
+    if request is not None and hasattr(request, "user") and getattr(request.user, "is_authenticated", False):
+        from .models import PredictionLog
+        image_file.seek(0)
+        log = PredictionLog.objects.create(
+            user=request.user,
+            file_name=file_name,
+            predicted_class=class_name,
+            probability=float(class_prob),
+            stage_class=stage_name,
+            stage_probability=float(stage_prob),
+            zone_class=zone_label,
+            zone_probability=float(zone_conf),
+            final_decision=final_decision,
+            execution_time=int(execution_time.replace(" ms", ""))
+        )
+        seg_image_name = f"segmented_{uuid.uuid4().hex}.jpg"
+        seg_image_content = ContentFile(seg_buffer.tobytes(), name=seg_image_name)
+        log.segmented_image.save(seg_image_name, seg_image_content)
+        if hasattr(request, "build_absolute_uri"):
+            log.segmented_image_url = request.build_absolute_uri(log.segmented_image.url)
+            log.image = image_file
+            log.save()
+            log.image_url = request.build_absolute_uri(log.image.url)
+            log.save(update_fields=["image_url", "segmented_image_url"])
+        image_url = getattr(log, "image_url", None)
+        segmented_image_url = getattr(log, "segmented_image_url", None)
+
+    single = {
+        "image_data": overlay_data,
+        "original_image_data": original_data,
+        "inference_time": execution_time,
+        "file_name": file_name,
+        "predictions": {"class_name": class_name, "class_prob": f"{class_prob:.3f}"},
+        "stage_prediction": {"stage_name": stage_name, "stage_prob": f"{stage_prob:.3f}"},
+        "zone_prediction": {"zone_name": zone_label, "zone_prob": f"{zone_conf:.3f}"},
+        "final_decision": final_decision,
+        "guidance": {"title": guidance["title"], "text": guidance["text"]},
+        "diagnostic_context": diag_ctx,
+        "diagnostic_context_text": diag_ctx_text,
+        "llm_diagnostic_text": f"Plus: {class_name} (p={class_prob:.3f}); Stage: {stage_name} (p={stage_prob:.3f}); Zone: {zone_label} (p={zone_conf:.3f}); Final Decision: {final_decision}",
+    }
+    if image_url: single["image_url"] = image_url
+    if segmented_image_url: single["segmented_image_url"] = segmented_image_url
+    return single
+def _score_for_worst(plus_label: str, stage_label: str, zone_label: str) -> tuple[int, int, int]:
+    # lower tuple is worse
+    return (
+        _severity_index(plus_label, PLUS_ORDER),
+        _severity_index(stage_label, STAGE_ORDER),
+        _severity_index(zone_label, ZONE_ORDER),
+    )
+
+def get_results_for_images(image_files: list, request=None):
+    """
+    Predict each image; then compute the final (aggregated) labels:
+      - Plus: majority → tie → worst by PLUS_ORDER
+      - Zone: majority → tie → worst by ZONE_ORDER
+      - Stage: majority → tie → worst by STAGE_ORDER
+    Also choose one 'worst' image to visualize (based on (Plus, Stage, Zone) severity).
+    """
+    per_image = []
+    for f in image_files:
+        try:
+            per_image.append(_predict_single_image(f, request=request))
+        except Exception as e:
+            # if one fails, keep going but mark error row
+            per_image.append({"error": str(e), "file_name": getattr(f, "name", "file")})
+
+    # Collect predictions where available
+    plus_preds  = [r["predictions"]["class_name"] for r in per_image if "predictions" in r]
+    stage_preds = [r["stage_prediction"]["stage_name"] for r in per_image if "stage_prediction" in r]
+    zone_preds  = [r["zone_prediction"]["zone_name"] for r in per_image if "zone_prediction" in r]
+
+    final_plus  = decide_label(plus_preds,  PLUS_ORDER)  if plus_preds  else "No Plus"
+    final_stage = decide_label(stage_preds, STAGE_ORDER) if stage_preds else "Normal"
+    final_zone  = decide_label(zone_preds,  ZONE_ORDER)  if zone_preds  else "Zone 3"
+
+    # Choose one worst image to show
+    worst_idx = None
+    worst_key = None
+    for idx, r in enumerate(per_image):
+        if "predictions" not in r:  # skip errored
+            continue
+        k = _score_for_worst(
+            r["predictions"]["class_name"],
+            r["stage_prediction"]["stage_name"],
+            r["zone_prediction"]["zone_name"]
+        )
+        if worst_key is None or k < worst_key:
+            worst_key = k
+            worst_idx = idx
+
+    # fallbacks
+    if worst_idx is None and per_image:
+        worst_idx = 0
+
+    worst_item = per_image[worst_idx] if (worst_idx is not None and worst_idx < len(per_image)) else None
+
+    # Build an aggregated result (re-using your structure so the UI needs minimal change)
+    aggregated = {
+        "image_data": (worst_item or {}).get("image_data"),
+        "original_image_data": (worst_item or {}).get("original_image_data"),
+        "inference_time": (worst_item or {}).get("inference_time", ""),
+        "file_name": (worst_item or {}).get("file_name", ""),
+        "predictions": {"class_name": final_plus, "class_prob": (worst_item or {}).get("predictions", {}).get("class_prob", "")},
+        "stage_prediction": {"stage_name": final_stage, "stage_prob": (worst_item or {}).get("stage_prediction", {}).get("stage_prob", "")},
+        "zone_prediction": {"zone_name": final_zone, "zone_prob": (worst_item or {}).get("zone_prediction", {}).get("zone_prob", "")},
+        "final_decision": compute_final_decision(zone_label=final_zone, stage_label=final_stage, plus_label=final_plus),
+        "guidance": get_guidance(final_zone, final_plus, final_stage, compute_final_decision(final_zone, final_stage, final_plus)),
+        "diagnostic_context": {
+            "predictions": {"class_name": final_plus},
+            "stage_prediction": {"stage_name": final_stage},
+            "zone_prediction": {"zone_name": final_zone},
+            "final_decision": compute_final_decision(final_zone, final_stage, final_plus)
+        },
+        "diagnostic_context_text": f"Plus disease: {final_plus}. Stage: {final_stage}. Zone: {final_zone}. Final decision: {compute_final_decision(final_zone, final_stage, final_plus)}.",
+        "llm_diagnostic_text": f"Plus: {final_plus}; Stage: {final_stage}; Zone: {final_zone}; Final Decision: {compute_final_decision(final_zone, final_stage, final_plus)}",
+        "worst_index": worst_idx,
+    }
+
+    return aggregated, per_image
 
 
 def get_result(image_file, is_api=False, request=None):
-    """
-    Runs segmentation -> Plus classification -> Stage -> Zone -> Final decision,
-    builds a unified diagnostic context (dict + text), and returns a JSON-safe result.
-    Logging is attempted only when request+user are available.
-    """
-    try:
-        start_time = datetime.datetime.now()
-
-        seg_model = get_segmentation_model()
-        plus_model = get_classification_model()
-        stage_model = get_stage_model()
-        zone_model = get_zone_model()
-
-        # --- 1) Segmentation mask for Plus classifier input ---
-        image_file.seek(0)
-        mask = predict_mask(image_file, seg_model, device)
-        _, mask_buffer = cv2.imencode('.jpg', mask)
-        mask_bytes = mask_buffer.tobytes()
-
-        # --- 2) Plus / No-Plus ---
-        class_name, class_prob = get_prediction(mask_bytes, plus_model)
-
-        # --- 3) Stage ---
-        image_file.seek(0)
-        image_bytes = image_file.read()
-        stage_tensor = transform_image(image_bytes).to(device)
-        with torch.inference_mode():
-            stage_output = stage_model(stage_tensor)
-            stage_probs = torch.softmax(stage_output, dim=1)
-            stage_label = torch.argmax(stage_probs, dim=1).item()
-        stage_names = ['Normal', 'Stage 0', 'Stage 1', 'Stage 2', 'Stage 3', 'Stage 4', 'Stage 5']
-        stage_result = {
-            "stage_name": stage_names[stage_label],
-            "stage_prob": f"{stage_probs[0, stage_label].item():.3f}"
-        }
-
-        # --- 4) Zone (use first 2 logits for Z1/Z2; fallback to Z3 if low confidence) ---
-        zone_tensor = transform_image(image_bytes).to(device)
-        with torch.inference_mode():
-            zone_logits_full = zone_model(zone_tensor)      # [1, 7]
-            zone_logits = zone_logits_full[:, :2]
-            zone_probs = torch.softmax(zone_logits, dim=1)
-            max_prob, pred_12 = torch.max(zone_probs, dim=1)
-
-        if max_prob.item() < 0.5:
-            zone_label = "Zone 3"
-            zone_conf = 1.0 - max_prob.item()
-        else:
-            zone_label = "Zone 1" if pred_12.item() == 0 else "Zone 2"
-            zone_conf = max_prob.item()
-
-        zone_result = {
-            "zone_name": zone_label,
-            "zone_prob": f"{zone_conf:.3f}"
-        }
-
-        # --- 5) Final decision (hard rules) ---
-        final_decision = compute_final_decision(
-            zone_label=zone_label,
-            stage_label=stage_result["stage_name"],
-            plus_label=class_name
-        )
-
-        # --- 6) Overlay vessels for visualization ---
-        image_file.seek(0)
-        segmented_image = vessels(image_file, seg_model, device)
-        _, seg_buffer = cv2.imencode('.jpg', segmented_image)
-        encoded_string = base64.b64encode(seg_buffer.tobytes()).decode('utf-8')
-        image_data = f'data:image/jpeg;base64,{encoded_string}'
-
-        end_time = datetime.datetime.now()
-        execution_time = f'{round((end_time - start_time).total_seconds() * 1000)} ms'
-        file_name = getattr(image_file, "name", "uploaded_image.jpg")
-
-        # --- 7) Unified diagnostic context (dict + human text) ---
-        diag_ctx = {
-            "predictions": {
-                "class_name": class_name,
-                "class_prob": f"{class_prob:.3f}"
-            },
-            "stage_prediction": stage_result,
-            "zone_prediction": zone_result,
-            "final_decision": final_decision
-        }
-        diag_ctx_text = (
-            f"Plus disease: {diag_ctx['predictions']['class_name']} "
-            f"(p={diag_ctx['predictions']['class_prob']}). "
-            f"Stage: {diag_ctx['stage_prediction']['stage_name']} "
-            f"(p={diag_ctx['stage_prediction']['stage_prob']}). "
-            f"Zone: {diag_ctx['zone_prediction']['zone_name']} "
-            f"(p={diag_ctx['zone_prediction']['zone_prob']}). "
-            f"Final decision: {diag_ctx['final_decision']}."
-        )
-
-        result = {
-            "image_data": image_data,
-            "inference_time": execution_time,
-            "file_name": file_name,
-            "predictions": {
-                "class_name": class_name,
-                "class_prob": f"{class_prob:.3f}"
-            },
-            "stage_prediction": stage_result,
-            "zone_prediction": zone_result,
-            "final_decision": final_decision,
-            "diagnostic_context": diag_ctx,
-            "diagnostic_context_text": diag_ctx_text,
-        }
-
-        # --- 8) Optional logging (only if request & user available) ---
-        if request is not None and hasattr(request, "user") and getattr(request.user, "is_authenticated", False):
-            from .models import PredictionLog
-            image_file.seek(0)
-
-            log = PredictionLog.objects.create(
-                user=request.user,
-                file_name=file_name,
-                predicted_class=class_name,
-                probability=float(class_prob),
-                stage_class=stage_result["stage_name"],
-                stage_probability=float(stage_result["stage_prob"]),
-                zone_class=zone_label,
-                zone_probability=float(zone_result["zone_prob"]),
-                final_decision=final_decision,
-                execution_time=round((end_time - start_time).total_seconds() * 1000)
-            )
-
-            seg_image_name = f"segmented_{uuid.uuid4().hex}.jpg"
-            seg_image_content = ContentFile(seg_buffer.tobytes(), name=seg_image_name)
-            log.segmented_image.save(seg_image_name, seg_image_content)
-
-            if hasattr(request, "build_absolute_uri"):
-                log.segmented_image_url = request.build_absolute_uri(log.segmented_image.url)
-                log.image = image_file
-                log.save()
-                log.image_url = request.build_absolute_uri(log.image.url)
-                log.save(update_fields=["image_url", "segmented_image_url"])
-
-            # Include URLs back in result if available
-            if getattr(log, "image_url", None):
-                result["image_url"] = log.image_url
-            if getattr(log, "segmented_image_url", None):
-                result["segmented_image_url"] = log.segmented_image_url
-        llm_summary = (
-            f"Plus: {class_name} (p={class_prob:.3f}); "
-            f"Stage: {stage_result['stage_name']} (p={stage_result['stage_prob']}); "
-            f"Zone: {zone_result['zone_name']} (p={zone_result['zone_prob']}); "
-            f"Final Decision: {final_decision}"
-        )
-        result["llm_diagnostic_text"] = llm_summary
-
-        return result
-
-    except Exception as e:
-        print(f"Error in get_result: {e}")
-        raise e
+    return _predict_single_image(image_file, request=request)
