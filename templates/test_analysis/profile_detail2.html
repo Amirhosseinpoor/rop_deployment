@@ -1,0 +1,626 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>پرونده سلامت هوشمند | MediverseAI</title>
+
+    <!-- Favicon -->
+    <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png">
+
+    <style>
+        /* ===== RESET & BASE ===== */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; }
+        body {
+            font-family: 'Vazirmatn', 'IRANSans', 'Tahoma', sans-serif;
+            background: linear-gradient(180deg, #fbfdff 0%, #eef7ff 100%);
+            color: #0f172a;
+            -webkit-font-smoothing: antialiased;
+            scroll-behavior: smooth;
+            direction: rtl;
+            line-height: 1.6;
+        }
+        a { text-decoration: none; color: inherit; }
+
+        /* ===== LAYOUT ===== */
+        .container { max-width: 1440px; margin: 0 auto; padding: 2rem 1rem; }
+        .grid { display: grid; }
+        .grid-cols-12 { grid-template-columns: repeat(12, 1fr); }
+        .gap-8 { gap: 2rem; }
+        .col-span-12 { grid-column: span 12; }
+        .col-span-8 { grid-column: span 8; }
+        .col-span-9 { grid-column: span 9; }
+
+        @media (min-width: 1024px) {
+            .lg\:col-span-4 { grid-column: span 4; }
+            .lg\:col-span-8 { grid-column: span 8; }
+        }
+        @media (min-width: 1280px) {
+            .xl\:col-span-3 { grid-column: span 3; }
+            .xl\:col-span-9 { grid-column: span 9; }
+        }
+
+        /* ===== GLASS CARD ===== */
+        .glass-card {
+            background: rgba(255,255,255,0.82);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(99,102,241,0.06);
+            box-shadow: 0 6px 30px rgba(15, 23, 42, 0.06);
+            border-radius: 1rem;
+            transition: transform .25s ease, box-shadow .25s ease;
+        }
+        .glass-card:hover { transform: translateY(-6px); box-shadow: 0 14px 40px rgba(99,102,241,0.09); }
+
+        /* ===== SIDEBAR STICKY ===== */
+        .sticky-top {
+            position: sticky;
+            top: 2rem;
+        }
+        @media (max-width: 1024px) {
+            .sticky-top { position: static; }
+        }
+
+        /* ===== TYPOGRAPHY ===== */
+        .section-title {
+            position: relative;
+            display: inline-block;
+            padding-bottom: 4px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .section-title::after {
+            content: "";
+            position: absolute;
+            bottom: -4px;
+            right: 0;
+            height: 3px;
+            width: 36%;
+            border-radius: 6px;
+            background: linear-gradient(90deg, #6366f1, #06b6d4);
+            transition: width .28s ease;
+            opacity: .95;
+        }
+        .section-title:hover::after { width: 100%; }
+
+        .prose-custom {
+            font-size: 1.0625rem;
+            line-height: 1.95;
+            color: #1e293b;
+            max-width: none;
+        }
+        .prose-custom h1, .prose-custom h2, .prose-custom h3 {
+            font-weight: 800;
+            color: #0f172a;
+            margin-top: 1.5em;
+            margin-bottom: 0.6em;
+        }
+        .prose-custom h1 { font-size: 1.85rem; }
+        .prose-custom h2 { font-size: 1.6rem; }
+        .prose-custom h3 { font-size: 1.4rem; }
+        .prose-custom p { text-align: justify; margin-bottom: 1.2em; }
+
+        /* ===== UTILITY CLASSES ===== */
+        .text-xs { font-size: 0.75rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-lg { font-size: 1.125rem; }
+        .text-xl { font-size: 1.25rem; }
+        .text-2xl { font-size: 1.5rem; }
+        .text-3xl { font-size: 1.875rem; }
+        .font-light { font-weight: 300; }
+        .font-medium { font-weight: 500; }
+        .font-semibold { font-weight: 600; }
+        .font-bold { font-weight: 700; }
+        .font-extrabold { font-weight: 800; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* ===== COLORS & BACKGROUNDS ===== */
+        .bg-white { background-color: #fff; }
+        .bg-slate-50 { background-color: #f8fafc; }
+        .bg-sky-100 { background-color: #e0f2fe; }
+        .bg-indigo-50 { background-color: #eef2ff; }
+        .bg-yellow-50 { background-color: #fefce8; }
+        .bg-red-50 { background-color: #fef2f2; }
+        .bg-indigo-600 { background-color: #4f46e5; }
+        .bg-green-500 { background-color: #22c55e; }
+        .bg-white\/70 { background-color: rgba(255,255,255,0.7); }
+
+        .text-slate-500 { color: #64748b; }
+        .text-slate-600 { color: #475569; }
+        .text-slate-700 { color: #334155; }
+        .text-slate-800 { color: #1e293b; }
+        .text-indigo-500 { color: #6366f1; }
+        .text-indigo-700 { color: #4338ca; }
+        .text-green-700 { color: #15803d; }
+        .text-yellow-800 { color: #854d0e; }
+        .text-red-800 { color: #991b1b; }
+        .text-sky-900 { color: #0c4a6e; }
+
+        /* ===== SPACING & PADDING ===== */
+        .p-2 { padding: 0.5rem; }
+        .p-3 { padding: 0.75rem; }
+        .p-4 { padding: 1rem; }
+        .p-5 { padding: 1.25rem; }
+        .p-6 { padding: 1.5rem; }
+        .p-8 { padding: 2rem; }
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+        .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+        .pt-6 { padding-top: 1.5rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-3 { margin-bottom: 0.75rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-8 { margin-bottom: 2rem; }
+        .mt-1 { margin-top: 0.25rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .mt-4 { margin-top: 1rem; }
+        .mt-6 { margin-top: 1.5rem; }
+        .mt-8 { margin-top: 2rem; }
+        .mt-10 { margin-top: 2.5rem; }
+        .mr-2 { margin-right: 0.5rem; }
+        .ml-2 { margin-left: 0.5rem; }
+        .ml-3 { margin-left: 0.75rem; }
+        .pr-2 { padding-right: 0.5rem; }
+        .pr-4 { padding-right: 1rem; }
+        .pr-5 { padding-right: 1.25rem; }
+        .space-y-1\.5 > * + * { margin-top: 0.375rem; }
+        .space-y-3 > * + * { margin-top: 0.75rem; }
+        .space-y-4 > * + * { margin-top: 1rem; }
+        .space-y-6 > * + * { margin-top: 1.5rem; }
+        .space-y-8 > * + * { margin-top: 2rem; }
+        .gap-x-6 { column-gap: 1.5rem; }
+        .gap-x-8 { column-gap: 2rem; }
+        .gap-y-4 { row-gap: 1rem; }
+        .gap-y-5 { row-gap: 1.25rem; }
+
+        /* ===== FLEX & GRID ===== */
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .items-center { align-items: center; }
+        .justify-center { justify-content: center; }
+        .justify-between { justify-content: space-between; }
+        .flex-shrink-0 { flex-shrink: 0; }
+        .grid-cols-1 { grid-template-columns: repeat(1, 1fr); }
+        .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+        @media (min-width: 640px) {
+            .sm\:grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+            .sm\:grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+            .sm\:flex-row { flex-direction: row; }
+            .sm\:items-center { align-items: center; }
+        }
+        @media (min-width: 768px) {
+            .md\:grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+            .md\:grid-cols-5 { grid-template-columns: repeat(5, 1fr); }
+            .md\:p-8 { padding: 2rem; }
+        }
+        @media (min-width: 1024px) {
+            .lg\:grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        /* ===== BORDERS & SHADOWS ===== */
+        .border-t { border-top: 1px solid #e2e8f0; }
+        .border-b { border-bottom: 1px solid #e2e8f0; }
+        .border-r-4 { border-right: 4px solid; }
+        .border-slate-200 { border-color: #e2e8f0; }
+        .border-indigo-200 { border-color: #c7d2fe; }
+        .border-sky-300 { border-color: #7dd3fc; }
+        .border-sky-500 { border-color: #0ea5e9; }
+        .border-white { border-color: #fff; }
+        .rounded-lg { border-radius: 0.5rem; }
+        .rounded-xl { border-radius: 0.75rem; }
+        .rounded-2xl { border-radius: 1rem; }
+        .rounded-full { border-radius: 9999px; }
+        .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+        .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .shadow-md { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+
+        /* ===== HOVER EFFECTS ===== */
+        .hover\:bg-indigo-50:hover { background-color: #eef2ff; }
+        .hover\:text-indigo-700:hover { color: #4338ca; }
+        .hover\:bg-indigo-700:hover { background-color: #4338ca; }
+        .hover\:shadow-xl:hover { box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .hover\:-translate-y-1:hover { transform: translateY(-0.25rem); }
+
+        .transition-colors { transition: color .2s, background-color .2s; }
+        .transition-all { transition: all .3s; }
+        .duration-200 { transition-duration: .2s; }
+        .duration-300 { transition-duration: .3s; }
+
+        /* ===== SPECIFIC COMPONENTS ===== */
+        .avatar-mock {
+            background-color: #e0e7ff;
+            color: #4338ca;
+            border-radius: 50%;
+            width: 6rem;
+            height: 6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 700;
+            box-shadow: 0 6px 18px rgba(99,102,241,0.08);
+            border: 4px solid #fff;
+        }
+        .pulse-dot {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 1.5rem;
+            height: 1.5rem;
+            background-color: #22c55e;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(34,197,94,0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(34,197,94,0); }
+            100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+        }
+        .list-none { list-style: none; }
+        .w-full { width: 100%; }
+        .h-3 { height: 0.75rem; }
+        .h-5 { height: 1.25rem; }
+        .h-6 { height: 1.5rem; }
+        .h-9 { height: 2.25rem; }
+        .h-12 { height: 3rem; }
+        .w-3 { width: 0.75rem; }
+        .w-5 { width: 1.25rem; }
+        .w-6 { width: 1.5rem; }
+        .w-9 { width: 2.25rem; }
+        .w-12 { width: 3rem; }
+        .w-16 { width: 4rem; }
+        .w-24 { width: 6rem; }
+        .overflow-hidden { overflow: hidden; }
+        .uppercase { text-transform: uppercase; }
+        .tracking-wider { letter-spacing: 0.05em; }
+        .inline-flex { display: inline-flex; }
+        .relative { position: relative; }
+        .absolute { position: absolute; }
+        .animate-ping { animation: ping 1s cubic-bezier(0,0,0.2,1) infinite; }
+        @keyframes ping {
+            75%, 100% { transform: scale(2); opacity: 0; }
+        }
+
+        /* ===== RESPONSIVE PADDING OVERRIDES ===== */
+        @media (min-width: 640px) {
+            .sm\:px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+        }
+        @media (min-width: 1024px) {
+            .lg\:px-8 { padding-left: 2rem; padding-right: 2rem; }
+        }
+        @media (min-width: 768px) {
+            .md\:py-12 { padding-top: 3rem; padding-bottom: 3rem; }
+        }
+
+        /* ===== NAV LINK ===== */
+        .nav-link {
+            display: flex;
+            align-items: center;
+            color: #475569;
+            padding: 0.625rem;
+            border-radius: 0.5rem;
+            transition: all .2s;
+        }
+        .nav-link:hover { background: #eef2ff; color: #4338ca; }
+    </style>
+</head>
+<body class="antialiased">
+
+<div class="container">
+    <div class="grid grid-cols-12 gap-8">
+
+        <!-- SIDEBAR -->
+        <aside class="col-span-12 lg:col-span-4 xl:col-span-3">
+            <div class="glass-card p-6 sticky-top space-y-8 shadow-sm">
+
+                <!-- profile block -->
+                <div class="text-center">
+                    <div class="relative w-24 h-24 mx-auto mb-4">
+                        <div class="avatar-mock">
+                            {{ profile.user.get_full_name|default:profile.user.username|slice:":1" }}
+                        </div>
+                        <div class="pulse-dot"></div>
+                    </div>
+                    <h2 class="text-xl font-bold text-slate-800">{{ profile.user.get_full_name|default:profile.user.username }}</h2>
+                    <p class="text-sm text-slate-500 font-light truncate">{{ profile.user.email }}</p>
+                </div>
+
+                <!-- key info -->
+                <div class="pt-6 border-t border-slate-200">
+                    <h3 class="font-semibold text-slate-500 text-xs uppercase tracking-wider mb-4 section-title">اطلاعات کلیدی</h3>
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                        <div class="bg-slate-50/70 p-3 rounded-lg">
+                            <dt class="text-xs text-slate-500">شغل</dt>
+                            <dd class="text-sm font-semibold text-slate-800 mt-1 truncate">{{ profile.current_job_title|default:"-" }}</dd>
+                        </div>
+                        <div class="bg-slate-50/70 p-3 rounded-lg">
+                            <dt class="text-xs text-slate-500">تاهل</dt>
+                            <dd class="text-sm font-semibold text-slate-800 mt-1">{{ profile.marital_status|default:"-" }}</dd>
+                        </div>
+                        <div class="bg-slate-50/70 p-3 rounded-lg" style="grid-column: span 2;">
+                            <dt class="text-xs text-slate-500">فرزندان</dt>
+                            <dd class="text-sm font-semibold text-slate-800 mt-1">{{ profile.children_count }} نفر</dd>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- nav -->
+                <nav class="pt-6 border-t border-slate-200">
+                    <h3 class="font-semibold text-slate-500 text-xs uppercase tracking-wider mb-3 section-title">دسترسی سریع</h3>
+                    <ul class="list-none space-y-1.5">
+                        <li>
+                            <a href="#ai-analysis" class="nav-link">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                                </svg>
+                                <span class="text-sm font-medium">تحلیل هوش مصنوعی</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#medical-history" class="nav-link">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                                <span class="text-sm font-medium">سوابق پزشکی</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#final-opinion" class="nav-link">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span class="text-sm font-medium">نظریه نهایی</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <!-- edit btn -->
+                <a href="{% url 'create_update_profile' %}" class="!mt-10 flex items-center justify-center w-full py-3 text-sm rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"/>
+                        <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>ویرایش پرونده</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT (no changes in structure, just replaced Tailwind classes with our custom ones) -->
+        <main class="col-span-12 lg:col-span-8 xl:col-span-9 space-y-8">
+            <!-- همان بخش‌های اصلی که در کد اولیه وجود داشت، با کلاس‌های سفارشی تکرار شده‌اند -->
+            <!-- AI Analysis -->
+            <div id="ai-analysis" class="glass-card rounded-2xl shadow-lg overflow-hidden">
+                <div class="p-6 md:p-8 bg-gradient-to-br from-indigo-50 via-white to-sky-50 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-extrabold text-slate-800 section-title">تحلیل و توصیه‌های هوش مصنوعی</h1>
+                        <p class="text-slate-500 mt-2">این گزارش بر اساس اطلاعات شما و توسط MediverseAI تولید شده است.</p>
+                    </div>
+                    <div class="mt-4 sm:mt-0 flex-shrink-0 w-16 h-16 flex items-center justify-center rounded-2xl bg-white shadow-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-9 w-9 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="p-6 md:p-8">
+                    <article class="prose-custom max-w-none">
+                        {{ html_advice|safe }}
+                    </article>
+                </div>
+            </div>
+
+            <!-- Personal & Job -->
+            <div class="glass-card bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="p-6 md:p-8 border-b border-slate-200">
+                    <h2 class="text-xl font-bold text-slate-800 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-3 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                        مشخصات فردی و شغلی
+                    </h2>
+                </div>
+                <div class="p-6 md:p-8 space-y-8">
+                    <section>
+                        <h3 class="font-semibold text-lg text-slate-700 mb-4">۱. مشخصات فردی</h3>
+                        <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5 text-sm">
+                            <div class="flex flex-col"><dt class="font-medium text-slate-500">نام پدر</dt><dd class="text-slate-800 mt-1">{{ profile.father_name|default:"-" }}</dd></div>
+                            <div class="flex flex-col"><dt class="font-medium text-slate-500">کد ملی</dt><dd class="text-slate-800 mt-1">{{ profile.national_id|default:"-" }}</dd></div>
+                            <div class="flex flex-col"><dt class="font-medium text-slate-500">تاریخ تولد</dt><dd class="text-slate-800 mt-1">{{ profile.date_of_birth|default:"-" }}</dd></div>
+                            <div class="flex flex-col"><dt class="font-medium text-slate-500">جنسیت</dt><dd class="text-slate-800 mt-1">{{ profile.get_gender_display|default:"-" }}</dd></div>
+                            <div class="flex flex-col"><dt class="font-medium text-slate-500">نظام وظیفه</dt><dd class="text-slate-800 mt-1">{{ profile.military_service_status|default:"-" }}</dd></div>
+                        </dl>
+                    </section>
+                    <section>
+                        <h3 class="font-semibold text-lg text-slate-700 mb-4">۲. سوابق شغلی</h3>
+                        <div class="space-y-6">
+                            <div>
+                                <h4 class="font-semibold text-slate-600">شغل فعلی</h4>
+                                <p class="text-sm mt-1"><strong>عنوان:</strong> {{ profile.current_job_title|default:"ثبت نشده" }} | <strong>تاریخ شروع:</strong> {{ profile.current_job_start_date|default:"-" }}</p>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-slate-600 mb-3">مشاغل قبلی</h4>
+                                <div class="space-y-4">
+                                    {% for job in profile.previous_jobs.all %}
+                                        <div class="border-r-4 border-indigo-200 pr-4">
+                                            <p class="font-bold text-slate-800">{{ job.title }}</p>
+                                            <p class="text-xs text-slate-500">از {{ job.start_date|default:"؟" }} تا {{ job.end_date|default:"؟" }}</p>
+                                            {% if job.reason_for_leaving %}<p class="mt-1 text-sm text-slate-600"><strong>علت ترک:</strong> {{ job.reason_for_leaving }}</p>{% endif %}
+                                        </div>
+                                    {% empty %}
+                                        <p class="text-slate-500 text-sm">سابقه‌ی شغلی قبلی ثبت نشده است.</p>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- Medical History & Paraclinic -->
+            <div id="medical-history" class="glass-card bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="p-6 md:p-8 border-b border-slate-200">
+                    <h2 class="text-xl font-bold text-slate-800 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-3 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                        </svg>
+                        سوابق پزشکی و بالینی
+                    </h2>
+                </div>
+                <div class="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <section>
+                        <dl class="space-y-4 text-sm">
+                            {% if profile.has_disease_history %}<div><dt class="font-semibold text-slate-600">سابقه بیماری:</dt><dd class="text-slate-800 pr-2 pt-1">{{ profile.disease_history_details|default:"دارد" }}</dd></div>{% endif %}
+                            {% if profile.has_allergies %}<div><dt class="font-semibold text-slate-600">سابقه حساسیت:</dt><dd class="text-slate-800 pr-2 pt-1">{{ profile.allergy_details|default:"دارد" }}</dd></div>{% endif %}
+                            {% if profile.has_hospitalization_history %}<div><dt class="font-semibold text-slate-600">سابقه بستری:</dt><dd class="text-slate-800 pr-2 pt-1">{{ profile.hospitalization_reason|default:"دارد" }}</dd></div>{% endif %}
+                            {% if profile.has_surgery_history %}<div><dt class="font-semibold text-slate-600">سابقه جراحی:</dt><dd class="text-slate-800 pr-2 pt-1">{{ profile.surgery_details|default:"دارد" }}</dd></div>{% endif %}
+                            {% if profile.has_family_cancer_or_chronic_disease %}<div><dt class="font-semibold text-slate-600">سابقه بیماری در خانواده:</dt><dd class="text-slate-800 pr-2 pt-1">{{ profile.family_disease_details|default:"دارد" }}</dd></div>{% endif %}
+                            {% if profile.is_on_medication %}<div><dt class="font-semibold text-slate-600">داروی مصرفی:</dt><dd class="text-slate-800 pr-2 pt-1">{{ profile.medication_details|default:"دارد" }}</dd></div>{% endif %}
+                            <div>
+                                <dt class="font-semibold text-slate-600">وضعیت استعمال دخانیات:</dt>
+                                <dd class="text-slate-800 pr-2 pt-1">
+                                    {% if profile.is_currently_smoking %} در حال حاضر مصرف می‌کند. ({{ profile.smoking_details }})
+                                    {% elif profile.has_past_smoking_history %} سابقه مصرف در گذشته
+                                    {% else %} بدون سابقه مصرف {% endif %}
+                                </dd>
+                            </div>
+                        </dl>
+                    </section>
+                    <section>
+                        {% if profile.spirometry_interpretation or profile.ecg_findings or profile.chest_xray_findings %}
+                            <h3 class="font-semibold text-lg text-slate-700 mb-4">نتایج پاراکلینیک</h3>
+                            <dl class="space-y-4 text-sm">
+                                {% if profile.spirometry_interpretation %}<div><dt class="font-semibold text-slate-600">تفسیر اسپیرومتری:</dt><dd class="text-slate-800 pr-2 pt-1">{{ profile.spirometry_interpretation }}</dd></div>{% endif %}
+                                {% if profile.ecg_findings %}<div><dt class="font-semibold text-slate-600">یافته‌های ECG:</dt><dd class="text-slate-800 pr-2 pt-1">{{ profile.ecg_findings }}</dd></div>{% endif %}
+                                {% if profile.chest_xray_findings %}<div><dt class="font-semibold text-slate-600">یافته‌های CXR:</dt><dd class="text-slate-800 pr-2 pt-1">{{ profile.chest_xray_findings }}</dd></div>{% endif %}
+                            </dl>
+                        {% else %}
+                            <div class="h-full flex flex-col items-center justify-center bg-slate-50 rounded-xl p-6 text-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-slate-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4M4 7s0 0 0 0m16 0s0 0 0 0M12 11a3 3 0 110-6 3 3 0 010 6z"/>
+                                </svg>
+                                <h3 class="font-semibold text-slate-600">نتایج پاراکلینیک</h3>
+                                <p class="text-slate-500 text-sm mt-1">نتیجه خاصی ثبت نشده است.</p>
+                            </div>
+                        {% endif %}
+                    </section>
+                </div>
+            </div>
+
+            <!-- Summary & Exam -->
+            <div class="glass-card bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="p-6 md:p-8 border-b border-slate-200">
+                    <h2 class="text-xl font-bold text-slate-800 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-3 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        خلاصه و شرح معاینات
+                    </h2>
+                </div>
+                <div class="p-6 md:p-8">
+                    <dl class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 text-center mb-8">
+                        <div class="bg-slate-50 p-3 rounded-lg"><dt class="text-xs font-semibold text-slate-500">تاریخ معاینه</dt><dd class="text-slate-800 font-bold mt-1">{{ profile.exam_date|default:"-" }}</dd></div>
+                        <div class="bg-slate-50 p-3 rounded-lg"><dt class="text-xs font-semibold text-slate-500">وزن (Kg)</dt><dd class="text-slate-800 font-bold mt-1">{{ profile.exam_weight|default:"-" }}</dd></div>
+                        <div class="bg-slate-50 p-3 rounded-lg"><dt class="text-xs font-semibold text-slate-500">قد (Cm)</dt><dd class="text-slate-800 font-bold mt-1">{{ profile.exam_height|default:"-" }}</dd></div>
+                        <div class="bg-slate-50 p-3 rounded-lg"><dt class="text-xs font-semibold text-slate-500">فشار خون</dt><dd class="text-slate-800 font-bold mt-1">{{ profile.exam_blood_pressure|default:"-" }}</dd></div>
+                        <div class="bg-slate-50 p-3 rounded-lg"><dt class="text-xs font-semibold text-slate-500">نبض</dt><dd class="text-slate-800 font-bold mt-1">{{ profile.exam_pulse_rate|default:"-" }}</dd></div>
+                    </dl>
+                    <h3 class="font-semibold text-lg text-slate-700 mt-8 mb-4">یادداشت‌های پزشک</h3>
+                    <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
+                        {% if profile.general_exam_notes %}<div><dt class="font-medium text-slate-500">عمومی:</dt><dd class="text-slate-700">{{ profile.general_exam_notes }}</dd></div>{% endif %}
+                        {% if profile.eye_exam_notes %}<div><dt class="font-medium text-slate-500">چشم:</dt><dd class="text-slate-700">{{ profile.eye_exam_notes }}</dd></div>{% endif %}
+                        {% if profile.skin_hair_nails_exam_notes %}<div><dt class="font-medium text-slate-500">پوست، مو و ناخن:</dt><dd class="text-slate-700">{{ profile.skin_hair_nails_exam_notes }}</dd></div>{% endif %}
+                        {% if profile.ent_mouth_exam_notes %}<div><dt class="font-medium text-slate-500">گوش، حلق و بینی:</dt><dd class="text-slate-700">{{ profile.ent_mouth_exam_notes }}</dd></div>{% endif %}
+                        {% if profile.lung_exam_notes %}<div><dt class="font-medium text-slate-500">ریه:</dt><dd class="text-slate-700">{{ profile.lung_exam_notes }}</dd></div>{% endif %}
+                        {% if profile.cardiovascular_exam_notes %}<div><dt class="font-medium text-slate-500">قلب و عروق:</dt><dd class="text-slate-700">{{ profile.cardiovascular_exam_notes }}</dd></div>{% endif %}
+                        {% if profile.abdomen_pelvis_exam_notes %}<div><dt class="font-medium text-slate-500">شکم و لگن:</dt><dd class="text-slate-700">{{ profile.abdomen_pelvis_exam_notes }}</dd></div>{% endif %}
+                        {% if profile.musculoskeletal_exam_notes %}<div><dt class="font-medium text-slate-500">اسکلتی عضلانی:</dt><dd class="text-slate-700">{{ profile.musculoskeletal_exam_notes }}</dd></div>{% endif %}
+                        {% if profile.nervous_system_exam_notes %}<div><dt class="font-medium text-slate-500">سیستم عصبی:</dt><dd class="text-slate-700">{{ profile.nervous_system_exam_notes }}</dd></div>{% endif %}
+                        {% if profile.mental_health_exam_notes %}<div><dt class="font-medium text-slate-500">اعصاب و روان:</dt><dd class="text-slate-700">{{ profile.mental_health_exam_notes }}</dd></div>{% endif %}
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Final Opinion & Referrals -->
+            <div id="final-opinion" class="glass-card bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="p-6 md:p-8 border-b border-slate-200">
+                    <h2 class="text-xl font-bold text-slate-800 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-3 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        نظریه نهایی و ارجاعات
+                    </h2>
+                </div>
+                <div class="p-6 md:p-8">
+                    <section class="mb-8">
+                        <h3 class="font-semibold text-lg text-slate-700 mb-4">نظریه نهایی پزشک در خصوص صلاحیت شغلی</h3>
+                        <div class="space-y-3">
+                            {% if profile.opinion_fit %}
+                                <p class="flex items-center text-green-700 font-bold">
+                                    <span class="flex h-3 w-3 relative ml-2">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                                    </span>✓ بلامانع برای کار
+                                </p>
+                            {% endif %}
+                            {% if profile.opinion_fit_with_conditions %}
+                                <div class="p-4 bg-yellow-50 text-yellow-800 rounded-lg">
+                                    <p class="font-bold">! مشروط برای کار</p>
+                                    <dd class="pr-5 text-sm mt-1"><strong>شرح شروط:</strong> {{ profile.opinion_fit_conditions_details }}</dd>
+                                </div>
+                            {% endif %}
+                            {% if profile.opinion_unfit %}
+                                <div class="p-4 bg-red-50 text-red-800 rounded-lg">
+                                    <p class="font-bold">✗ عدم صلاحیت برای کار</p>
+                                    <dd class="pr-5 text-sm mt-1"><strong>علت:</strong> {{ profile.opinion_unfit_reason }}</dd>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="mt-6">
+                            <dt class="font-semibold text-slate-600">توصیه‌های پزشکی لازم:</dt>
+                            <dd class="mt-2 text-sm text-slate-700 p-4 bg-slate-50 rounded-lg">{{ profile.medical_recommendations|default:"توصیه‌ای ثبت نشده است."|linebreaksbr }}</dd>
+                        </div>
+                    </section>
+                    <section>
+                        <h3 class="font-semibold text-lg text-slate-700 mb-4">ارجاعات تخصصی</h3>
+                        <div class="space-y-4">
+                            {% for ref in profile.referrals.all %}
+                                <div class="border-r-4 border-sky-300 pr-4">
+                                    <p class="font-bold text-slate-800">ارجاع به {{ ref.specialty }} <span class="text-xs font-normal text-slate-500 mr-2">({{ ref.date|default:"؟" }})</span></p>
+                                    <p class="mt-1 text-sm"><strong>علت:</strong> {{ ref.reason }}</p>
+                                    <p class="mt-1 text-sm"><strong>نتیجه:</strong> {{ ref.result }}</p>
+                                </div>
+                            {% empty %}
+                                <p class="text-slate-500 text-sm">ارجاعی ثبت نشده است.</p>
+                            {% endfor %}
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- Disclaimer -->
+            <div class="mt-8 p-5 bg-sky-100 border-r-4 border-sky-500 text-sky-900 rounded-lg shadow-sm">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-sky-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="mr-3">
+                        <h3 class="text-sm font-bold">سلب مسئولیت مهم</h3>
+                        <div class="text-sm mt-2">
+                            <p>این توصیه‌ها توسط هوش مصنوعی تولید شده و هرگز جایگزین نظر تخصصی پزشک معالج شما نیست. برای هرگونه تصمیم‌گیری درمانی و پزشکی، همواره با یک پزشک متخصص مشورت نمایید.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

@@ -15,7 +15,7 @@ def _is_superuser(user):
 # -------- MARKET (public) --------
 def market_index(request):
     doctors = Doctor.objects.filter(is_active=True).order_by('name_fa', 'name')
-    return render(request, 'doctors_marketplace/market_index.html', {"doctors": doctors})
+    return render(request, 'doctors_marketplace/market_index2.html', {"doctors": doctors})
 
 def doctor_detail(request, slug):
     doctor = get_object_or_404(Doctor, slug=slug, is_active=True)
@@ -30,7 +30,7 @@ def doctor_detail(request, slug):
         )
         ChatMessage.objects.create(session=session, role=ChatMessage.Role.SYSTEM, content=sys_text)
         return redirect('doctors_marketplace:chat', session_id=session.id)
-    return render(request, 'doctors_marketplace/doctor_detail.html', {"doctor": doctor})
+    return render(request, 'doctors_marketplace/doctor_detail2.html', {"doctor": doctor})
 
 # -------- CHAT --------
 @login_required
@@ -87,7 +87,7 @@ def api_send_message(request, session_id):
 @user_passes_test(_is_superuser)
 def studio_index(request):
     doctors = Doctor.objects.all().order_by('-created_at')
-    return render(request, 'doctors_marketplace/studio/index.html', {"doctors": doctors})
+    return render(request, 'doctors_marketplace/studio/index2.html', {"doctors": doctors})
 
 @login_required
 @user_passes_test(_is_superuser)
@@ -100,7 +100,7 @@ def studio_new(request):
             return redirect('doctors_marketplace:studio_edit', slug=doc.slug)
     else:
         form = DoctorForm()
-    return render(request, 'doctors_marketplace/studio/new.html', {"form": form, "doctor": None})
+    return render(request, 'doctors_marketplace/studio/new2.html', {"form": form, "doctor": None})
 
 @login_required
 @user_passes_test(_is_superuser)
@@ -114,7 +114,7 @@ def studio_edit(request, slug):
             return redirect('doctors_marketplace:studio_edit', slug=doctor.slug)
     else:
         form = DoctorForm(instance=doctor)
-    return render(request, 'doctors_marketplace/studio/new.html', {"form": form, "doctor": doctor})
+    return render(request, 'doctors_marketplace/studio/new2.html', {"form": form, "doctor": doctor})
 
 @login_required
 @user_passes_test(_is_superuser)
@@ -140,7 +140,7 @@ def studio_kb(request, slug):
             return redirect('doctors_marketplace:studio_kb', slug=slug)
     else:
         form = KnowledgeUploadForm()
-    return render(request, 'doctors_marketplace/studio/kb.html', {"doctor": doctor, "items": items, "form": form})
+    return render(request, 'doctors_marketplace/studio/kb2.html', {"doctor": doctor, "items": items, "form": form})
 
 @login_required
 @user_passes_test(_is_superuser)

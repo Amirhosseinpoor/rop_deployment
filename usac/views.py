@@ -109,9 +109,9 @@ def custom_login(request):
                 pass
             return redirect("dilemma")
 
-        return render(request, 'usac/login.html', {'error': 'Invalid credentials'})
+        return render(request, 'usac/login2.html', {'error': 'Invalid credentials'})
 
-    return render(request, 'usac/login.html')
+    return render(request, 'usac/login2.html')
 
 
 # -----------------------
@@ -138,7 +138,7 @@ def dilemma_view(request):
 
     return render(
         request,
-        'usac/dilemma.html',
+        'usac/dilemma2.html',
         {
             'role': role,
             'is_manager': is_manager_flag,
@@ -346,7 +346,7 @@ def choose_role_view(request):
                 return redirect('signup_employee')
     else:
         form = RoleChoiceForm()
-    return render(request, 'usac/signup_choose_role.html', {'form': form})
+    return render(request, 'usac/signup_choose_role2.html', {'form': form})
 
 
 def signup_manager_view(request):
@@ -358,7 +358,7 @@ def signup_manager_view(request):
             return redirect('login')
     else:
         form = ManagerSignupForm()
-    return render(request, 'usac/signup_manager.html', {'form': form})
+    return render(request, 'usac/signup_manager2.html', {'form': form})
 
 
 def signup_doctor_view(request):
@@ -378,7 +378,7 @@ def _staff_signup(request, role):
             return redirect('login')
     else:
         form = StaffSignupForm(role=role)
-    return render(request, 'usac/signup_staff.html', {'form': form, 'role': role})
+    return render(request, 'usac/signup_staff2.html', {'form': form, 'role': role})
 
 # -----------------------
 # Manager dashboard
@@ -405,7 +405,7 @@ def manager_dashboard(request):
             'opinions_json': json.dumps({}, ensure_ascii=False),
         }
         messages.warning(request, "شرکت شما یافت نشد. اگر همین الان ثبت‌نام کرده‌اید، یکبار خارج و وارد شوید یا ثبت‌نام مدیر را دوباره انجام دهید.")
-        return render(request, 'usac/manager_dashboard.html', context)
+        return render(request, 'usac/manager_dashboard2.html', context)
 
     # Normal flow when company exists
     doctors = User.objects.filter(
@@ -493,7 +493,7 @@ def manager_dashboard(request):
         'risks_json': json.dumps(risks, cls=DjangoJSONEncoder, ensure_ascii=False),
         'opinions_json': json.dumps(opinions, cls=DjangoJSONEncoder, ensure_ascii=False),
     }
-    return render(request, 'usac/manager_dashboard.html', context)
+    return render(request, 'usac/manager_dashboard2.html', context)
 
 @login_required(login_url='')
 @user_passes_test(is_manager, login_url='')

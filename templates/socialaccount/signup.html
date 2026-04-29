@@ -6,17 +6,101 @@
 <head>
     <meta charset="UTF-8">
     <title>Complete Signup | MediversAI</title>
-    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
     <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png">
     <style>
+        /* ===== Reset & Base ===== */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f9fafb; /* bg-gray-50 */
+            color: #1f2937; /* text-gray-800 */
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 1rem; /* px-4 */
         }
 
-        .fade-slide {
+        /* ===== Card Container ===== */
+        .card {
+            background-color: #ffffff;
+            padding: 2.5rem 2.5rem; /* p-10 */
+            border-radius: 1rem; /* rounded-2xl */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* shadow-xl */
+            width: 100%;
+            max-width: 24rem; /* max-w-sm */
+            text-align: center;
             animation: fadeSlide 0.6s ease-out;
         }
 
+        /* ===== Logo ===== */
+        .logo {
+            height: 3rem; /* h-12 */
+            display: block;
+            margin: 0 auto 1.5rem auto; /* mb-6 */
+            opacity: 0.9;
+        }
+
+        /* ===== Heading ===== */
+        .heading {
+            font-size: 1.5rem; /* text-2xl */
+            font-weight: 700; /* font-bold */
+            margin-bottom: 1.5rem; /* mb-6 */
+        }
+
+        /* ===== Form ===== */
+        .form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem; /* space-y-6 */
+            text-align: left; /* form had text-left */
+        }
+
+        .field-group {
+            /* spacing handled by parent */
+        }
+
+        .form-input {
+            width: 100%;
+            border: none;
+            border-bottom: 1px solid #d1d5db; /* border-gray-300 */
+            padding: 0.5rem 0; /* py-2 */
+            font-size: 0.875rem; /* text-sm */
+            background: transparent;
+            transition: border-color 0.2s ease;
+            outline: none;
+        }
+        .form-input::placeholder {
+            color: #9ca3af; /* placeholder-gray-400 */
+        }
+        .form-input:focus {
+            border-bottom-color: #3b82f6; /* focus:border-blue-500 */
+        }
+
+        .error-text {
+            color: #ef4444; /* text-red-500 */
+            font-size: 0.75rem; /* text-xs */
+            margin-top: 0.25rem; /* mt-1 */
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 0.5rem 1rem; /* py-2 */
+            font-size: 0.875rem; /* text-sm */
+            border-radius: 9999px; /* rounded-full */
+            background-color: #2563eb; /* bg-blue-600 */
+            color: #ffffff;
+            font-weight: 600; /* font-semibold */
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+        }
+        .submit-btn:hover {
+            background-color: #1d4ed8; /* hover:bg-blue-700 */
+        }
+
+        /* ===== Animation ===== */
         @keyframes fadeSlide {
             from {
                 opacity: 0;
@@ -27,49 +111,38 @@
                 transform: translateY(0);
             }
         }
-
-        input:focus {
-            outline: none;
-        }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center px-4">
+<body>
 
-<div class="bg-white rounded-2xl shadow-xl p-10 w-full max-w-sm fade-slide text-center">
+<div class="card">
+    <!-- Logo -->
+    <img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediversAI Logo" class="logo">
 
-    <!-- لوگو -->
-    <div class="mb-6">
-        <img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediversAI Logo"
-             class="h-12 mx-auto opacity-90">
-    </div>
+    <h2 class="heading">{% trans "Complete your signup" %}</h2>
 
-    <h2 class="text-2xl font-bold text-gray-800 mb-6">{% trans "Complete your signup" %}</h2>
-
-    <form method="post" class="space-y-6 text-left">
+    <form method="post" class="form">
         {% csrf_token %}
         {% for field in form %}
-            <div>
+            <div class="field-group">
                 <input
-                        type="{{ field.field.widget.input_type }}"
-                        name="{{ field.name }}"
-                        value="{{ field.value|default_if_none:'' }}"
-                        placeholder="{{ field.label }}"
-                        class="w-full border-b border-gray-300 py-2 text-sm placeholder-gray-400 bg-transparent focus:border-blue-500 transition duration-200"
-                        {% if field.field.required %} required {% endif %}
+                    type="{{ field.field.widget.input_type }}"
+                    name="{{ field.name }}"
+                    value="{{ field.value|default_if_none:'' }}"
+                    placeholder="{{ field.label }}"
+                    class="form-input"
+                    {% if field.field.required %} required {% endif %}
                 >
                 {% for error in field.errors %}
-                    <p class="text-xs text-red-500 mt-1">{{ error }}</p>
+                    <p class="error-text">{{ error }}</p>
                 {% endfor %}
             </div>
         {% endfor %}
 
-        <button type="submit"
-                class="w-full text-sm py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold transition duration-200 shadow-sm">
+        <button type="submit" class="submit-btn">
             {% trans "Sign Up" %}
         </button>
     </form>
-
-
 </div>
 
 </body>

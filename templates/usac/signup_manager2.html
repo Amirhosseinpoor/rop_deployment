@@ -1,0 +1,284 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ثبت‌نام مدیر | MediverseAI</title>
+
+<!-- فونت داخلی وزیر -->
+<style>
+@font-face {
+    font-family: "Vazirmatn";
+    src: url("{% static 'fonts/Vazirmatn-Regular.woff2' %}") format("woff2");
+}
+@font-face {
+    font-family: "Vazirmatn";
+    src: url("{% static 'fonts/Vazirmatn-Bold.woff2' %}") format("woff2");
+    font-weight: bold;
+}
+
+* { box-sizing:border-box; margin:0; padding:0; }
+
+body {
+    font-family: Vazirmatn, sans-serif;
+    min-height: 100vh;
+    padding: 20px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background: linear-gradient(to bottom right, #f8fafc, #f1f5f9);
+    color:#1e293b;
+    transition:.3s;
+}
+
+/* dark mode */
+.dark body {
+    background: linear-gradient(to bottom right, #0f172a, #020617);
+    color:#f1f5f9;
+}
+
+.glass {
+    width:100%;
+    max-width: 850px;
+    background: rgba(255,255,255,.65);
+    backdrop-filter: blur(14px);
+    border-radius: 28px;
+    padding: 32px;
+    border:1px solid rgba(255,255,255,0.5);
+    box-shadow:0 10px 35px rgba(0,0,0,0.12);
+    transition:.3s;
+}
+
+.dark .glass {
+    background: rgba(20,25,40,0.55);
+    border-color: rgba(255,255,255,0.08);
+}
+
+/* header */
+.header img {
+    height: 50px;
+    opacity:.9;
+    margin-bottom:10px;
+}
+.header h1 {
+    font-size: 24px;
+    font-weight: bold;
+}
+.header p {
+    margin-top:6px;
+    font-size: 13px;
+    color:#64748b;
+}
+.dark .header p { color:#94a3b8; }
+
+/* form grid */
+.form-grid {
+    margin-top:28px;
+    display:grid;
+    grid-template-columns:1fr;
+    gap:18px;
+}
+@media(min-width:768px){
+    .form-grid { grid-template-columns:1fr 1fr; }
+}
+
+/* titles */
+.section-title {
+    font-size:18px;
+    font-weight:bold;
+    margin:10px 0 4px;
+    grid-column:1 / -1;
+}
+
+/* input */
+input, textarea {
+    width:100%;
+    padding:12px 14px;
+    border-radius: 14px;
+    border:1px solid #cbd5e1;
+    background:rgba(255,255,255,0.85);
+    backdrop-filter:blur(8px);
+    font-size:15px;
+    transition:.25s;
+    outline:none;
+}
+input:focus, textarea:focus {
+    border-color:#6366f1;
+    box-shadow:0 0 0 4px rgba(99,102,241,.25);
+}
+.dark input, .dark textarea {
+    background:rgba(15,23,42,0.6);
+    border-color:#334155;
+    color:white;
+}
+
+/* labels */
+label {
+    font-size:14px;
+    font-weight:600;
+    margin-bottom:4px;
+    display:block;
+}
+
+/* errors */
+.error-box {
+    grid-column:1 / -1;
+    background:#fef2f2;
+    border:1px solid #fecaca;
+    color:#b91c1c;
+    padding:12px;
+    border-radius:16px;
+    font-size:13px;
+}
+.dark .error-box {
+    background:rgba(153,27,27,.25);
+    border-color:#7f1d1d;
+    color:#fecaca;
+}
+
+/* button */
+.btn {
+    grid-column:1 / -1;
+    margin-top:6px;
+    width:100%;
+    padding:14px;
+    background:linear-gradient(135deg,#6366f1,#7c3aed);
+    border-radius:18px;
+    color:white;
+    font-weight:bold;
+    font-size:16px;
+    border:none;
+    cursor:pointer;
+    transition:.3s;
+    box-shadow:0 10px 28px rgba(124,58,237,0.25);
+}
+.btn:hover {
+    transform:translateY(-3px);
+    box-shadow:0 12px 34px rgba(124,58,237,0.35);
+}
+
+/* footer */
+.footer {
+    margin-top:20px;
+    text-align:center;
+    font-size:12px;
+    color:#64748b;
+}
+.dark .footer { color:#94a3b8; }
+.footer a {
+    font-weight:bold;
+    color:#6366f1;
+}
+
+.theme-toggle {
+    position:fixed;
+    top:20px;
+    left:20px;
+    padding:10px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.7);
+    backdrop-filter:blur(10px);
+    cursor:pointer;
+    border:1px solid #cbd5e1;
+    transition:.3s;
+    font-size:18px;
+}
+.dark .theme-toggle {
+    background:rgba(15,23,42,0.6);
+    border-color:#334155;
+    color:white;
+}
+
+</style>
+</head>
+
+<body>
+
+<button class="theme-toggle" id="themeToggle">🌓</button>
+
+<div class="glass">
+
+  <div class="header" style="text-align:center;">
+    <img src="{% static 'icons/mediversai_logo_final-03.png' %}">
+    <h1>ثبت‌نام مدیر و شرکت</h1>
+    <p>اطلاعات شرکت و حساب مدیر را تکمیل کنید.</p>
+  </div>
+
+  <form method="post" class="form-grid">
+    {% csrf_token %}
+
+    <div class="section-title">حساب مدیر</div>
+
+    <div>
+      {{ form.username.label_tag }}
+      {{ form.username }}
+    </div>
+    <div>
+      {{ form.email.label_tag }}
+      {{ form.email }}
+    </div>
+    <div>
+      {{ form.phone.label_tag }}
+      {{ form.phone }}
+    </div>
+    <div>
+      {{ form.password1.label_tag }}
+      {{ form.password1 }}
+    </div>
+    <div>
+      {{ form.password2.label_tag }}
+      {{ form.password2 }}
+    </div>
+
+    <div class="section-title">اطلاعات شرکت</div>
+
+    <div style="grid-column:1 / -1;">
+      {{ form.company_name.label_tag }}
+      {{ form.company_name }}
+    </div>
+    <div style="grid-column:1 / -1;">
+      {{ form.company_address.label_tag }}
+      {{ form.company_address }}
+    </div>
+    <div>
+      {{ form.company_email.label_tag }}
+      {{ form.company_email }}
+    </div>
+    <div>
+      {{ form.company_phone.label_tag }}
+      {{ form.company_phone }}
+    </div>
+
+    {% if form.errors %}
+    <div class="error-box">
+      {{ form.errors }}
+    </div>
+    {% endif %}
+
+    <button class="btn">ثبت‌نام</button>
+
+  </form>
+
+  <div class="footer">
+    قبلاً حساب دارید؟
+    <a href="{% url 'login' %}">ورود</a>
+  </div>
+
+</div>
+
+<script>
+/* theme toggle */
+const root=document.documentElement;
+const toggle=document.getElementById("themeToggle");
+
+if(localStorage.getItem("theme")==="dark") root.classList.add("dark");
+
+toggle.onclick=()=>{
+  root.classList.toggle("dark");
+  localStorage.setItem("theme", root.classList.contains("dark")?"dark":"light");
+};
+</script>
+
+</body>
+</html>

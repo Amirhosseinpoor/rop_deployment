@@ -1,0 +1,367 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Choose App</title>
+
+    <!-- Offline Font -->
+    <style>
+        @font-face {
+            font-family: Vazirmatn;
+            src: url("{% static 'fonts/Vazirmatn-Regular.woff2' %}") format("woff2");
+        }
+        @font-face {
+            font-family: Vazirmatn;
+            src: url("{% static 'fonts/Vazirmatn-Bold.woff2' %}") format("woff2");
+            font-weight: bold;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: Vazirmatn, sans-serif;
+            background: linear-gradient(135deg, #eef2ff, #f7fafc, #f0f9ff);
+            min-height: 100vh;
+            padding: 20px;
+            color: #1e293b;
+        }
+
+        /* ===== Top Navbar (Glass) ===== */
+        .topbar {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            padding: 12px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            background: rgba(255,255,255,0.72);
+            border-bottom: 1px solid rgba(255,255,255,0.45);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 8px 35px rgba(0,0,0,0.12);
+            z-index: 100;
+        }
+
+        .topbar img { height: 32px; opacity: .95; }
+
+        .dropdown { position: relative; cursor: pointer; }
+        .dropdown-menu {
+            position: absolute;
+            right: 0;
+            top: 36px;
+            width: 150px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 14px;
+            border: 1px solid rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.12);
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: none;
+            transition: .25s;
+        }
+        .dropdown.open .dropdown-menu {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+
+        .dropdown-menu button {
+            width: 100%;
+            padding: 10px;
+            background: transparent;
+            border: none;
+            font-size: 14px;
+            color: #dc2626;
+            cursor: pointer;
+        }
+        .dropdown-menu button:hover {
+            background: rgba(0,0,0,0.04);
+        }
+
+        /* ===== Role Strip ===== */
+        .role-strip {
+            margin-top: 85px;
+            max-width: 850px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 12px 18px;
+            border-radius: 16px;
+            font-size: 14px;
+            text-align: center;
+            border: 1px solid transparent;
+        }
+
+        /* ===== Main Glass Card ===== */
+        .main-card {
+            margin: 40px auto;
+            max-width: 900px;
+            background: rgba(255,255,255,0.75);
+            border-radius: 30px;
+            padding: 40px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.45);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 15px 45px rgba(0,0,0,0.15);
+            animation: fadeSlide 0.6s ease-out;
+        }
+
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .header-logo img { height: 45px; }
+
+        /* ===== Grid of Modules ===== */
+        .grid {
+            display: grid;
+            gap: 28px;
+        }
+        @media(min-width: 768px) {
+            .grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        /* ===== Cards ===== */
+        .card {
+            background: rgba(255,255,255,0.65);
+            border-radius: 22px;
+            border: 1px solid rgba(0,0,0,0.08);
+            overflow: hidden;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+
+            box-shadow: 0 8px 22px rgba(0,0,0,0.12);
+            transition: .35s ease;
+        }
+        .card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 16px 40px rgba(99,102,241,0.20);
+        }
+        .card-img {
+            background: #000;
+            height: 190px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card-img img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            transition: .35s;
+        }
+        .card:hover img { transform: scale(1.05); }
+
+        .card-body {
+            padding: 16px;
+            text-align: center;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<header class="topbar">
+
+    <div class="flex items-center">
+        <img src="{% static 'mediversai_logo_final.png' %}" alt="MediverseAI Logo">
+    </div>
+
+    {% if user.is_authenticated %}
+    <div style="display:flex; align-items:center; gap:22px; font-size:14px;">
+
+        <a href="{% url 'history' %}" style="color:#1e293b; text-decoration:none;">تاریخچه</a>
+
+        <!-- ================= USER DROPDOWN (Name + Role + Logout) ================= -->
+        <div class="dropdown" style="display:flex; align-items:center; gap:8px;">
+
+            <!-- Trigger: name + role + arrow -->
+            <div style="display:flex; align-items:center; gap:8px;">
+                <strong style="cursor:pointer; display:flex; align-items:center; gap:4px;">
+                    {{ user.username }}
+                    <svg width="16" height="16" stroke="#475569" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M19 9l-7 7-7-7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </strong>
+
+                <!-- Role badge (نمایشی) -->
+                <span style="
+                    display:inline-flex; align-items:center; gap:6px;
+                    padding:5px 10px;
+                    border-radius:9999px;
+                    font-weight:bold;
+                    font-size:11px;
+                    border:1px solid;
+                    {% if is_manager %} background:#eef2ff; border-color:#c7d2fe; color:#4338ca;
+                    {% elif is_doctor %} background:#ecfdf5; border-color:#bbf7d0; color:#166534;
+                    {% elif is_employee %} background:#eff6ff; border-color:#bfdbfe; color:#1e40af;
+                    {% else %} background:#f1f5f9; border-color:#cbd5e1; color:#334155; {% endif %}
+                ">
+                    ●
+                    <span>{{ role|default:"Super User"|title }}</span>
+                </span>
+            </div>
+
+            <!-- Dropdown menu -->
+            <div class="dropdown-menu" style="width: 190px;">
+                <div style="padding:10px 12px; border-bottom:1px solid rgba(0,0,0,0.05);">
+                    <div style="font-size:13px; color:#64748b;">ورود با</div>
+                    <div style="font-size:14px; font-weight:bold; color:#0f172a; margin-top:2px;">
+                        {{ user.username }}
+                    </div>
+
+                </div>
+
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" style="
+                        width:100%;
+                        padding:10px 12px;
+                        background:transparent;
+                        border:none;
+                        font-size:13px;
+                        color:#dc2626;
+                        cursor:pointer;
+                        text-align:right;
+                    ">
+                        خروج از حساب کاربری
+                    </button>
+                </form>
+            </div>
+        </div>
+        <!-- ======================================================================= -->
+
+    </div>
+    {% endif %}
+
+</header>
+
+<!-- ======================= ROLE STRIP ======================= -->
+{% if user.is_authenticated %}
+<div class="role-strip"
+style="
+
+{% if is_manager %}
+background:#eef2ff; border-color:#c7d2fe; color:#4338ca;
+{% elif is_doctor %}
+background:#ecfdf5; border-color:#bbf7d0; color:#166534;
+{% elif is_employee %}
+background:#eff6ff; border-color:#bfdbfe; color:#1e40af;
+{% else %}
+background:#f1f5f9; border-color:#cbd5e1; color:#475569;
+{% endif %}
+">
+    شما وارد شده‌اید به عنوان:
+    <strong style="margin-right:6px;">{{ role|default:"Super User"|title }}</strong>
+</div>
+{% endif %}
+
+<!-- ======================= MAIN CARD ======================= -->
+<div class="main-card">
+
+    <div class="header-logo" style="text-align:center; margin-bottom:25px;">
+        <img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediverseAI">
+        <h2 style="font-size:22px; font-weight:bold; margin-top:12px;">انتخاب ماژول هوش مصنوعی</h2>
+        <p style="font-size:13px; color:#475569;">نوع تصویر را برای تحلیل انتخاب کنید</p>
+    </div>
+
+    <div class="grid">
+
+        <!-- ROP -->
+        <a href="{% url 'home' %}" class="card">
+            <div class="card-img">
+                <img src="{% static 'segmented_rop1.jpg' %}" alt="ROP AI">
+            </div>
+            <div class="card-body">
+                <h3 style="color:#2563eb; font-size:17px; font-weight:bold;">ROP AI</h3>
+                <p style="font-size:12px; color:#64748b;">تشخیص بیماری ROP با هوش مصنوعی</p>
+            </div>
+        </a>
+
+        <!-- KC -->
+        <a href="{% url 'double_home' %}" class="card">
+            <div class="card-img">
+                <img src="{% static 'kc.jpg' %}" alt="KC AI">
+            </div>
+            <div class="card-body">
+                <h3 style="color:#7c3aed; font-size:17px; font-weight:bold;">KC AI</h3>
+                <p style="font-size:12px; color:#64748b;">تشخیص بیماری KC با هوش مصنوعی</p>
+            </div>
+        </a>
+
+        <!-- Marketplace -->
+        <a href="{% url 'doctors_marketplace:index' %}" class="card">
+            <div class="card-img">
+                <img src="{% static 'doctor_market.jpg' %}" alt="Doctors Marketplace" style="padding:14px;">
+            </div>
+            <div class="card-body">
+                <h3 style="color:#db2777; font-weight:bold;">Doctors Marketplace</h3>
+                <p style="font-size:12px; color:#64748b;">گفتگو با پزشکان هوش مصنوعی</p>
+            </div>
+        </a>
+
+        {% if user.is_superuser %}
+        <a href="{% url 'doctors_marketplace:studio_index' %}" class="card">
+            <div class="card-img">
+                <img src="{% static 'doctor_market.jpg' %}" alt="Studio" style="padding:14px;">
+            </div>
+            <div class="card-body">
+                <h3 style="color:#db2777; font-weight:bold;">Doctors Studio</h3>
+                <p style="font-size:12px; color:#64748b;">مدیریت پزشکان و RAG</p>
+            </div>
+        </a>
+        {% endif %}
+
+        {% if is_manager %}
+        <a href="{% url 'manager_dashboard' %}" class="card">
+            <div class="card-img">
+                <img src="{% static 'test_analysis.jpg' %}" alt="Managing" style="padding:14px;">
+            </div>
+            <div class="card-body">
+                <h3 style="color:#4f46e5; font-weight:bold;">Managing</h3>
+                <p style="font-size:12px; color:#64748b;">دعوت کارمندان و مشاهده اعضا</p>
+            </div>
+        </a>
+        {% endif %}
+
+        {% if is_doctor or is_employee or user.is_superuser %}
+        <a href="{% url 'create_update_profile' %}" class="card">
+            <div class="card-img">
+                <img src="{% static 'test_analysis.jpg' %}" alt="Test Analysis" style="padding:14px;">
+            </div>
+            <div class="card-body">
+                <h3 style="color:#059669; font-weight:bold;">Test Analysis</h3>
+                <p style="font-size:12px; color:#64748b;">تکمیل یا ویرایش پروفایل سلامت</p>
+            </div>
+        </a>
+        {% endif %}
+
+    </div>
+</div>
+
+</body>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const dropdown = document.querySelector(".dropdown");
+
+    if (dropdown) {
+        dropdown.addEventListener("click", function(e) {
+            e.stopPropagation();
+            dropdown.classList.toggle("open");
+        });
+
+        // بستن dropdown با کلیک بیرون
+        document.addEventListener("click", function() {
+            dropdown.classList.remove("open");
+        });
+    }
+});
+</script>
+
+</html>

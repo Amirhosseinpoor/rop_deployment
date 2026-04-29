@@ -1,0 +1,511 @@
+{% load static dm_extras %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>بازار پزشکان</title>
+
+  <style>
+    /* Reset & Base */
+    *,::before,::after{box-sizing:border-box;border:0 solid}
+    html{line-height:1.5;-webkit-text-size-adjust:100%;tab-size:4;font-family:ui-sans-serif,system-ui,sans-serif}
+    body{margin:0;line-height:inherit}
+    h1,h2,p{margin:0}
+    a{color:inherit;text-decoration:inherit}
+    button,input{font-family:inherit;font-size:100%;line-height:inherit;color:inherit;margin:0;padding:0}
+    button{background-color:transparent;background-image:none;cursor:pointer}
+    img,svg{display:block;vertical-align:middle;max-width:100%;height:auto}
+
+    /* Utility Classes */
+    .h-full{height:100%}
+    .min-h-screen{min-height:100vh}
+    .container{width:100%;max-width:1280px;margin:0 auto;padding:0 1rem}
+    .flex{display:flex}
+    .inline-flex{display:inline-flex}
+    .grid{display:grid}
+    .hidden{display:none}
+    .block{display:block}
+    .relative{position:relative}
+    .absolute{position:absolute}
+    .sticky{position:sticky}
+    .top-0{top:0}
+    .inset-0{top:0;right:0;bottom:0;left:0}
+    .z-40{z-index:40}
+    .items-center{align-items:center}
+    .justify-between{justify-content:space-between}
+    .gap-1{gap:.25rem}
+    .gap-1\.5{gap:.375rem}
+    .gap-2{gap:.5rem}
+    .gap-3{gap:.75rem}
+    .gap-4{gap:1rem}
+    .gap-6{gap:1.5rem}
+    .overflow-hidden{overflow:hidden}
+    .overflow-x-auto{overflow-x:auto}
+    .rounded-full{border-radius:9999px}
+    .rounded-xl{border-radius:.75rem}
+    .rounded-2xl{border-radius:1rem}
+    .rounded-3xl{border-radius:1.5rem}
+    .border{border-width:1px}
+    .border-t{border-top-width:1px}
+    .border-b{border-bottom-width:1px}
+    .border-dashed{border-style:dashed}
+    .bg-white{background-color:#fff}
+    .px-2{padding-left:.5rem;padding-right:.5rem}
+    .px-3{padding-left:.75rem;padding-right:.75rem}
+    .px-4{padding-left:1rem;padding-right:1rem}
+    .px-5{padding-left:1.25rem;padding-right:1.25rem}
+    .py-1{padding-top:.25rem;padding-bottom:.25rem}
+    .py-2{padding-top:.5rem;padding-bottom:.5rem}
+    .py-3{padding-top:.75rem;padding-bottom:.75rem}
+    .py-4{padding-top:1rem;padding-bottom:1rem}
+    .py-8{padding-top:2rem;padding-bottom:2rem}
+    .p-5{padding:1.25rem}
+    .p-6{padding:1.5rem}
+    .p-8{padding:2rem}
+    .pb-1{padding-bottom:.25rem}
+    .pb-2{padding-bottom:.5rem}
+    .pb-5{padding-bottom:1.25rem}
+    .pb-20{padding-bottom:5rem}
+    .pt-6{padding-top:1.5rem}
+    .pr-10{padding-right:2.5rem}
+    .mt-0\.5{margin-top:.125rem}
+    .mt-2{margin-top:.5rem}
+    .mt-3{margin-top:.75rem}
+    .mt-4{margin-top:1rem}
+    .w-full{width:100%}
+    .w-auto{width:auto}
+    .min-w-0{min-width:0}
+    .flex-1{flex:1 1 0%}
+    .flex-col{flex-direction:column}
+    .flex-wrap{flex-wrap:wrap}
+    .text-xs{font-size:.75rem;line-height:1rem}
+    .text-sm{font-size:.875rem;line-height:1.25rem}
+    .text-base{font-size:1rem;line-height:1.5rem}
+    .text-xl{font-size:1.25rem;line-height:1.75rem}
+    .text-2xl{font-size:1.5rem;line-height:2rem}
+    .font-bold{font-weight:700}
+    .font-extrabold{font-weight:800}
+    .leading-tight{line-height:1.25}
+    .tracking-tight{letter-spacing:-.025em}
+    .text-center{text-align:center}
+    .text-white{color:#fff}
+    .text-gray-500{color:#6b7280}
+    .text-gray-600{color:#4b5563}
+    .text-gray-700{color:#374151}
+    .text-gray-800{color:#1f2937}
+    .text-red-600{color:#dc2626}
+    .truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .pointer-events-none{pointer-events:none}
+    .will-change-transform{will-change:transform}
+    .transition{transition-property:all;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
+
+    /* Custom Styles */
+    body{
+      background:linear-gradient(to bottom right,#f9fafb,#f5f3ff);
+      color:#1f2937;
+      font-family:Tahoma,Arial,sans-serif;
+    }
+    .dark body{
+      background:linear-gradient(to bottom right,#0b1220,#111827);
+      color:#f3f4f6;
+    }
+
+    .glass{
+      background:rgba(255,255,255,.65);
+      backdrop-filter:blur(10px);
+      border-color:rgba(255,255,255,.3);
+    }
+    .dark .glass{
+      background:rgba(17,24,39,.5);
+      border-color:rgba(255,255,255,.08);
+    }
+
+    .shadow-soft{box-shadow:0 10px 30px rgba(0,0,0,.08)}
+    .shadow-glass{box-shadow:0 20px 60px rgba(0,0,0,.12)}
+    .shadow-xl{box-shadow:0 20px 25px -5px rgba(0,0,0,.1),0 10px 10px -5px rgba(0,0,0,.04)}
+
+    .line-clamp-3{
+      display:-webkit-box;
+      -webkit-line-clamp:3;
+      -webkit-box-orient:vertical;
+      overflow:hidden;
+    }
+
+    .h-3{height:.75rem}
+    .h-4{height:1rem}
+    .h-5{height:1.25rem}
+    .h-9{height:2.25rem}
+    .h-16{height:4rem}
+    .h-32{height:8rem}
+    .w-3\.5{width:.875rem}
+    .w-4{width:1rem}
+    .w-5{width:1.25rem}
+    .w-9{width:2.25rem}
+    .w-16{width:4rem}
+    .w-1\/2{width:50%}
+    .w-2\/3{width:66.666667%}
+    .w-4\/6{width:66.666667%}
+    .w-5\/6{width:83.333333%}
+
+    .right-3{right:.75rem}
+    .top-1\/2{top:50%}
+    .-translate-y-1\/2{transform:translateY(-50%)}
+
+    .ring-2{box-shadow:0 0 0 2px rgba(255,255,255,.8)}
+    .dark .ring-2{box-shadow:0 0 0 2px rgba(255,255,255,.2)}
+
+    .object-cover{object-fit:cover}
+
+    input:focus{outline:2px solid #7c3aed;outline-offset:2px}
+    button:focus{outline:2px solid #7c3aed;outline-offset:2px}
+
+    .bg-brand-600{background-color:#6d28d9}
+    .hover\:bg-brand-700:hover{background-color:#5b21b6}
+    .text-brand-600{color:#6d28d9}
+    .hover\:text-brand-600:hover{color:#6d28d9}
+    .hover\:underline:hover{text-decoration:underline}
+    .hover\:bg-black\/5:hover{background-color:rgba(0,0,0,.05)}
+    .dark .hover\:bg-white\/10:hover{background-color:rgba(255,255,255,.1)}
+    .hover\:shadow-xl:hover{box-shadow:0 20px 25px -5px rgba(0,0,0,.1),0 10px 10px -5px rgba(0,0,0,.04)}
+
+    .dark .text-gray-100{color:#f3f4f6}
+    .dark .text-gray-200{color:#e5e7eb}
+    .dark .text-gray-300{color:#d1d5db}
+    .dark .text-gray-400{color:#9ca3af}
+    .dark .text-red-400{color:#f87171}
+    .dark .bg-white\/5{background-color:rgba(255,255,255,.05)}
+    .dark .bg-white\/10{background-color:rgba(255,255,255,.1)}
+    .dark .border-white\/10{border-color:rgba(255,255,255,.1)}
+
+    .bg-white\/70{background-color:rgba(255,255,255,.7)}
+    .border-white\/30{border-color:rgba(255,255,255,.3)}
+    .border-white\/50{border-color:rgba(255,255,255,.5)}
+    .border-white\/60{border-color:rgba(255,255,255,.6)}
+
+    .skeleton{
+      background:linear-gradient(90deg,rgba(0,0,0,.06) 25%,rgba(0,0,0,.12) 37%,rgba(0,0,0,.06) 63%);
+      background-size:400% 100%;
+      animation:shimmer 2s linear infinite;
+    }
+
+    @keyframes shimmer{
+      0%{background-position:200% 0}
+      100%{background-position:-200% 0}
+    }
+
+    @keyframes fadeSlideUp{
+      0%{opacity:0;transform:translateY(16px)}
+      100%{opacity:1;transform:translateY(0)}
+    }
+
+    @keyframes floaty{
+      0%{transform:translateY(0)}
+      50%{transform:translateY(-6px)}
+      100%{transform:translateY(0)}
+    }
+
+    .animate-shimmer{animation:shimmer 2s linear infinite}
+    .animate-floaty{animation:floaty 6s ease-in-out infinite}
+
+    .tilt{transition:transform .4s cubic-bezier(.22,.61,.36,1)}
+    .tilt:hover{transform:perspective(800px) rotateX(3deg) rotateY(-3deg) translateZ(0)}
+
+    .chip-base{
+      font-size:.75rem;
+      border-radius:9999px;
+      border:1px solid rgba(0,0,0,.06);
+      padding:.45rem .8rem;
+      background:rgba(255,255,255,.7);
+      backdrop-filter:blur(6px);
+      transition:.25s;
+    }
+    .dark .chip-base{
+      border-color:rgba(255,255,255,.08);
+      background:rgba(255,255,255,.06);
+    }
+    .chip-base:hover{
+      transform:translateY(-1px);
+      box-shadow:0 6px 20px rgba(0,0,0,.08);
+    }
+    .chip.active{
+      color:white;
+      background:#6d28d9;
+      border-color:transparent;
+    }
+
+    .bg-gradient-hero{
+      background:linear-gradient(to bottom,rgba(255,255,255,.6),transparent);
+    }
+    .dark .bg-gradient-hero{
+      background:linear-gradient(to bottom,rgba(255,255,255,0),transparent);
+    }
+
+    .space-y-2>*+*{margin-top:.5rem}
+
+    @media (min-width:640px){
+      .sm\:text-2xl{font-size:1.5rem;line-height:2rem}
+      .sm\:text-3xl{font-size:1.875rem;line-height:2.25rem}
+      .sm\:gap-3{gap:.75rem}
+      .sm\:flex-row{flex-direction:row}
+      .sm\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+
+    @media (min-width:1024px){
+      .lg\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+      .lg\:grid-cols-12{grid-template-columns:repeat(12,minmax(0,1fr))}
+      .lg\:col-span-4{grid-column:span 4/span 4}
+      .lg\:col-span-8{grid-column:span 8/span 8}
+    }
+
+    .col-span-full{grid-column:1/-1}
+
+    @media (prefers-reduced-motion:reduce){
+      *{animation:none!important;transition:none!important}
+    }
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <!-- هدر شیشه‌ای -->
+  <header id="appHeader" class="border-b sticky top-0 z-40 glass">
+    <div class="container flex items-center justify-between py-4">
+      <div class="flex items-center gap-3">
+        <div class="relative">
+          <img src="{% static 'icons/mediversai_logo_final-032.png' %}" class="h-9 w-9 animate-floaty" alt="لوگو">
+          <span class="sr-only">Mediverse AI</span>
+        </div>
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight">بازار پزشکان</h1>
+      </div>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button id="themeToggle" class="relative overflow-hidden text-xs border rounded-full px-3 py-1 transition">
+          <span class="flex items-center gap-2">
+            <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition" viewBox="0 0 24 24" fill="currentColor"><path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.8 1.42-1.42zm10.48 0l1.8-1.79 1.41 1.41-1.79 1.8-1.42-1.42zM12 4V1h-0v3h0zm0 19v-3h0v3h0zM4 12H1v0h3v0zm19 0h-3v0h3v0zM6.76 19.16l-1.42 1.42-1.79-1.8 1.41-1.41 1.8 1.79zm10.48 0l1.42 1.42 1.79-1.8-1.41-1.41-1.8 1.79zM12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12z"/></svg>
+            <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 hidden transition" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 0 1 11.21 3 7 7 0 1 0 21 12.79z"/></svg>
+            تغییر تم
+          </span>
+        </button>
+
+        {% if user.is_authenticated %}
+          <a href="{% url 'logout' %}" class="text-sm text-red-600 dark:text-red-400 hover:underline">خروج</a>
+        {% else %}
+          <a href="{% url 'account_login' %}" class="text-sm text-brand-600 hover:underline">ورود</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="container pb-2">
+      <div class="grid lg:grid-cols-12 gap-3">
+        <div class="lg:col-span-8">
+          <div class="relative">
+            <input id="searchInput" type="search" placeholder="جست‌وجوی پزشک، تخصص یا کلمات کلیدی…"
+              class="w-full rounded-2xl border glass px-4 py-3 pr-10 transition">
+            <svg class="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"/></svg>
+          </div>
+        </div>
+        <div class="lg:col-span-4">
+          <div class="flex gap-2 overflow-x-auto pb-1">
+            <button data-chip class="chip chip-base active">همه</button>
+            <button data-chip class="chip chip-base">قلب و عروق</button>
+            <button data-chip class="chip chip-base">اورولوژی</button>
+            <button data-chip class="chip chip-base">غدد (دیابت)</button>
+            <button data-chip class="chip chip-base">فشارخون</button>
+            <button data-chip class="chip chip-base">هماتولوژی</button>
+            <button data-chip class="chip chip-base">مشاوره خانواده</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- قهرمان -->
+  <section class="relative">
+    <div class="absolute inset-0 pointer-events-none">
+      <div class="h-32 bg-gradient-hero"></div>
+    </div>
+    <div class="container pt-6 pb-2">
+      <div class="rounded-3xl glass border shadow-glass p-6 flex flex-col gap-6">
+        <div class="flex-1">
+          <h2 class="text-2xl sm:text-3xl font-extrabold leading-tight">
+            پزشک مناسب خود را سریع پیدا کنید
+          </h2>
+          <p class="mt-2 text-sm text-gray-600">
+            کارت‌های زیر را مرور کنید، فیلتر بزنید و با یک کلیک گفتگو را شروع کنید. همه‌چیز ساده، فارسی و امن.
+          </p>
+        </div>
+        <div class="w-full">
+          <a href="#cardsGrid" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-600 text-white transition">
+            مرور پزشکان
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 16l4-4H8l4 4z"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- گرید کارت‌ها -->
+  <main id="cardsGrid" class="container pb-20 pt-6">
+    <div id="skeleton" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for i in "123456" %}
+      <div class="rounded-2xl border glass p-5 shadow-soft">
+        <div class="flex items-center gap-4">
+          <div class="h-16 w-16 rounded-full skeleton animate-shimmer"></div>
+          <div class="flex-1 space-y-2">
+            <div class="h-4 w-2/3 rounded skeleton animate-shimmer"></div>
+            <div class="h-3 w-1/2 rounded skeleton animate-shimmer"></div>
+            <div class="h-3 w-5/6 rounded skeleton animate-shimmer"></div>
+          </div>
+        </div>
+        <div class="mt-4 space-y-2">
+          <div class="h-3 w-full rounded skeleton animate-shimmer"></div>
+          <div class="h-3 w-5/6 rounded skeleton animate-shimmer"></div>
+          <div class="h-3 w-4/6 rounded skeleton animate-shimmer"></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div id="cards" class="hidden grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for d in doctors %}
+        <a href="{% url 'doctors_marketplace:doctor_detail' d.slug %}"
+           class="card block rounded-2xl glass border shadow-soft transition will-change-transform tilt"
+           style="opacity:0"
+           data-specialty="{{ d.specialization_fa|default:d.get_specialization_display }}"
+           data-search="{{ d.name_fa|default:d.name }} {{ d.specialization_fa|default:d.get_specialization_display }} {{ d.headline_fa|default:d.headline }} {{ d.bio_fa|default:d.bio }} {{ d.tags_fa|default:'' }}">
+          <div class="p-5 flex items-center gap-4">
+            <img
+              src="{% if d.avatar %}{{ d.avatar.url }}{% else %}{% static 'avatars/doctor-default.png' %}{% endif %}"
+              class="h-16 w-16 rounded-2xl object-cover ring-2"
+              alt="آواتار">
+            <div class="min-w-0">
+              <div class="text-base font-bold truncate">{{ d.name_fa|default:d.name }}</div>
+              <div class="text-xs text-gray-600 mt-0.5">{{ d.specialization_fa|default:d.get_specialization_display }}</div>
+              {% if d.headline_fa or d.headline %}
+                <div class="text-xs text-gray-500 mt-0.5 line-clamp-3">{{ d.headline_fa|default:d.headline }}</div>
+              {% endif %}
+            </div>
+          </div>
+          <div class="px-5 pb-5">
+            <p class="text-sm text-gray-700 line-clamp-3">
+              {{ d.bio_fa|default:d.bio|default:"ارائهٔ راهنمایی تخصصی، مرور آزمایش‌ها و پیشنهاد گام‌های بعدی." }}
+            </p>
+
+            {% if d.tags_fa %}
+              <div class="mt-3 flex flex-wrap gap-1.5">
+                {% for t in d.tags_fa|split:","|slice:":5" %}
+                  <span class="text-xs px-2 py-1 rounded-full bg-white\/70 text-gray-700 border border-white\/60">
+                    {{ t }}
+                  </span>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            <div class="mt-4 flex items-center justify-between">
+              <span class="text-xs text-gray-500">پزشک هوشمند</span>
+              <span class="text-xs text-brand-600 inline-flex items-center gap-1">
+                شروع گفتگو
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 transition" viewBox="0 0 24 24" fill="currentColor"><path d="M9 18l6-6-6-6v12z"/></svg>
+              </span>
+            </div>
+          </div>
+        </a>
+      {% empty %}
+        <div class="col-span-full text-center text-gray-500 border border-dashed rounded-2xl p-8">
+          هنوز پزشکی ثبت نشده است.
+        </div>
+      {% endfor %}
+    </div>
+  </main>
+
+  <!-- پابرگ -->
+  <footer class="border-t glass">
+    <div class="container py-8 text-xs text-gray-600 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <span>© {{ now|date:"Y" }} مدی‌ورس‌اِی‌آی — گفتگوهای شما امن و محرمانه است.</span>
+      <div class="flex items-center gap-4">
+        <a href="#" class="hover:text-brand-600">حریم خصوصی</a>
+        <a href="#" class="hover:text-brand-600">قوانین</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const themeToggle=document.getElementById('themeToggle');
+    const root=document.documentElement;
+    const sun=document.getElementById('sunIcon');
+    const moon=document.getElementById('moonIcon');
+
+    function applyThemeIcon(){
+      const dark=root.classList.contains('dark');
+      sun.classList.toggle('hidden',dark);
+      moon.classList.toggle('hidden',!dark);
+    }
+
+    themeToggle.onclick=()=>{
+      root.classList.toggle('dark');
+      localStorage.setItem('theme',root.classList.contains('dark')?'dark':'light');
+      applyThemeIcon();
+    };
+    if(localStorage.getItem('theme')==='dark')root.classList.add('dark');
+    applyThemeIcon();
+
+    const header=document.getElementById('appHeader');
+    window.addEventListener('scroll',()=>{
+      const y=window.scrollY;
+      header.style.backdropFilter=`blur(${Math.min(12,2+y/60)}px)`;
+      header.style.background=root.classList.contains('dark')?`rgba(17,24,39,${Math.min(.7,.3+y/600)})`:`rgba(255,255,255,${Math.min(.9,.5+y/600)})`;
+    },{passive:true});
+
+    const skeleton=document.getElementById('skeleton');
+    const cards=document.getElementById('cards');
+    window.addEventListener('load',()=>{
+      setTimeout(()=>{
+        skeleton.classList.add('hidden');
+        cards.classList.remove('hidden');
+        const items=cards.querySelectorAll('.card');
+        items.forEach((el,i)=>{
+          el.style.animation=`fadeSlideUp .6s cubic-bezier(.22,.61,.36,1) ${i*70}ms both`;
+          el.style.opacity='1';
+        });
+      },300);
+    });
+
+    const searchInput=document.getElementById('searchInput');
+    const cardList=()=>Array.from(document.querySelectorAll('#cards .card'));
+    function normalize(s){return(s||'').toString().toLowerCase()}
+
+    function applyFilters(){
+      const q=normalize(searchInput.value);
+      const activeChip=document.querySelector('.chip.active');
+      const chipText=activeChip?activeChip.textContent.trim():'همه';
+      const showAll=chipText==='همه';
+
+      cardList().forEach(card=>{
+        const hay=normalize(card.dataset.search);
+        const spec=(card.dataset.specialty||'').trim();
+        const matchText=!q||hay.includes(q);
+        const matchChip=showAll||spec.includes(chipText);
+        const show=matchText&&matchChip;
+        card.style.display=show?'':'none';
+      });
+    }
+
+    searchInput.addEventListener('input',applyFilters);
+
+    document.querySelectorAll('[data-chip]').forEach(chip=>{
+      chip.addEventListener('click',()=>{
+        document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+        chip.classList.add('active');
+        applyFilters();
+      });
+    });
+
+    document.querySelectorAll('a[href="#cardsGrid"]').forEach(a=>{
+      a.addEventListener('click',e=>{
+        e.preventDefault();
+        document.getElementById('cardsGrid').scrollIntoView({behavior:'smooth',block:'start'});
+      });
+    });
+  </script>
+</body>
+</html>

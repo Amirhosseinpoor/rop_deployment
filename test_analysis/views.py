@@ -111,7 +111,7 @@ def create_or_update_health_profile(request):
         'job_formset': job_formset,
         'referral_formset': referral_formset
     }
-    return render(request, 'test_analysis/profile_form.html', context)
+    return render(request, 'test_analysis/profile_form2.html', context)
 
 
 # test_analysis/views.py
@@ -144,7 +144,7 @@ def profile_detail_view(request):
 
     profile = get_object_or_404(HealthProfile, user=target_user)
     html_advice = markdown2.markdown(profile.llm_advice or "No advice generated.")
-    return render(request, 'test_analysis/profile_detail.html', {
+    return render(request, 'test_analysis/profile_detail2.html', {
         'profile': profile,
         'html_advice': html_advice,
         'viewed_user': target_user,  # optional for template
@@ -154,7 +154,7 @@ def profile_detail_view(request):
 def processing_page(request):
     # فقط صفحه‌ای که مودال را نشان می‌دهد
     profile = get_object_or_404(HealthProfile, user=request.user)
-    return render(request, 'test_analysis/processing.html', {'profile': profile})
+    return render(request, 'test_analysis/processing2.html', {'profile': profile})
 
 
 @login_required
