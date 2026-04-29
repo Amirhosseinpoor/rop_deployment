@@ -56,20 +56,6 @@ def create_or_update_health_profile(request):
             referral_formset.save_m2m()
             for obj in referral_formset.deleted_objects:  # ✅
                 obj.delete()
-
-            # Generate the text summary from the saved profile
-            # profile_text_for_llm = format_profile_for_llm(profile)
-            # selected_model = request.POST.get('selected_model', 'cloud_gpt')
-            # profile.model_used_for_advice = selected_model
-            # # Call our NEW, powerful pipeline
-            # advice = get_llm_advice(profile_text_for_llm, selected_model)
-            #
-            # # Save the final report to the profile
-            # profile.llm_advice = advice
-            # profile.save()
-
-            # test_analysis/views.py (درون create_or_update_health_profile، بخش POST و valid)
-
             selected_model = request.POST.get('selected_model', 'cloud_gpt')
 
             profile.report_ready = False

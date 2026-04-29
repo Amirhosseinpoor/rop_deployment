@@ -56,7 +56,7 @@ def home(request):
         traceback.print_exc()
         error = str(ex)
 
-    return render(request, "index.html", {
+    return render(request, "index2.html", {
         "result": result,
         "results": results,
         "error": error,

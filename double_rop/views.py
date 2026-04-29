@@ -57,14 +57,14 @@ def home(request):
                     "right_image_url": latest_result.right_image_url
                 }
 
-                return render(request, "index_double.html", {
+                return render(request, "index_double2.html", {
                     "result": None,
                     "feedback_saved": True
                 })
 
             except Exception as ex:
                 error = f"Feedback error: {str(ex)}"
-                return render(request, "index_double.html", {"error": error})
+                return render(request, "index_double2.html", {"error": error})
 
         # -------------------- فاز 1: پیش‌بینی --------------------
         left_file = request.FILES.get("left_file")
@@ -132,7 +132,7 @@ def home(request):
         else:
             error = "Both left and right eye images are required"
 
-    return render(request, "index_double.html", {
+    return render(request, "index_double2.html", {
         "result": result,
         "error": error
     })
