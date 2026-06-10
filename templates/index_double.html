@@ -1,219 +1,234 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ROP Detection App</title>
+    <title>KC Detection | MediversAI</title>
     <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{% static 'icons/mediversai_logo_final-032.png' %}">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap"
-        rel="stylesheet">
-    <meta name="title" content="ROP Detection App | ARAS Softwar | By Mahdi Ghofran">
-    <meta name="description" content="ROP Detection App | ARAS Softwar | By Mahdi Ghofran">
+        .fade-slide {
+            animation: fadeSlide 0.6s ease-out;
+        }
 
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://fastapi-pytorch-app.herokuapp.com/">
-    <meta property="og:title" content="ROP Detection App | ARAS Softwar | By Mahdi Ghofran">
-    <meta property="og:description" content="ROP Detection App | ARAS Softwar | By Mahdi Ghofran">
-    <meta property="og:image" content="https://fastapi-pytorch-app.herokuapp.com/static/images/landing-page.png">
-    <meta property="twitter:title" content="ROP Detection App | ARAS Softwar | By Mahdi Ghofran">
-    <meta property="twitter:description" content="ROP Detection App | ARAS Softwar | By Mahdi Ghofran">
-    <meta property="twitter:image" content="https://fastapi-pytorch-app.herokuapp.com/static/images/landing-page.png">
-    <link rel="canonical" href="/">
-    <link rel="icon" type="image/png" href="{% static 'icons/icon.png' %}" />
+        @keyframes fadeSlide {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 
 </head>
+<body class="bg-gray-100 min-h-screen py-12 px-4 flex flex-col items-center fade-slide">
 
-
-<body class="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12" style="font-family: Poppins;">
-
-
-    <!-- Error Display Section (Added at top) -->
-    {% if error %}
-    <div class="absolute top-20 left-1/2 transform -translate-x-1/2 w-96">
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-            <strong class="font-medium">Error:</strong>
-            <span class="block sm:inline">{{ error }}</span>
-        </div>
+<!-- Header -->
+<header class="w-full bg-white shadow-md border-b border-gray-200 px-6 py-3 flex justify-between items-center fixed top-0 left-0 z-50">
+    <!-- Logo & Title -->
+    <div class="flex items-center space-x-3">
+        <img src="{% static 'mediversai_logo_final.png' %}" class="h-8 opacity-90" alt="MediversAI">
+        <h1 class="text-lg font-semibold text-gray-800">ROP Detection</h1>
     </div>
+
+    <!-- Navigation + User -->
+    {% if user.is_authenticated %}
+        <div class="flex items-center space-x-6 text-sm">
+            <a href="{% url 'history' %}" class="text-gray-700 hover:underline">History</a>
+            <a href="{% url 'home' %}" class="text-gray-700 hover:underline">ROP AI</a>
+
+            <!-- Hover Dropdown -->
+            <div class="relative group">
+                <button class="flex items-center space-x-1 text-gray-700 font-medium focus:outline-none">
+                    <span>{{ user.username }}</span>
+                    <svg class="w-4 h-4 text-gray-500 group-hover:rotate-180 transition duration-300"
+                         fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div class="absolute right-0 mt-2 w-28 bg-white border border-gray-200 rounded-md shadow-md opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transform -translate-y-2 transition-all duration-200 z-50">
+                    <form method="post" action="{% url 'logout' %}" class="text-left">
+                        {% csrf_token %}
+                        <button type="submit" class="block w-full px-4 py-2 text-red-600 text-sm hover:bg-gray-50">
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
     {% endif %}
+</header>
 
-    <!-- SVG Logo in Top-center Corner (unchanged) -->
-    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 mt-4">
-        <img src="{% static '/Logo_Aras.svg' %}"
-             alt="ARAS Logo"
-             class="h-16 w-auto">
-    </div>
+<!-- Add margin-top to main content to avoid being overlapped by fixed header -->
+<div class="mt-20"></div>
 
-    <div class="relative py-3 px-4 sm:px-0 sm:max-w-lg w-full sm:mx-auto">
-        <!-- Background Box (unchanged) -->
-        <div class="absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-500 shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 sm:rounded-3xl"></div>
+<main class="w-full max-w-6xl bg-white shadow-xl rounded-2xl p-14">
+    {% if not result %}
+        <form method="post" enctype="multipart/form-data" class="space-y-6 text-center">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        <div class="relative px-4 py-10 bg-white shadow-lg rounded-3xl w-full sm:p-20 items-center">
-            <!-- Icon in top-right corner (unchanged) -->
-            <img src="{% static 'icons/icon.png' %}"
-                 alt="logo"
-                 class="absolute top-3 right-3 h-10 w-10 opacity-80"
-                 title="Pytorch Logo">
-
-            <!-- Title Alignment (unchanged) -->
-            <div style="line-height: 3.75;">
-                <div class="flex flex-col items-center space-y-2">
-                    <h1 class="font-bold text-center flex flex-col items-center">
-                        <span class="text-5xl text-transparent bg-clip-text bg-gradient-to-br from-blue-400 via-purple-600 to-indigo-400">
-                            ROP Detection
-                        </span>
-                        <span class="text-xl font-medium text-blue-600">Precision AI for Eye Health</span>
-                    </h1>
-                    <small class="text-center text-gray-600 text-xs font-light">Efficient Screening for Retinopathy of Prematurity Using AI</small>
-                </div>
-            </div>
-
-            <!-- Main Form - Updated for Dual Input -->
-            <div class="py-6 justify-center items-center max-w-sm">
-                {% if not result %}
-                <form action="{% url 'double_home' %}" enctype="multipart/form-data" method="post" class="space-y-4 flex flex-col max-w-sm justify-center items-center">
-                    {% csrf_token %}
-                    <div class="flex flex-col space-y-4 w-full">
-                        <!-- Left Eye Upload -->
-                        <div class="space-y-2">
-                            <div id="preview-left" class="flex flex-col space-y-2 items-center"></div>
-                            <label onchange="load(event,'preview-left')" class="w-full h-48 justify-center flex flex-col items-center px-4 py-6 bg-white rounded-md shadow-md tracking-wide border border-blue cursor-pointer hover:bg-blue-500 hover:text-white text-blue-500 ease-linear transition-all duration-150">
-                                <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 13H11V9.413l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13H5.5z"></path>
-                                    <path d="M9 13h2v5a1 1 0 11-2 0v-5z"></path>
-                                </svg>
-                                <span class="mt-2 text-sm">Left Eye Image</span>
-                                <input type='file' class="hidden" name="left_file" accept="image/*" required />
-                            </label>
-                        </div>
-
-                        <!-- Right Eye Upload -->
-                        <div class="space-y-2">
-                            <div id="preview-right" class="flex flex-col space-y-2 items-center"></div>
-                            <label onchange="load(event,'preview-right')" class="w-full h-48 justify-center flex flex-col items-center px-4 py-6 bg-white rounded-md shadow-md tracking-wide border border-blue cursor-pointer hover:bg-blue-500 hover:text-white text-blue-500 ease-linear transition-all duration-150">
-                                <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 13H11V9.413l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13H5.5z"></path>
-                                    <path d="M9 13h2v5a1 1 0 11-2 0v-5z"></path>
-                                </svg>
-                                <span class="mt-2 text-sm">Right Eye Image</span>
-                                <input type='file' class="hidden" name="right_file" accept="image/*" required />
-                            </label>
-                        </div>
-                    </div>
-                    <input class="bg-blue-600 rounded-full px-10 py-2 text-white hover:bg-blue-700 hover:shadow-sm transition-all cursor-pointer" type="submit">
-                </form>
-                {% else %}
-                <div class="py-4 space-y-2 flex flex-col items-center">
-                    <!-- Display Both Images -->
-                    <div class="flex space-x-4">
-                        {% if result.image_data.left %}
-                        <div class="flex flex-col items-center">
-                            <img class="h-32 w-auto rounded shadow-sm" src="{{ result.image_data.left }}" alt="Left Eye" />
-                            <span class="text-xs text-gray-600 mt-1">Left Eye</span>
-                        </div>
-                        {% endif %}
-                        {% if result.image_data.right %}
-                        <div class="flex flex-col items-center">
-                            <img class="h-32 w-auto rounded shadow-sm" src="{{ result.image_data.right }}" alt="Right Eye" />
-                            <span class="text-xs text-gray-600 mt-1">Right Eye</span>
-                        </div>
-                        {% endif %}
-                    </div>
-
-                    <!-- Enhanced Results Display -->
-                    <div class="mt-1 border rounded p-2 bg-gray-100 shadow-sm w-full">
-                        <h2 class="text-xs font-bold text-gray-700 mb-1 text-center">Diagnostic Results</h2>
-                        <div class="space-y-2">
-                            <!-- Left Eye Result -->
-                            <div class="bg-white p-2 rounded shadow">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-xs font-medium text-gray-600">Left Eye:</span>
-                                    <span class="text-xs font-semibold text-blue-600">{{ result.predictions.left_eye.label }}</span>
-                                </div>
-                                <div class="flex justify-between items-center mt-1">
-                                    <span class="text-xs text-gray-500">Confidence:</span>
-                                    <span class="text-xs text-green-600">{{ result.predictions.left_eye.probability }}</span>
-                                </div>
-                            </div>
-
-                            <!-- Right Eye Result -->
-                            <div class="bg-white p-2 rounded shadow">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-xs font-medium text-gray-600">Right Eye:</span>
-                                    <span class="text-xs font-semibold text-blue-600">{{ result.predictions.right_eye.label }}</span>
-                                </div>
-                                <div class="flex justify-between items-center mt-1">
-                                    <span class="text-xs text-gray-500">Confidence:</span>
-                                    <span class="text-xs text-green-600">{{ result.predictions.right_eye.probability }}</span>
-                                </div>
-                            </div>
-
-                            <!-- Z Classification -->
-                            <div class="bg-white p-2 rounded shadow">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-xs font-medium text-gray-600">Z Classification:</span>
-                                    <span class="text-xs font-semibold text-purple-600">{{ result.predictions.z_class.label }}</span>
-                                </div>
-                                <div class="flex justify-between items-center mt-1">
-                                    <span class="text-xs text-gray-500">Confidence:</span>
-                                    <span class="text-xs text-green-600">{{ result.predictions.z_class.probability }}</span>
-                                </div>
-                            </div>
-
-                            <!-- Metadata -->
-                            <div class="pt-2 border-t border-gray-200">
-                                <div class="flex justify-between text-xs">
-                                    <span class="text-gray-500">Processed in:</span>
-                                    <span class="text-gray-700">{{ result.inference_time }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- Footer (unchanged) -->
-            <div class="mt-3">
-                <div class="items-center flex flex-shrink-0 justify-center">
-                    <span>Made with</span>
-                    <span class="text-pink-600 px-1">
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
+                <label id="left-label"
+                       class="cursor-pointer flex flex-col items-center justify-center h-60 w-full bg-gray-50 border-2 border-dashed border-blue-400 rounded-xl hover:bg-blue-50 transition relative overflow-hidden">
+                    <div id="left-upload-content" class="flex flex-col items-center justify-center space-y-1 z-10">
+                        <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M4 12l1.41 1.41L11 7.83v8.34h2V7.83l5.59 5.58L20 12l-8-8-8 8z"/>
                         </svg>
-                    </span>
-                    <span class="font-medium text-blue-600 hover:text-blue-700">By ARAS Medical AI Team</span>
+                        <span class="text-sm text-blue-600">Select Left Eye Image</span>
+                    </div>
+                    <input type="file" name="left_file" accept="image/*" class="hidden" onchange="load(event, 'left')">
+                </label>
+
+                <label id="right-label"
+                       class="cursor-pointer flex flex-col items-center justify-center h-60 w-full bg-gray-50 border-2 border-dashed border-blue-400 rounded-xl hover:bg-blue-50 transition relative overflow-hidden">
+                    <div id="right-upload-content" class="flex flex-col items-center justify-center space-y-1 z-10">
+                        <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M4 12l1.41 1.41L11 7.83v8.34h2V7.83l5.59 5.58L20 12l-8-8-8 8z"/>
+                        </svg>
+                        <span class="text-sm text-blue-600">Select Right Eye Image</span>
+                    </div>
+                    <input type="file" name="right_file" accept="image/*" class="hidden"
+                           onchange="load(event, 'right')">
+                </label>
+
+            </div>
+            <div class="flex justify-center gap-6 mt-6">
+                <img id="left-preview" class="hidden" alt="Left Preview">
+                <img id="right-preview" class="hidden" alt="Right Preview">
+            </div>
+
+            <div class="mt-6">
+                <button type="submit"
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-8 rounded-full shadow-sm transition">
+                    Submit
+                </button>
+            </div>
+        </form>
+    {% else %}
+        <div class="space-y-10 text-center">
+            {% if result.image_data.left or result.image_data.right %}
+                <div class="flex justify-center space-x-6">
+                    {% if result.image_data.left %}
+                        <img src="{{ result.image_data.left }}" class="h-64 rounded shadow-md"
+                             alt="Left Eye Image">{% endif %}
+                    {% if result.image_data.right %}
+                        <img src="{{ result.image_data.right }}" class="h-64 rounded shadow-md"
+                             alt="Right Eye Image">{% endif %}
                 </div>
+            {% endif %}
+
+            <div class="grid md:grid-cols-3 gap-6 text-center">
+                <div class="bg-white border rounded-xl p-6 shadow-sm flex flex-col justify-center">
+                    <h3 class="text-lg font-semibold text-blue-600 mb-2">Left Eye</h3>
+                    <p class="text-gray-700 text-sm"><span
+                            class="font-medium">Label:</span> {{ result.predictions.left_eye.label }}</p>
+                    <p class="text-gray-500 text-xs"><span
+                            class="font-medium">Confidence:</span> {{ result.predictions.left_eye.probability }}</p>
+                </div>
+                <div class="bg-white border rounded-xl p-6 shadow-sm flex flex-col justify-center">
+                    <h3 class="text-lg font-semibold text-blue-600 mb-2">Right Eye</h3>
+                    <p class="text-gray-700 text-sm"><span
+                            class="font-medium">Label:</span> {{ result.predictions.right_eye.label }}</p>
+                    <p class="text-gray-500 text-xs"><span
+                            class="font-medium">Confidence:</span> {{ result.predictions.right_eye.probability }}</p>
+                </div>
+                <div class="bg-white border rounded-xl p-6 shadow-sm flex flex-col justify-center">
+                    <h3 class="text-lg font-semibold text-purple-600 mb-2">Z Classification</h3>
+                    <p class="text-gray-700 text-sm"><span
+                            class="font-medium">Label:</span> {{ result.predictions.z_class.label }}</p>
+                    <p class="text-gray-500 text-xs"><span
+                            class="font-medium">Confidence:</span> {{ result.predictions.z_class.probability }}</p>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-6 shadow-sm space-y-4 mt-8">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="feedback_mode" value="true">
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Correct Left Eye</label>
+                            <select name="corrected_left_label"
+                                    class="w-full px-3 py-2 text-sm border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">-- Select --</option>
+                                <option value="Normal">Normal</option>
+                                <option value="ATN">ATN</option>
+                                <option value="NEIr">NEIr</option>
+                                <option value="EIr">EIr</option>
+                                <option value="eKCN">eKCN</option>
+                                <option value="Touched">Touched</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Correct Right Eye</label>
+                            <select name="corrected_right_label"
+                                    class="w-full px-3 py-2 text-sm border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">-- Select --</option>
+                                <option value="Normal">Normal</option>
+                                <option value="ATN">ATN</option>
+                                <option value="NEIr">NEIr</option>
+                                <option value="EIr">EIr</option>
+                                <option value="eKCN">eKCN</option>
+                                <option value="Touched">Touched</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Correct Z-Class</label>
+                            <select name="corrected_z_label"
+                                    class="w-full px-3 py-2 text-sm border rounded-md focus:ring-purple-500 focus:border-purple-500">
+                                <option value="">-- Select --</option>
+                                <option value="SfRS">SfRS</option>
+                                <option value="NSfRS">NSfRS</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Comment</label>
+                        <textarea name="review_comment" rows="3"
+                                  class="w-full px-3 py-2 text-sm border rounded-md focus:ring-indigo-500 resize-none"
+                                  placeholder="Optional notes or explanation..."></textarea>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <button type="submit"
+                                class="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-full text-sm shadow-md">
+                            Submit Feedback
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
-    </div>
+    {% endif %}
+</main>
 </body>
-
 <script>
-    // Updated load function to handle multiple previews
-    load = function (event, previewId) {
-        const previewDiv = document.getElementById(previewId);
-        previewDiv.innerHTML = '<span class="text-sm font-medium">Preview</span>';
-
+    function load(event, side) {
         const file = event.target.files[0];
-        const img = document.createElement('IMG');
-        img.className = 'h-48 w-auto rounded shadow-sm';
-        img.src = URL.createObjectURL(file);
+        if (!file) return;
 
-        // Clear existing preview and add new image
-        previewDiv.innerHTML = '';
-        previewDiv.appendChild(img);
+        const label = document.getElementById(`${side}-label`);
+        const oldImg = document.getElementById(`${side}-preview`);
+        if (oldImg) oldImg.remove();
 
-        // Hide the label of the current upload box
-        event.target.parentElement.style.display = 'none';
-    };
+        const preview = document.createElement('img');
+        preview.src = URL.createObjectURL(file);
+        preview.id = `${side}-preview`;
+        preview.className = 'absolute inset-0 w-full h-full object-contain rounded-xl';
+
+        label.appendChild(preview);
+
+        const content = document.getElementById(`${side}-upload-content`);
+        content.classList.add('hidden');
+    }
+
 </script>
 
 </html>

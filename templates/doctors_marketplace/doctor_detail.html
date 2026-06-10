@@ -1,0 +1,201 @@
+{% load static dm_extras %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ doctor.name_fa|default:doctor.name }} · بازار پزشکان</title>
+
+  <!-- فونت فارسی -->
+  <link rel="preconnect" href="https://fonts.bunny.net">
+  <link href="https://fonts.bunny.net/css?family=vazirmatn:300,400,600,800" rel="stylesheet" />
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        container: { center: true, padding: '1rem' },
+        extend: {
+          fontFamily: { sans: ['Vazirmatn','ui-sans-serif','system-ui'] },
+          colors: {
+            brand: { 50:'#f5f3ff', 100:'#ede9fe', 500:'#7c3aed', 600:'#6d28d9', 700:'#5b21b6' },
+            ink: { 900:'#0b1220' }
+          },
+          boxShadow: {
+            soft: '0 10px 30px rgba(0,0,0,0.08)',
+            glass: '0 20px 60px rgba(0,0,0,.12)'
+          },
+          keyframes: {
+            fadeSlideUp: {'0%':{opacity:0,transform:'translateY(16px)'},'100%':{opacity:1,transform:'translateY(0)'}},
+            floaty: {'0%':{transform:'translateY(0)'},'50%':{transform:'translateY(-6px)'},'100%':{transform:'translateY(0)'}}
+          },
+          animation: {
+            fadeSlideUp: 'fadeSlideUp .7s cubic-bezier(.22,.61,.36,1) both',
+            floaty: 'floaty 6s ease-in-out infinite'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .glass{background:rgba(255,255,255,.65);backdrop-filter:blur(10px);border-color:rgba(0,0,0,.06)}
+    .dark .glass{background:rgba(17,24,39,.5);border-color:rgba(255,255,255,.08)}
+    .line-clamp-3{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+    @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+  </style>
+</head>
+
+<body class="bg-gradient-to-br from-gray-50 to-brand-50 dark:from-ink-900 dark:to-gray-900 text-gray-800 dark:text-gray-100 min-h-screen font-sans">
+  <!-- هدر شیشه‌ای کوچک (هماهنگ با صفحهٔ بازار) -->
+  <header id="appHeader" class="border-b border-white/30 dark:border-white/10 sticky top-0 z-40 glass">
+    <div class="container flex items-center justify-between py-4">
+      <div class="flex items-center gap-3">
+        <a href="{% url 'doctors_marketplace:index' %}" class="inline-flex items-center text-sm text-brand-600 hover:text-brand-700">
+          ← بازگشت
+        </a>
+        <div class="flex items-center gap-2">
+          <img src="{% static 'icons/mediversai_logo_final-032.png' %}" class="h-7 w-7 animate-floaty" alt="لوگو">
+          <span class="text-base sm:text-lg font-extrabold">بازار پزشکان</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button id="themeToggle" class="text-xs border rounded-full px-3 py-1 hover:bg-black/5 dark:hover:bg-white/10 transition">تغییر تم</button>
+        {% if user.is_authenticated %}
+          <a href="{% url 'logout' %}" class="text-sm text-red-600 dark:text-red-400 hover:underline">خروج</a>
+        {% else %}
+          <a href="{% url 'account_login' %}" class="text-sm text-brand-600 hover:underline">ورود</a>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  <!-- قهرمان پروفایل پزشک -->
+  <section class="container pt-6 pb-2">
+    <div class="rounded-3xl glass border shadow-glass p-6 md:p-8 grid grid-cols-1 md:grid-cols-12 gap-6 animate-fadeSlideUp">
+      <!-- آواتار -->
+      <div class="md:col-span-3 flex md:block items-center justify-center">
+        <img src="{% if doctor.avatar %}{{ doctor.avatar.url }}{% else %}{% static 'avatars/doctor-default.png' %}{% endif %}"
+             class="h-28 w-28 md:h-36 md:w-36 rounded-2xl object-cover ring-2 ring-white/80 dark:ring-white/20 shadow-soft"
+             alt="آواتار پزشک">
+      </div>
+
+      <!-- اطلاعات اصلی -->
+      <div class="md:col-span-9">
+        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">{{ doctor.name_fa|default:doctor.name }}</h1>
+        <div class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+          {{ doctor.specialization_fa|default:doctor.get_specialization_display }}
+        </div>
+
+        {% if doctor.headline_fa or doctor.headline %}
+          <p class="mt-3 text-sm text-gray-600 dark:text-gray-300 line-clamp-3">
+            {{ doctor.headline_fa|default:doctor.headline }}
+          </p>
+        {% endif %}
+
+        <!-- برچسب‌ها -->
+        {% if doctor.tags_fa %}
+          <div class="mt-4 flex flex-wrap gap-1.5">
+            {% for t in doctor.tags_fa|split:","|slice:":6" %}
+              <span class="text-[11px] px-2 py-1 rounded-full bg-white/70 dark:bg-white/10 text-gray-700 dark:text-gray-200 border border-white/60 dark:border-white/10">
+                {{ t }}
+              </span>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <!-- CTA -->
+        <form method="post" class="mt-6">{% csrf_token %}
+          <button class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-600 text-white hover:bg-brand-700 shadow focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+            شروع گفتگو
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M9 18l6-6-6-6v12z"/></svg>
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- درباره پزشک + نکات کلیدی -->
+  <main class="container pb-20">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <!-- توضیحات -->
+      <section class="lg:col-span-8 rounded-3xl glass border shadow-soft p-6 animate-fadeSlideUp" style="animation-delay:.08s">
+        <h2 class="text-lg font-bold mb-3">معرفی کوتاه</h2>
+        <p class="text-sm leading-8 text-gray-800 dark:text-gray-200">
+          {{ doctor.bio_fa|default:doctor.bio|default:"اطلاعاتی دربارهٔ رویکرد پزشک و نوع خدمات ارائه‌شده." }}
+        </p>
+
+        <!-- نکات کلیدی نمونه (اختیاری: اگر داده ندارید می‌توانید حذف کنید) -->
+        <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="rounded-xl bg-white/70 dark:bg-white/10 border border-white/60 dark:border-white/10 p-4">
+            <div class="text-xs text-gray-500 mb-1">سبک پاسخ‌گویی</div>
+            <div class="text-sm font-semibold">{{ doctor.persona }}</div>
+          </div>
+          <div class="rounded-xl bg-white/70 dark:bg-white/10 border border-white/60 dark:border-white/10 p-4">
+            <div class="text-xs text-gray-500 mb-1">وضعیت</div>
+            <div class="text-sm font-semibold">پزشک هوشمند · آنلاین</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- کارت شروع سریع گفتگو (ثابت در کنار) -->
+      <aside class="lg:col-span-4 space-y-3">
+        <div class="rounded-3xl glass border shadow-soft p-6 sticky top-24 animate-fadeSlideUp" style="animation-delay:.12s">
+          <h3 class="text-base font-bold">شروع سریع گفتگو</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">سوالی دارید؟ همین حالا گفتگو را آغاز کنید.</p>
+          <form method="post" class="mt-4">{% csrf_token %}
+            <button class="w-full px-4 py-2.5 rounded-xl bg-brand-600 text-white hover:bg-brand-700 shadow focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+              شروع گفتگو
+            </button>
+          </form>
+          <div class="mt-4 text-[12px] text-gray-500 dark:text-gray-400">
+            • مکالمات شما محرمانه است.<br>
+            • پاسخ‌ها ساختاری و قابل‌فهم ارائه می‌شوند.
+          </div>
+        </div>
+
+        <!-- کارت اطلاعات سریع -->
+        <div class="rounded-2xl bg-white/60 dark:bg-white/10 border border-white/60 dark:border-white/10 p-5 animate-fadeSlideUp" style="animation-delay:.16s">
+          <div class="text-xs text-gray-500 mb-1">تخصص</div>
+          <div class="text-sm font-semibold">{{ doctor.specialization_fa|default:doctor.get_specialization_display }}</div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- پابرگ -->
+  <footer class="border-t border-white/50 dark:border-white/10 glass">
+    <div class="container py-8 text-xs text-gray-600 dark:text-gray-300 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <span>© {{ now|date:"Y" }} مدی‌ورس‌اِی‌آی — گفتگوهای شما امن و محرمانه است.</span>
+      <div class="flex items-center gap-4">
+        <a href="#" class="hover:text-brand-600">حریم خصوصی</a>
+        <a href="#" class="hover:text-brand-600">قوانین</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- اسکریپت‌ها -->
+  <script>
+    // تم
+    const themeToggle = document.getElementById('themeToggle');
+    const root = document.documentElement;
+    themeToggle?.addEventListener('click', () => {
+      root.classList.toggle('dark');
+      localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+    });
+    if (localStorage.getItem('theme') === 'dark') root.classList.add('dark');
+
+    // پارالاکس لطیف هدر
+    const header = document.getElementById('appHeader');
+    window.addEventListener('scroll', () => {
+      const y = window.scrollY;
+      header.style.backdropFilter = `blur(${Math.min(12, 2 + y/60)}px)`;
+      header.style.background = root.classList.contains('dark')
+        ? `rgba(17,24,39,${Math.min(.7, .3 + y/600)})`
+        : `rgba(255,255,255,${Math.min(.9, .5 + y/600)})`;
+    }, { passive: true });
+  </script>
+</body>
+</html>

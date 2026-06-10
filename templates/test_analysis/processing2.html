@@ -1,0 +1,472 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>در حال تولید گزارش | MediverseAI</title>
+  <style>
+    /* ===== فونت وزیر (آفلاین) ===== */
+    @font-face {
+      font-family: Vazirmatn;
+      src: url("{% static 'fonts/Vazirmatn-Regular.woff2' %}") format("woff2");
+    }
+    @font-face {
+      font-family: Vazirmatn;
+      src: url("{% static 'fonts/Vazirmatn-Bold.woff2' %}") format("woff2");
+      font-weight: bold;
+    }
+
+    /* ===== متغیرها ===== */
+    :root {
+      --medical-blue: #0A6EFF;
+      --medical-teal: #00A896;
+      --gray-100: #F8FAFD;
+      --gray-200: #E9EDF5;
+      --gray-600: #5B6B7C;
+      --gray-800: #1E293B;
+      --white-soft: #FFFFFF;
+      --shadow-sm: 0 4px 12px rgba(0,0,0,0.04);
+      --shadow-md: 0 12px 32px rgba(0,0,0,0.08);
+      --shadow-glow: 0 0 24px rgba(10,110,255,0.18);
+      --radius-xl: 24px;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --transition: 0.25s ease;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      font-family: Vazirmatn, Tahoma, sans-serif;
+      background: linear-gradient(150deg, #E3F0FD 0%, #F2F8FF 50%, #FFFFFF 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* پس‌زمینه هگزاگونال */
+    .medical-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5L52.5 17.5V42.5L30 55L7.5 42.5V17.5L30 5Z' fill='none' stroke='%230A6EFF' stroke-opacity='0.07' stroke-width='1'/%3E%3C/svg%3E");
+      background-size: 80px 80px;
+      opacity: 0.35;
+      animation: bgShift 30s linear infinite;
+    }
+    @keyframes bgShift {
+      0% { background-position: 0 0; }
+      100% { background-position: 80px 80px; }
+    }
+
+    /* ===== کارت اصلی ===== */
+    .card {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 600px;
+      background: rgba(255,255,255,0.8);
+      backdrop-filter: blur(18px) saturate(180%);
+      border: 1px solid rgba(255,255,255,0.6);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md), var(--shadow-glow);
+      padding: 40px 32px;
+      animation: cardAppear 0.6s ease-out;
+    }
+    @keyframes cardAppear {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== آیکون / لوگو ===== */
+    .logo-area {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .logo-area img {
+      height: 52px;
+      margin-bottom: 12px;
+    }
+    .logo-area h1 {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--gray-800);
+    }
+    .logo-area p {
+      color: var(--gray-600);
+      margin-top: 8px;
+    }
+
+    /* ===== EKG Loading Animation ===== */
+    .ekg-loader {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+    }
+    .ekg-loader svg {
+      width: 200px;
+      height: 50px;
+      overflow: visible;
+    }
+    .ekg-path {
+      fill: none;
+      stroke: var(--medical-blue);
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-dasharray: 300;
+      stroke-dashoffset: 300;
+      animation: drawEKG 1.8s ease-in-out infinite;
+    }
+    @keyframes drawEKG {
+      0% { stroke-dashoffset: 300; }
+      40% { stroke-dashoffset: 0; }
+      60% { stroke-dashoffset: 0; }
+      100% { stroke-dashoffset: -300; }
+    }
+    .ekg-dot {
+      fill: #00E5FF;
+      r: 4;
+      animation: pulseDot 1.8s ease-in-out infinite;
+    }
+    @keyframes pulseDot {
+      0%, 100% { opacity: 0.6; r: 4; }
+      50% { opacity: 1; r: 6; }
+    }
+
+    /* ===== وضعیت پردازش ===== */
+    .status-section {
+      background: rgba(255,255,255,0.5);
+      backdrop-filter: blur(10px);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin: 24px 0;
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+    .status-text {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .status-text p {
+      font-weight: bold;
+      color: var(--gray-800);
+    }
+    .badge {
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-weight: 500;
+      background: rgba(10,110,255,0.1);
+      color: var(--medical-blue);
+      border: 1px solid rgba(10,110,255,0.2);
+    }
+
+    /* ===== نوار لودینگ (indeterminate) ===== */
+    .progress-track {
+      height: 8px;
+      background: rgba(0,0,0,0.04);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 14px 0;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--medical-blue), var(--medical-teal), var(--medical-blue));
+      background-size: 200% 100%;
+      animation: shimmer 2.5s linear infinite;
+      transition: width 0.3s ease; /* for when we set 100% on ready */
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ===== آماده / خطا ===== */
+    .ready-box {
+      display: none;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      margin-top: 16px;
+      animation: popIn 0.3s ease-out;
+    }
+    .ready-box.visible { display: block; }
+    .ready-box.success {
+      background: #ECFDF5;
+      border: 1px solid #A7F3D0;
+      color: #065F46;
+    }
+    .ready-box.error {
+      background: #FEE2E2;
+      border: 1px solid #FECACA;
+      color: #991B1B;
+    }
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* ===== دکمه‌ها ===== */
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .btn {
+      flex: 1;
+      padding: 14px;
+      border-radius: var(--radius-md);
+      font-weight: bold;
+      font-size: 16px;
+      text-align: center;
+      text-decoration: none;
+      transition: var(--transition);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: white;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #0A6EFF, #3B82F6);
+    }
+    .btn-primary:hover { transform: translateY(-2px); }
+    .btn-minigame {
+      background: linear-gradient(135deg, #8B5CF6, #A78BFA);
+    }
+    .btn-disabled {
+      opacity: 0.5;
+      pointer-events: none;
+      background: #cbd5e1;
+    }
+
+    /* ===== فوتر ===== */
+    .footer-text {
+      text-align: center;
+      color: var(--gray-600);
+      font-size: 13px;
+      margin-top: 20px;
+    }
+
+    /* ===== دارک مود ===== */
+    .dark body {
+      background: linear-gradient(150deg, #0B1121 0%, #131A2E 50%, #1A2540 100%);
+    }
+    .dark .card {
+      background: rgba(24,30,50,0.8);
+      border-color: rgba(255,255,255,0.08);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    }
+    .dark .logo-area h1,
+    .dark .status-text p { color: #EDF2F9; }
+    .dark .logo-area p,
+    .dark .footer-text { color: #B9C5DA; }
+    .dark .status-section {
+      background: rgba(24,30,50,0.5);
+      border-color: rgba(255,255,255,0.08);
+    }
+    .dark .badge {
+      background: rgba(10,110,255,0.2);
+      border-color: rgba(10,110,255,0.3);
+    }
+    .dark .progress-track { background: rgba(255,255,255,0.08); }
+    .dark .ready-box.success {
+      background: rgba(16,185,129,0.15);
+      border-color: rgba(16,185,129,0.3);
+      color: #A7F3D0;
+    }
+    .dark .ready-box.error {
+      background: rgba(239,68,68,0.15);
+      border-color: rgba(239,68,68,0.3);
+      color: #FCA5A5;
+    }
+  </style>
+</head>
+<body>
+  <div class="medical-bg"></div>
+
+  <div class="card">
+    <div class="logo-area">
+      <img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediverseAI">
+      <h1>گزارش شما در حال آماده‌سازی است</h1>
+      <p>در حال پردازش اطلاعات هستیم؛ می‌توانید بازی کنید یا منتظر بمانید.</p>
+    </div>
+
+    <!-- EKG Animation (replace spinner) -->
+    <div class="ekg-loader">
+      <svg viewBox="0 0 200 50">
+        <path class="ekg-path" d="M10,25 L30,25 L40,10 L50,25 L60,25 L70,25 L80,5 L90,45 L100,25 L110,25 L120,15 L130,25 L140,25 L160,25 L190,25" />
+        <circle class="ekg-dot" cx="190" cy="25" r="4" />
+      </svg>
+    </div>
+
+    <div class="status-section">
+      <div class="status-text">
+        <p>در حال پردازش…</p>
+        <span id="stateBadge" class="badge">بررسی هر ۵ ثانیه</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" style="width: 30%"></div>
+      </div>
+      <p id="elapsed" style="color:var(--gray-600); font-size:13px;" aria-live="polite">گذشته: ۰ ثانیه</p>
+    </div>
+
+    <!-- باکس آماده -->
+    <div id="readyBox" class="ready-box success">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
+        <span>🎉 گزارش آماده شد! می‌توانید آن را مشاهده کنید.</span>
+      </div>
+    </div>
+
+    <!-- باکس خطا -->
+    <div id="errorBox" class="ready-box error"></div>
+
+    <div class="btn-group">
+      <a id="viewBtn" href="#" class="btn btn-primary btn-disabled">مشاهده گزارش</a>
+      <a href="{% url 'health_minigame' %}" class="btn btn-minigame">🎮 بازی می‌کنم</a>
+    </div>
+
+    <p class="footer-text">هر ۵ ثانیه یک‌بار وضعیت بررسی می‌شود.</p>
+  </div>
+
+  <script>
+    // --- Element refs
+    const readyBox = document.getElementById('readyBox');
+    const errorBox = document.getElementById('errorBox');
+    const viewBtn  = document.getElementById('viewBtn');
+    const elapsed  = document.getElementById('elapsed');
+    const stateBadge = document.getElementById('stateBadge');
+    const progressFill = document.querySelector('.progress-fill');
+
+    // --- Elapsed timer
+    let startTs = Date.now();
+    const fmt = (n) => new Intl.NumberFormat('fa-IR').format(n);
+    (function tickElapsed(){
+      const s = Math.floor((Date.now() - startTs) / 1000);
+      if (elapsed) elapsed.textContent = 'گذشته: ' + fmt(s) + ' ثانیه';
+      requestAnimationFrame(tickElapsed);
+    })();
+
+    // --- State
+    let stopPolling = false;
+    let detailUrl = null;
+
+    function enableViewButton(href){
+      viewBtn.href = href;
+      viewBtn.classList.remove('btn-disabled');
+      viewBtn.style.pointerEvents = 'auto';
+      viewBtn.style.opacity = '1';
+      viewBtn.style.background = 'linear-gradient(135deg, #059669, #10b981)';
+    }
+
+    function onReady(url){
+      detailUrl = url;
+      console.log('[processing] ready. detailUrl =', detailUrl);
+
+      enableViewButton(detailUrl);
+
+      // Show ready box
+      readyBox.classList.add('visible');
+
+      // Fill progress bar to 100%
+      if (progressFill) {
+        progressFill.style.width = '100%';
+        progressFill.style.animation = 'none';
+      }
+
+      // Change badge
+      stateBadge.textContent = 'آماده نمایش';
+      stateBadge.style.background = '#ECFDF5';
+      stateBadge.style.border = '1px solid #A7F3D0';
+      stateBadge.style.color = '#065F46';
+
+      // Auto-redirect after a short pause
+      setTimeout(() => { window.location.assign(detailUrl); }, 1200);
+
+      stopPolling = true;
+    }
+
+    // Click on view button
+    viewBtn.addEventListener('click', function(e){
+      if (!detailUrl){
+        e.preventDefault();
+        return false;
+      }
+      window.location.assign(detailUrl);
+    });
+
+    // --- Networking helpers
+    async function fetchStatus(){
+      const url = new URL("{% url 'health_processing_status' %}", window.location.origin);
+      url.searchParams.set('_', Date.now().toString());
+      const res = await fetch(url, {
+        headers: { 'X-Requested-With': 'fetch' },
+        cache: 'no-store'
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }
+
+    async function checkOnce(){
+      try{
+        const data = await fetchStatus();
+        console.log('[processing] first check:', data);
+        if (data.error){
+          errorBox.textContent = 'خطا در تولید گزارش: ' + (data.error_msg || 'نامشخص');
+          errorBox.classList.add('visible');
+        }
+        if (data.ready){
+          onReady(data.detail_url);
+          return true;
+        }
+        return false;
+      }catch(err){
+        console.warn('[processing] first check error:', err);
+        return false;
+      }
+    }
+
+    async function poll(){
+      if (stopPolling) return;
+      try{
+        const data = await fetchStatus();
+        console.log('[processing] poll:', data);
+        if (data.error){
+          errorBox.textContent = 'خطا در تولید گزارش: ' + (data.error_msg || 'نامشخص');
+          errorBox.classList.add('visible');
+        }
+        if (data.ready){
+          onReady(data.detail_url);
+          return;
+        }
+      }catch(err){
+        console.warn('[processing] poll error:', err);
+      }finally{
+        if (!stopPolling) setTimeout(poll, 5000);
+      }
+    }
+
+    (async () => {
+      const alreadyReady = await checkOnce();
+      if (!alreadyReady) poll();
+    })();
+
+    document.addEventListener('visibilitychange', () => {
+      if (!stopPolling && document.visibilityState === 'visible') checkOnce();
+    });
+  </script>
+</body>
+</html>

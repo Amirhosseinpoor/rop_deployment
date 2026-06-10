@@ -1,0 +1,828 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>KC Detection | MediversAI</title>
+    <link rel="icon" type="image/png" href="{% static 'icons/mediversai_logo_final-032.png' %}">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .fade-slide {
+            animation: fadeSlide 0.6s ease-out;
+        }
+
+        @keyframes fadeSlide {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ---------- متغیرهای رنگی ---------- */
+        :root {
+            --white: #ffffff;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --blue-50: #eff6ff;
+            --blue-100: #dbeafe;
+            --blue-200: #bfdbfe;
+            --blue-300: #93c5fd;
+            --blue-400: #60a5fa;
+            --blue-500: #3b82f6;
+            --blue-600: #2563eb;
+            --blue-700: #1d4ed8;
+            --purple-500: #8b5cf6;
+            --purple-600: #7c3aed;
+            --indigo-500: #6366f1;
+            --red-600: #dc2626;
+            --green-600: #16a34a;
+            --green-700: #15803d;
+        }
+
+        /* ---------- کلاس‌های پایه ---------- */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            line-height: 1.5;
+        }
+
+        .fixed {
+            position: fixed;
+        }
+
+        .absolute {
+            position: absolute;
+        }
+
+        .relative {
+            position: relative;
+        }
+
+        .inset-0 {
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+        }
+
+        .top-0 {
+            top: 0;
+        }
+
+        .left-0 {
+            left: 0;
+        }
+
+        .right-0 {
+            right: 0;
+        }
+
+        .z-10 {
+            z-index: 10;
+        }
+
+        .z-50 {
+            z-index: 50;
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .inline-flex {
+            display: inline-flex;
+        }
+
+        .grid {
+            display: grid;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .block {
+            display: block;
+        }
+
+        .flex-col {
+            flex-direction: column;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .justify-center {
+            justify-content: center;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .gap-4 {
+            gap: 1rem;
+        }
+
+        .gap-6 {
+            gap: 1.5rem;
+        }
+
+        .space-x-1 > * + * {
+            margin-left: 0.25rem;
+        }
+
+        .space-x-3 > * + * {
+            margin-left: 0.75rem;
+        }
+
+        .space-x-6 > * + * {
+            margin-left: 1.5rem;
+        }
+
+        .space-y-1 > * + * {
+            margin-top: 0.25rem;
+        }
+
+        .space-y-4 > * + * {
+            margin-top: 1rem;
+        }
+
+        .space-y-6 > * + * {
+            margin-top: 1.5rem;
+        }
+
+        .space-y-10 > * + * {
+            margin-top: 2.5rem;
+        }
+
+        .overflow-hidden {
+            overflow: hidden;
+        }
+
+        .rounded {
+            border-radius: 0.25rem;
+        }
+
+        .rounded-md {
+            border-radius: 0.375rem;
+        }
+
+        .rounded-lg {
+            border-radius: 0.5rem;
+        }
+
+        .rounded-xl {
+            border-radius: 0.75rem;
+        }
+
+        .rounded-2xl {
+            border-radius: 1rem;
+        }
+
+        .rounded-full {
+            border-radius: 9999px;
+        }
+
+        .border {
+            border: 1px solid var(--gray-200);
+        }
+
+        .border-2 {
+            border-width: 2px;
+        }
+
+        .border-dashed {
+            border-style: dashed;
+        }
+
+        .border-blue-400 {
+            border-color: var(--blue-400);
+        }
+
+        .border-gray-200 {
+            border-color: var(--gray-200);
+        }
+
+        .shadow-sm {
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .shadow-md {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+
+        .shadow-xl {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        .opacity-0 {
+            opacity: 0;
+        }
+
+        .opacity-90 {
+            opacity: 0.9;
+        }
+
+        .transition {
+            transition: all 0.2s ease;
+        }
+
+        .duration-200 {
+            transition-duration: 200ms;
+        }
+
+        .duration-300 {
+            transition-duration: 300ms;
+        }
+
+        .transform {
+            transform: translateY(0);
+        }
+
+        .-translate-y-2 {
+            transform: translateY(-0.5rem);
+        }
+
+        .rotate-180 {
+            transform: rotate(180deg);
+        }
+
+        .cursor-pointer {
+            cursor: pointer;
+        }
+
+        .object-contain {
+            object-fit: contain;
+        }
+
+        .object-cover {
+            object-fit: cover;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-left {
+            text-align: left;
+        }
+
+        .resize-none {
+            resize: none;
+        }
+
+        .w-4 {
+            width: 1rem;
+        }
+
+        .w-8 {
+            width: 2rem;
+        }
+
+        .w-full {
+            width: 100%;
+        }
+
+        .w-28 {
+            width: 7rem;
+        }
+
+        .h-4 {
+            height: 1rem;
+        }
+
+        .h-8 {
+            height: 2rem;
+        }
+
+        .h-60 {
+            height: 15rem;
+        }
+
+        .h-64 {
+            height: 16rem;
+        }
+
+        .max-w-6xl {
+            max-width: 72rem;
+        }
+
+        .p-2 {
+            padding: 0.5rem;
+        }
+
+        .p-6 {
+            padding: 1.5rem;
+        }
+
+        .p-14 {
+            padding: 3.5rem;
+        }
+
+        .px-3 {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+        }
+
+        .px-4 {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        .px-6 {
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+        }
+
+        .px-8 {
+            padding-left: 2rem;
+            padding-right: 2rem;
+        }
+
+        .py-1 {
+            padding-top: 0.25rem;
+            padding-bottom: 0.25rem;
+        }
+
+        .py-2 {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+
+        .py-3 {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+        }
+
+        .py-12 {
+            padding-top: 3rem;
+            padding-bottom: 3rem;
+        }
+
+        .mt-2 {
+            margin-top: 0.5rem;
+        }
+
+        .mt-4 {
+            margin-top: 1rem;
+        }
+
+        .mt-6 {
+            margin-top: 1.5rem;
+        }
+
+        .mt-8 {
+            margin-top: 2rem;
+        }
+
+        .mt-20 {
+            margin-top: 5rem;
+        }
+
+        .mb-1 {
+            margin-bottom: 0.25rem;
+        }
+
+        .mb-2 {
+            margin-bottom: 0.5rem;
+        }
+
+        .mb-6 {
+            margin-bottom: 1.5rem;
+        }
+
+        /* Typography */
+        .text-xs {
+            font-size: 0.75rem;
+            line-height: 1rem;
+        }
+
+        .text-sm {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+
+        .text-lg {
+            font-size: 1.125rem;
+            line-height: 1.75rem;
+        }
+
+        .font-medium {
+            font-weight: 500;
+        }
+
+        .font-semibold {
+            font-weight: 600;
+        }
+
+        /* Colors */
+        .bg-white {
+            background-color: var(--white);
+        }
+
+        .bg-gray-50 {
+            background-color: var(--gray-50);
+        }
+
+        .bg-gray-100 {
+            background-color: var(--gray-100);
+        }
+
+        .bg-blue-50 {
+            background-color: var(--blue-50);
+        }
+
+        .bg-blue-600 {
+            background-color: var(--blue-600);
+        }
+
+        .bg-green-600 {
+            background-color: var(--green-600);
+        }
+
+        .text-gray-500 {
+            color: var(--gray-500);
+        }
+
+        .text-gray-600 {
+            color: var(--gray-600);
+        }
+
+        .text-gray-700 {
+            color: var(--gray-700);
+        }
+
+        .text-gray-800 {
+            color: var(--gray-800);
+        }
+
+        .text-blue-500 {
+            color: var(--blue-500);
+        }
+
+        .text-blue-600 {
+            color: var(--blue-600);
+        }
+
+        .text-purple-600 {
+            color: var(--purple-600);
+        }
+
+        .text-red-600 {
+            color: var(--red-600);
+        }
+
+        .text-white {
+            color: var(--white);
+        }
+
+        .hover\:bg-blue-50:hover {
+            background-color: var(--blue-50);
+        }
+
+        .hover\:bg-blue-700:hover {
+            background-color: var(--blue-700);
+        }
+
+        .hover\:bg-green-700:hover {
+            background-color: var(--green-700);
+        }
+
+        .hover\:bg-gray-50:hover {
+            background-color: var(--gray-50);
+        }
+
+        .hover\:underline:hover {
+            text-decoration: underline;
+        }
+
+        .focus\:outline-none:focus {
+            outline: none;
+        }
+
+        .focus\:ring-blue-500:focus {
+            box-shadow: 0 0 0 2px var(--blue-500);
+        }
+
+        .focus\:ring-purple-500:focus {
+            box-shadow: 0 0 0 2px var(--purple-600);
+        }
+
+        .focus\:ring-indigo-500:focus {
+            box-shadow: 0 0 0 2px var(--indigo-500);
+        }
+
+        .focus\:border-blue-500:focus {
+            border-color: var(--blue-500);
+        }
+
+        .focus\:border-purple-500:focus {
+            border-color: var(--purple-600);
+        }
+
+        /* Grid */
+        .grid-cols-1 {
+            grid-template-columns: repeat(1, 1fr);
+        }
+
+        .grid-cols-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        @media (min-width: 768px) {
+            .md\:grid-cols-2 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .md\:grid-cols-3 {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* group-hover */
+        .group:hover .group-hover\:opacity-100 {
+            opacity: 1;
+        }
+
+        .group:hover .group-hover\:translate-y-0 {
+            transform: translateY(0);
+        }
+
+        .group:hover .group-hover\:rotate-180 {
+            transform: rotate(180deg);
+        }
+
+        /* Misc */
+        .min-h-screen {
+            min-height: 100vh;
+        }
+
+        .whitespace-nowrap {
+            white-space: nowrap;
+        }
+
+        .truncate {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .select-none {
+            user-select: none;
+        }
+
+        .pointer-events-none {
+            pointer-events: none;
+        }
+
+        .transition-all {
+            transition-property: all;
+        }
+
+        .ease-out {
+            transition-timing-function: ease-out;
+        }
+
+        .origin-top-right {
+            transform-origin: top right;
+        }
+
+        .transition-transform {
+            transition: transform 0.2s;
+        }
+
+        .scale-95 {
+            transform: scale(0.95);
+        }
+
+        .scale-100 {
+            transform: scale(1);
+        }
+    </style>
+
+</head>
+<body class="bg-gray-100 min-h-screen py-12 px-4 flex flex-col items-center fade-slide">
+
+<!-- Header -->
+<header class="w-full bg-white shadow-md border-b border-gray-200 px-6 py-3 flex justify-between items-center fixed top-0 left-0 z-50">
+    <!-- Logo & Title -->
+    <div class="flex items-center space-x-3">
+        <img src="{% static 'mediversai_logo_final.png' %}" class="h-8 opacity-90" alt="MediversAI">
+        <h1 class="text-lg font-semibold text-gray-800">KC Detection</h1>
+    </div>
+
+    <!-- Navigation + User -->
+    {% if user.is_authenticated %}
+        <div class="flex items-center space-x-6 text-sm">
+            <a href="{% url 'history' %}" class="text-gray-700 hover:underline">History</a>
+            <a href="{% url 'home' %}" class="text-gray-700 hover:underline">ROP AI</a>
+
+            <!-- Hover Dropdown -->
+            <div class="relative group">
+                <button class="flex items-center space-x-1 text-gray-700 font-medium focus:outline-none">
+                    <span>{{ user.username }}</span>
+                    <svg class="w-4 h-4 text-gray-500 group-hover:rotate-180 transition duration-300"
+                         fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div class="absolute right-0 mt-2 w-28 bg-white border border-gray-200 rounded-md shadow-md opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transform -translate-y-2 transition-all duration-200 z-50">
+                    <form method="post" action="{% url 'logout' %}" class="text-left">
+                        {% csrf_token %}
+                        <button type="submit" class="block w-full px-4 py-2 text-red-600 text-sm hover:bg-gray-50">
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</header>
+
+<!-- Add margin-top to main content to avoid being overlapped by fixed header -->
+<div class="mt-20"></div>
+
+<main class="w-full max-w-6xl bg-white shadow-xl rounded-2xl p-14">
+    {% if not result %}
+        <form method="post" enctype="multipart/form-data" class="space-y-6 text-center">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <label id="left-label"
+                       class="cursor-pointer flex flex-col items-center justify-center h-60 w-full bg-gray-50 border-2 border-dashed border-blue-400 rounded-xl hover:bg-blue-50 transition relative overflow-hidden">
+                    <div id="left-upload-content" class="flex flex-col items-center justify-center space-y-1 z-10">
+                        <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M4 12l1.41 1.41L11 7.83v8.34h2V7.83l5.59 5.58L20 12l-8-8-8 8z"/>
+                        </svg>
+                        <span class="text-sm text-blue-600">Select Left Eye Image</span>
+                    </div>
+                    <input type="file" name="left_file" accept="image/*" class="hidden" onchange="load(event, 'left')">
+                </label>
+
+                <label id="right-label"
+                       class="cursor-pointer flex flex-col items-center justify-center h-60 w-full bg-gray-50 border-2 border-dashed border-blue-400 rounded-xl hover:bg-blue-50 transition relative overflow-hidden">
+                    <div id="right-upload-content" class="flex flex-col items-center justify-center space-y-1 z-10">
+                        <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M4 12l1.41 1.41L11 7.83v8.34h2V7.83l5.59 5.58L20 12l-8-8-8 8z"/>
+                        </svg>
+                        <span class="text-sm text-blue-600">Select Right Eye Image</span>
+                    </div>
+                    <input type="file" name="right_file" accept="image/*" class="hidden"
+                           onchange="load(event, 'right')">
+                </label>
+
+            </div>
+            <div class="flex justify-center gap-6 mt-6">
+                <img id="left-preview" class="hidden" alt="Left Preview">
+                <img id="right-preview" class="hidden" alt="Right Preview">
+            </div>
+
+            <div class="mt-6">
+                <button type="submit"
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-8 rounded-full shadow-sm transition">
+                    Submit
+                </button>
+            </div>
+        </form>
+    {% else %}
+        <div class="space-y-10 text-center">
+            {% if result.image_data.left or result.image_data.right %}
+                <div class="flex justify-center space-x-6">
+                    {% if result.image_data.left %}
+                        <img src="{{ result.image_data.left }}" class="h-64 rounded shadow-md"
+                             alt="Left Eye Image">{% endif %}
+                    {% if result.image_data.right %}
+                        <img src="{{ result.image_data.right }}" class="h-64 rounded shadow-md"
+                             alt="Right Eye Image">{% endif %}
+                </div>
+            {% endif %}
+
+            <div class="grid md:grid-cols-3 gap-6 text-center">
+                <div class="bg-white border rounded-xl p-6 shadow-sm flex flex-col justify-center">
+                    <h3 class="text-lg font-semibold text-blue-600 mb-2">Left Eye</h3>
+                    <p class="text-gray-700 text-sm"><span
+                            class="font-medium">Label:</span> {{ result.predictions.left_eye.label }}</p>
+                    <p class="text-gray-500 text-xs"><span
+                            class="font-medium">Confidence:</span> {{ result.predictions.left_eye.probability }}</p>
+                </div>
+                <div class="bg-white border rounded-xl p-6 shadow-sm flex flex-col justify-center">
+                    <h3 class="text-lg font-semibold text-blue-600 mb-2">Right Eye</h3>
+                    <p class="text-gray-700 text-sm"><span
+                            class="font-medium">Label:</span> {{ result.predictions.right_eye.label }}</p>
+                    <p class="text-gray-500 text-xs"><span
+                            class="font-medium">Confidence:</span> {{ result.predictions.right_eye.probability }}</p>
+                </div>
+                <div class="bg-white border rounded-xl p-6 shadow-sm flex flex-col justify-center">
+                    <h3 class="text-lg font-semibold text-purple-600 mb-2">Z Classification</h3>
+                    <p class="text-gray-700 text-sm"><span
+                            class="font-medium">Label:</span> {{ result.predictions.z_class.label }}</p>
+                    <p class="text-gray-500 text-xs"><span
+                            class="font-medium">Confidence:</span> {{ result.predictions.z_class.probability }}</p>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-6 shadow-sm space-y-4 mt-8">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="feedback_mode" value="true">
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Correct Left Eye</label>
+                            <select name="corrected_left_label"
+                                    class="w-full px-3 py-2 text-sm border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">-- Select --</option>
+                                <option value="Normal">Normal</option>
+                                <option value="ATN">ATN</option>
+                                <option value="NEIr">NEIr</option>
+                                <option value="EIr">EIr</option>
+                                <option value="eKCN">eKCN</option>
+                                <option value="Touched">Touched</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Correct Right Eye</label>
+                            <select name="corrected_right_label"
+                                    class="w-full px-3 py-2 text-sm border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">-- Select --</option>
+                                <option value="Normal">Normal</option>
+                                <option value="ATN">ATN</option>
+                                <option value="NEIr">NEIr</option>
+                                <option value="EIr">EIr</option>
+                                <option value="eKCN">eKCN</option>
+                                <option value="Touched">Touched</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Correct Z-Class</label>
+                            <select name="corrected_z_label"
+                                    class="w-full px-3 py-2 text-sm border rounded-md focus:ring-purple-500 focus:border-purple-500">
+                                <option value="">-- Select --</option>
+                                <option value="SfRS">SfRS</option>
+                                <option value="NSfRS">NSfRS</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Comment</label>
+                        <textarea name="review_comment" rows="3"
+                                  class="w-full px-3 py-2 text-sm border rounded-md focus:ring-indigo-500 resize-none"
+                                  placeholder="Optional notes or explanation..."></textarea>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <button type="submit"
+                                class="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-full text-sm shadow-md">
+                            Submit Feedback
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+</main>
+</body>
+<script>
+    function load(event, side) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const label = document.getElementById(`${side}-label`);
+        const oldImg = document.getElementById(`${side}-preview`);
+        if (oldImg) oldImg.remove();
+
+        const preview = document.createElement('img');
+        preview.src = URL.createObjectURL(file);
+        preview.id = `${side}-preview`;
+        preview.className = 'absolute inset-0 w-full h-full object-contain rounded-xl';
+
+        label.appendChild(preview);
+
+        const content = document.getElementById(`${side}-upload-content`);
+        content.classList.add('hidden');
+    }
+
+</script>
+
+</html>

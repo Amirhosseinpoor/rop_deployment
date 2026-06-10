@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>HTML5 Pacman</title>
+
+  <style>
+    @font-face {
+      font-family: 'BDCartoonShoutRegular';
+      src: url('BD_Cartoon_Shout-webfont.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    /* تمام صفحه تم تیره */
+    html, body { height: 100%; margin: 0; background: #0f172a; color: #fff; }
+    body { font-family: sans-serif; display: grid; place-items: center; }
+
+    /* کانتینری که بازی داخلش init می‌شود */
+    #pacman {
+      /* نسبت بوم اصلی حدود 342x450 است؛ این نسبت را حفظ می‌کنیم */
+      width: min(96vw, calc(96vh * (342 / 450)));
+      margin: 0 auto;
+      /* ارتفاع مهم نیست؛ خودِ اسکریپت با توجه به عرض canvas را می‌سازد */
+    }
+
+    /* برای فونت تیتر (اگر خواستی نشان بدهی) */
+    h1 { font-family: BDCartoonShoutRegular; text-align:center; margin: 8px 0 0; display: none; }
+    a { text-decoration: none; color:#7dd3fc; display: none; }
+    #shim { font-family: BDCartoonShoutRegular; position:absolute; visibility:hidden }
+  </style>
+</head>
+<body>
+
+  <div id="shim">shim for font face</div>
+
+  <!-- هدر را مخفی کردیم تا صفحه کاملاً در اختیار بازی باشد -->
+  <h1>HTML5 Pacman</h1>
+  <div id="pacman"></div>
+
+  <!-- اسکریپت‌های اصلی بازی -->
+  <script src="pacman.js"></script>
+  <script src="modernizr-1.5.min.js"></script>
+
+  <script>
+    // --- راه‌اندازی واکنش‌گرا با رندر واقعی (بدون تار شدن) ---
+
+    var el = document.getElementById("pacman");
+    var bootTimer = null;
+
+    function boot() {
+      if (!(Modernizr.canvas && Modernizr.localstorage &&
+            Modernizr.audio && (Modernizr.audio.ogg || Modernizr.audio.mp3))) {
+        el.innerHTML = '<div style="text-align:center;padding:16px">Sorry, needs a decent browser<br /><small>(Firefox 3.6+, Chrome 4+, Opera 10+ and Safari 4+)</small></div>';
+        return;
+      }
+
+      // هر بار که اندازه تغییر کند، بوم قبلی را پاک و دوباره init می‌کنیم
+      el.innerHTML = "";
+
+      // init بازی؛ PACMAN.init عرض wrapper را می‌خواند و از آن blockSize می‌سازد
+      PACMAN.init(el, "./");
+
+      // بعد از ساخته‌شدن canvas، آن‌را فوکوس‌پذیر و فوکوس‌شده کن تا کیبورد (N, Arrow ها) کار کنند
+      setTimeout(function () {
+        var canvas = el.querySelector("canvas");
+        if (canvas) {
+          canvas.setAttribute("tabindex", "0");
+          canvas.focus();
+        }
+      }, 0);
+    }
+
+    // بار اول
+    window.addEventListener("load", boot);
+
+    // روی تغییر اندازه، دوباره رندر (debounce)
+    window.addEventListener("resize", function () {
+      clearTimeout(bootTimer);
+      bootTimer = setTimeout(boot, 150);
+    });
+
+    // اگر صفحه داخل iframe است، وقتی iframe فوکوس گرفت هم canvas را دوباره فوکوس کن
+    window.addEventListener("focus", function () {
+      var canvas = el.querySelector("canvas");
+      if (canvas) canvas.focus();
+    });
+  </script>
+</body>
+</html>

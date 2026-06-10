@@ -1,0 +1,358 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>انتخاب نقش | MediverseAI</title>
+    <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png">
+    <style>
+        /* ------------------------- */
+        /* فونت وزیر (آفلاین) */
+        /* ------------------------- */
+        @font-face {
+            font-family: "Vazir";
+            src: url("{% static 'fonts/Vazirmatn-Regular.woff2' %}") format("woff2");
+            font-weight: normal;
+        }
+        @font-face {
+            font-family: "Vazir";
+            src: url("{% static 'fonts/Vazirmatn-Bold.woff2' %}") format("woff2");
+            font-weight: bold;
+        }
+
+        /* ------------------------- */
+        /* متغیرهای ریشه */
+        /* ------------------------- */
+        :root {
+            --medical-blue: #0A6EFF;
+            --medical-teal: #00A896;
+            --gray-100: #F8FAFD;
+            --gray-200: #E9EDF5;
+            --gray-600: #5B6B7C;
+            --gray-800: #1E293B;
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.04);
+            --shadow-md: 0 12px 32px rgba(0,0,0,0.08);
+            --shadow-glow: 0 0 24px rgba(10,110,255,0.18);
+            --radius-xl: 24px;
+            --radius-lg: 16px;
+            --transition: 0.25s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "Vazir", sans-serif;
+            background: linear-gradient(150deg, #E3F0FD 0%, #F2F8FF 50%, #FFFFFF 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* پس‌زمینه هگزاگونال (همانند صفحه ورود) */
+        .medical-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5L52.5 17.5V42.5L30 55L7.5 42.5V17.5L30 5Z' fill='none' stroke='%230A6EFF' stroke-opacity='0.07' stroke-width='1'/%3E%3C/svg%3E");
+            background-size: 80px 80px;
+            opacity: 0.35;
+        }
+
+        /* کارت اصلی */
+        .card {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 780px;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(18px) saturate(180%);
+            border: 1px solid rgba(255,255,255,0.7);
+            border-radius: var(--radius-xl);
+            padding: 38px 40px 32px;
+            box-shadow: var(--shadow-md), var(--shadow-glow);
+            animation: cardAppear 0.6s ease-out;
+        }
+        @keyframes cardAppear {
+            from { opacity: 0; transform: translateY(30px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* لوگو و عنوان */
+        .logo-area {
+            text-align: center;
+            margin-bottom: 18px;
+        }
+        .logo {
+            height: 52px;
+            margin-bottom: 6px;
+        }
+        .title {
+            font-size: 26px;
+            font-weight: bold;
+            color: var(--gray-800);
+        }
+        .subtitle {
+            color: var(--gray-600);
+            font-size: 14px;
+            margin-top: 6px;
+        }
+
+        /* شبکه نقش‌ها */
+        .grid {
+            margin-top: 28px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        @media(min-width:540px) {
+            .grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .role-option {
+            cursor: pointer;
+            display: block;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            padding: 28px 14px 22px;
+            background: rgba(255,255,255,0.65);
+            backdrop-filter: blur(8px);
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+            text-align: center;
+        }
+        .role-option:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        }
+        .role-option.active {
+            border-color: var(--medical-blue);
+            background: rgba(10,110,255,0.07);
+            box-shadow: 0 0 0 3px rgba(10,110,255,0.15), 0 10px 30px rgba(10,110,255,0.2);
+        }
+        .role-option input[type="radio"] {
+            display: none;
+        }
+
+        /* آیکون‌ها (اموجی‌های اصلی) */
+        .role-icon {
+            font-size: 38px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .role-title {
+            font-weight: bold;
+            color: var(--gray-800);
+            margin-bottom: 6px;
+            font-size: 16px;
+        }
+        .role-desc {
+            font-size: 12px;
+            color: var(--gray-600);
+            line-height: 1.5;
+        }
+
+        /* دکمه ادامه */
+        .submit-btn {
+            width: 100%;
+            margin-top: 30px;
+            padding: 15px;
+            border: none;
+            border-radius: var(--radius-lg);
+            background: linear-gradient(135deg, #0A6EFF, #3B82F6);
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 8px 22px rgba(10,110,255,0.28);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(10,110,255,0.4);
+        }
+
+        /* خطای فرم */
+        .form-errors {
+            margin-top: 14px;
+            background: #FFF0F0;
+            border: 1px solid #FFC9C9;
+            color: #C00020;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        /* فوتر */
+        .footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+        .footer a {
+            color: var(--medical-blue);
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        /* تغییر تم */
+        .theme-toggle {
+            position: fixed;
+            left: 24px;
+            top: 24px;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0,0,0,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            z-index: 100;
+        }
+        .theme-toggle:hover {
+            background: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        /* ------------------------- */
+        /* حالت تاریک */
+        /* ------------------------- */
+        .dark body {
+            background: linear-gradient(150deg, #0B1121 0%, #131A2E 50%, #1A2540 100%);
+        }
+        .dark .medical-bg {
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5L52.5 17.5V42.5L30 55L7.5 42.5V17.5L30 5Z' fill='none' stroke='%234F90FF' stroke-opacity='0.12' stroke-width='1'/%3E%3C/svg%3E");
+            opacity: 0.25;
+        }
+        .dark .card {
+            background: rgba(24,30,50,0.8);
+            border-color: rgba(255,255,255,0.08);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.45), inset 0 0 30px rgba(255,255,255,0.03);
+        }
+        .dark .title,
+        .dark .role-title,
+        .dark .footer {
+            color: #EDF2F9;
+        }
+        .dark .subtitle,
+        .dark .role-desc {
+            color: #B9C5DA;
+        }
+        .dark .role-option {
+            background: rgba(255,255,255,0.08);
+            border-color: #2D3A50;
+        }
+        .dark .role-option.active {
+            background: rgba(10,110,255,0.18);
+            border-color: #4F90FF;
+        }
+        .dark .submit-btn {
+            background: linear-gradient(135deg, #2A6EFF, #4F8CFF);
+        }
+        .dark .theme-toggle {
+            background: rgba(30,40,65,0.8);
+            color: #E2E8F0;
+            border-color: rgba(255,255,255,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="medical-bg"></div>
+
+    <div class="theme-toggle" id="themeToggle">🌓</div>
+
+    <div class="card">
+        <div class="logo-area">
+            <img src="{% static 'icons/mediversai_logo_final-03.png' %}" class="logo" alt="MediverseAI">
+            <div class="title">انتخاب نقش</div>
+            <div class="subtitle">موقعیت خود را برای ادامه ثبت‌نام مشخص کنید</div>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="grid">
+                <!-- مدیر -->
+                <label class="role-option">
+                    <input type="radio" name="role" value="manager">
+                    <span class="role-icon">👤</span>
+                    <div class="role-title">مدیر</div>
+                    <div class="role-desc">ثبت شرکت و مدیریت کلینیک</div>
+                </label>
+
+                <!-- پزشک -->
+                <label class="role-option">
+                    <input type="radio" name="role" value="doctor">
+                    <span class="role-icon">🩺</span>
+                    <div class="role-title">پزشک</div>
+                    <div class="role-desc">ورود با دعوت‌نامه مطب</div>
+                </label>
+
+                <!-- کارمند -->
+                <label class="role-option">
+                    <input type="radio" name="role" value="employee">
+                    <span class="role-icon">💼</span>
+                    <div class="role-title">کارمند</div>
+                    <div class="role-desc">ثبت‌نام با دعوت‌نامه</div>
+                </label>
+            </div>
+
+            {% if form.non_field_errors %}
+            <div class="form-errors">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <button class="submit-btn" type="submit">ادامه به ثبت‌نام</button>
+        </form>
+
+        <div class="footer">
+            قبلاً ثبت‌نام کرده‌اید؟
+            <a href="{% url 'login' %}">ورود</a>
+        </div>
+    </div>
+
+    <script>
+        // تم تاریک/روشن
+        const root = document.documentElement;
+        const toggleBtn = document.getElementById("themeToggle");
+        toggleBtn.onclick = () => {
+            root.classList.toggle("dark");
+            localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
+        };
+        if (localStorage.getItem("theme") === "dark") {
+            root.classList.add("dark");
+        }
+
+        // انتخاب نقش با کلیک روی کارت
+        document.querySelectorAll('.role-option').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.role-option').forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                card.querySelector('input').checked = true;
+            });
+        });
+    </script>
+</body>
+</html>

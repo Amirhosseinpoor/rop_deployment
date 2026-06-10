@@ -11,6 +11,13 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
 from pathlib import Path
+import environ, os
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+env = environ.Env()
+environ.Env.read_env(BASE_DIR / ".env")   # ← فایل را لود می‌کند
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,7 +27,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+SECRET_KEY = 'django-insecure-v13tscble5i8h9*wxy#_qwfd%j49#2czbfn7!_@jpo4v=q#l!+'
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -31,6 +39,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -38,9 +47,17 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'single_rop',
-    'double_rop'
+    'double_rop',
+    'test_analysis',
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'usac.apps.UsacConfig',
+    'doctors_marketplace'
 ]
-
+SITE_ID = 1
 MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.middleware.security.SecurityMiddleware',
@@ -48,11 +65,15 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    "allauth.account.middleware.AccountMiddleware",
+
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
+
+
 
 TEMPLATES = [
     {
@@ -77,19 +98,20 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 
-
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'aras'),
-        'USER': os.environ.get('DB_USER', 'amir'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'amirhpk1818'),
-        'HOST': os.environ.get('DB_HOST', 'db'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
+        'NAME': 'aras',
+        'USER': 'amir',
+        'PASSWORD': 'amirhpk1818',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
-
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -135,7 +157,80 @@ STATICFILES_DIRS = [
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+CSRF_TRUSTED_ORIGINS = [
+    "https://arasai.ir",
+    "https://www.arasai.ir",
+]
+LOGIN_REDIRECT_URL = 'role_based_redirect'
+
+LOGOUT_REDIRECT_URL = 'login'
+import os
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+JAZZMIN_SETTINGS = {
+    "site_logo":"/icons/mediversai_logo_final-032.png",
+    "site_title": "Admin Panel",
+    "site_header": "Mediverse AI",
+    "site_brand": "Mediverse AI",
+
+    "custom_links": {
+        "single_rop": [
+            {
+                "name": " Misclassified ROP",
+                "url": "/export/rop/",
+                "icon": "fas fa-file-csv",
+                "permissions": ["single_rop.view_predictionlog"],
+            },
+        ],
+        "double_rop": [
+            {
+                "name": " Misclassified KC",
+                "url": "/export/kc/",
+                "icon": "fas fa-file-csv",
+                "permissions": ["double_rop.view_predictionresult"],
+            },
+        ],
+    },
+}
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_HOST_USER = 'amirhosseinpoor257@gmail.com'
+EMAIL_HOST_PASSWORD = 'ooyqeralqmzyjbfy'
+DEFAULT_FROM_EMAIL = 'Mediverse AI <amirhosseinpoor257@gmail.com>'
+
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+
+ACCOUNT_EMAIL_REQUIRED        = True
+ACCOUNT_USERNAME_REQUIRED     = True
+ACCOUNT_EMAIL_VERIFICATION    = "none"
+SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
+
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "APP": {
+            "client_id": "75196085647-val4pqlnjvmjop14pokesu22nhd8rr29.apps.googleusercontent.com",
+            "secret": "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",
+            "key": ""
+        }
+    }
+}
+CELERY_TASK_ALWAYS_EAGER = False                       # حتماً False
+CELERY_TASK_IGNORE_RESULT = True
+CELERY_ACKS_LATE = True
+CELERY_TASK_TIME_LIMIT = 60 * 10                       # 10 دقیقه سقف
+CELERY_TASK_SOFT_TIME_LIMIT = 60 * 9

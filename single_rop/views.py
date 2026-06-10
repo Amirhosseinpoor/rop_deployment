@@ -1,56 +1,88 @@
+# webapp/app/views.py
+import json
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.core.files.uploadedfile import InMemoryUploadedFile
+
 from .utils import get_result
+from .models import PredictionLog
 
 
-# Import other necessary modules if needed
+# webapp/app/views.py
+import json
+from django.shortcuts import render
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
 def home(request):
-    """
-    Handle GET and POST requests to display the main page with the form.
-    For GET: Display the page.
-    For POST: Process the uploaded image and show the result.
-    """
     result = None
+    results = None
     error = None
+    result_json = None
 
-    if request.method == "POST":
-        # Check if a file is uploaded
-        if "file" in request.FILES:
-            uploaded_file = request.FILES["file"]  # Retrieve the uploaded file
+    try:
+        if request.method == "POST" and request.POST.get("feedback_mode"):
+            # keep your feedback handling here if you have it
+            pass
 
+        if request.method == "POST":
+            # IMPORTANT: inspect exactly what arrived
+            files_debug = [f.name for f in request.FILES.getlist("files")]
+            single_debug = request.FILES.get("file").name if "file" in request.FILES else None
+            print("DEBUG request.FILES.getlist('files') ->", files_debug)
+            print("DEBUG request.FILES['file'] ->", single_debug)
 
-            try:
-                # Call the utils.get_result method to process the file
-                result = get_result(image_file=uploaded_file)
+            file_list = []
+            if request.FILES.getlist("files"):
+                file_list = request.FILES.getlist("files")
+            elif "file" in request.FILES:
+                file_list = [request.FILES["file"]]
 
-            except Exception as ex:
-                error = str(ex)  # Catch and store any error that occurs during prediction
-                print(f"Error during prediction: {error}")  # Debugging print
+            if not file_list:
+                error = "No files received. Make sure the input’s name is 'files' and the form has enctype='multipart/form-data'."
 
-    # Render the template with the result (or error, if any)
-    return render(request, "index.html", {"result": result, "error": error})
+            else:
+                from .utils import get_results_for_images
+                result, results = get_results_for_images(file_list, request=request)
 
+                # keep a safe json for the chat (no base64)
+                safe_result = {k: v for k, v in result.items() if k not in ("image_data", "original_image_data")}
+                result_json = json.dumps(safe_result)
+
+    except Exception as ex:
+        # Surface any pipeline errors to the page
+        import traceback
+        traceback.print_exc()
+        error = str(ex)
+
+    return render(request, "index2.html", {
+        "result": result,
+        "results": results,
+        "error": error,
+        "result_json": result_json
+    })
 
 @csrf_exempt
 def predict(request):
     """
-    Handle API POST requests to return JSON responses for predictions.
+    Anonymous JSON API: now supports multiple files.
+    Returns:
+      {
+        "aggregated": {...},      # worst-case / final labels
+        "per_image": [ {...}, ... ]
+      }
     """
-    if request.method == "POST" and "file" in request.FILES:
-        uploaded_file = request.FILES["file"]
+    if request.method == "POST":
+        files = request.FILES.getlist("files") or ([request.FILES["file"]] if "file" in request.FILES else [])
+        if files:
+            try:
+                from .utils import get_results_for_images
+                aggregated, per_image = get_results_for_images(files, request=request)
+                return JsonResponse({"aggregated": aggregated, "per_image": per_image})
+            except Exception as ex:
+                print(f"Error: {ex}")
+                return JsonResponse({"error": str(ex)}, status=400)
 
-        try:
-            # Call the utils.get_result function to process the uploaded image
-            result = get_result(image_file=uploaded_file, is_api=True)
-
-            return JsonResponse(result)  # Return the prediction as a JSON response
-        except Exception as ex:
-            print(f"Error: {ex}")  # Debugging print
-            return JsonResponse({"error": str(ex)}, status=400)
-
-    # If no file is uploaded, return a bad request response
-    print("No file uploaded or invalid request.")  # Debugging print
-    return JsonResponse({"error": "No file uploaded or invalid request."}, status=400)
+    print("No file(s) uploaded or invalid request.")
+    return JsonResponse({"error": "No file(s) uploaded or invalid request."}, status=400)
