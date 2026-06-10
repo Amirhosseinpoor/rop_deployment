@@ -3,7 +3,6 @@
 from django.contrib import admin
 from .models import HealthProfile, PreviousJob, Referral
 
-# --- The decorator has been removed from above the class ---
 
 class PreviousJobInline(admin.TabularInline):
     """Allows editing PreviousJob records from the HealthProfile admin page."""
@@ -23,28 +22,32 @@ class ReferralInline(admin.TabularInline):
     verbose_name_plural = "8. Specialist Referrals"
 
 
-# The HealthProfileAdmin class is defined here but NOT registered.
-# Registration will be handled in the custom_admin.py file.
 class HealthProfileAdmin(admin.ModelAdmin):
     """
     Custom admin view for the HealthProfile model.
-    Uses fieldsets and inlines to organize the vast number of fields into logical groups.
+    All fieldsets are visible at once – no collapsed sections.
     """
-    list_display = ('user', 'current_job_title', 'opinion_fit', 'opinion_fit_with_conditions', 'opinion_unfit', 'updated_at')
+    list_display = (
+        'user', 'current_job_title', 'opinion_fit',
+        'opinion_fit_with_conditions', 'opinion_unfit', 'updated_at'
+    )
     search_fields = ('user__username', 'user__email', 'current_job_title', 'national_id')
     list_filter = ('opinion_fit', 'opinion_fit_with_conditions', 'is_currently_smoking', 'created_at')
     readonly_fields = ('created_at', 'updated_at')
     inlines = [PreviousJobInline, ReferralInline]
+
     fieldsets = (
         ("User & AI Advice", {
             'fields': ('user', 'llm_advice')
         }),
         ("1. Personal Information", {
-            'classes': ('collapse',),
             'fields': (
                 ('father_name', 'national_id'),
                 ('date_of_birth', 'gender'),
                 ('marital_status', 'children_count'),
+                'living_province',
+                'neighborhood',
+                'insurance',
                 ('military_service_status', 'military_service_rank'),
                 'medical_exemption_reason',
                 'work_address',
@@ -52,19 +55,19 @@ class HealthProfileAdmin(admin.ModelAdmin):
             )
         }),
         ("2. Current Occupational Info", {
-            'classes': ('collapse',),
             'fields': ('current_job_title', 'current_job_start_date', 'current_job_duties')
         }),
         ("3. Occupational Hazard Assessment", {
-            'classes': ('collapse',),
             'description': "Check all applicable hazards for the user's roles.",
             'fields': (
-                ('hazard_physical_noise', 'hazard_physical_vibration', 'hazard_physical_ionizing_radiation', 'hazard_physical_non_ionizing_radiation'),
+                ('hazard_physical_noise', 'hazard_physical_vibration',
+                 'hazard_physical_ionizing_radiation', 'hazard_physical_non_ionizing_radiation'),
                 'hazard_physical_heat_stress', 'hazard_physical_other',
                 ('hazard_chemical_dust', 'hazard_chemical_metal_fumes', 'hazard_chemical_solvents'),
                 ('hazard_chemical_pesticides', 'hazard_chemical_acids_bases', 'hazard_chemical_gases'),
                 'hazard_chemical_other',
-                ('hazard_biological_bites', 'hazard_biological_bacteria', 'hazard_biological_virus', 'hazard_biological_parasite'),
+                ('hazard_biological_bites', 'hazard_biological_bacteria',
+                 'hazard_biological_virus', 'hazard_biological_parasite'),
                 'hazard_biological_other',
                 ('hazard_ergonomic_prolonged_sitting_standing', 'hazard_ergonomic_repetitive_work'),
                 ('hazard_ergonomic_heavy_lifting', 'hazard_ergonomic_poor_posture'),
@@ -74,10 +77,10 @@ class HealthProfileAdmin(admin.ModelAdmin):
             )
         }),
         ("4. Personal & Medical History", {
-            'classes': ('collapse',),
             'fields': (
                 'has_disease_history', 'disease_history_details',
-                ('does_symptoms_change_at_work', 'do_colleagues_have_similar_symptoms', 'does_symptoms_change_on_holidays'),
+                ('does_symptoms_change_at_work', 'do_colleagues_have_similar_symptoms',
+                 'does_symptoms_change_on_holidays'),
                 'has_allergies', 'allergy_details',
                 'has_hospitalization_history', 'hospitalization_reason',
                 'has_surgery_history', 'surgery_details',
@@ -86,22 +89,22 @@ class HealthProfileAdmin(admin.ModelAdmin):
                 ('is_currently_smoking', 'has_past_smoking_history'), 'smoking_details',
                 'hobbies',
                 'has_occupational_accident_history', 'accident_details',
-                ('has_absence_over_3_days', 'lives_near_industrial_center', 'has_medical_commission_referral'),
+                ('has_absence_over_3_days', 'lives_near_industrial_center',
+                 'has_medical_commission_referral'),
             )
         }),
         ("5. Examinations", {
-            'classes': ('collapse',),
             'fields': (
                 ('exam_date', 'exam_weight', 'exam_height'),
                 ('exam_blood_pressure', 'exam_pulse_rate'),
                 'general_exam_notes', 'eye_exam_notes', 'skin_hair_nails_exam_notes',
                 'ent_mouth_exam_notes', 'head_neck_exam_notes', 'lung_exam_notes',
-                'cardiovascular_exam_notes', 'abdomen_pelvis_exam_notes', 'urinary_system_exam_notes',
-                'musculoskeletal_exam_notes', 'nervous_system_exam_notes', 'mental_health_exam_notes',
+                'cardiovascular_exam_notes', 'abdomen_pelvis_exam_notes',
+                'urinary_system_exam_notes', 'musculoskeletal_exam_notes',
+                'nervous_system_exam_notes', 'mental_health_exam_notes',
             )
         }),
         ("6 & 7. Lab Tests & Paraclinical", {
-            'classes': ('collapse',),
             'fields': (
                 'lab_test_files',
                 ('spirometry_fvc', 'spirometry_fev1', 'spirometry_fev1_fvc_ratio'),
@@ -113,7 +116,6 @@ class HealthProfileAdmin(admin.ModelAdmin):
             )
         }),
         ("9. Final Medical Opinion (Physician's Assessment)", {
-            'classes': ('',), # Keep this section open by default
             'fields': (
                 ('opinion_fit', 'opinion_fit_with_conditions', 'opinion_unfit'),
                 'opinion_fit_conditions_details',
@@ -122,7 +124,10 @@ class HealthProfileAdmin(admin.ModelAdmin):
             )
         }),
         ("Timestamps", {
-            'classes': ('collapse',),
             'fields': (('created_at', 'updated_at'),)
         }),
     )
+
+
+# Register the model with the custom admin on the default admin site
+admin.site.register(HealthProfile, HealthProfileAdmin)

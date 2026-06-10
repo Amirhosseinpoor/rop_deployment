@@ -33,6 +33,8 @@ def role_based_redirect(request):
     role = getattr(getattr(request.user, "profile", None), "role", None)
     if role == UserProfile.ROLE_MANAGER:
         return redirect("manager_dashboard")
+    elif role == UserProfile.ROLE_DOCTOR:
+        return redirect("doctor_dashboard")
     return redirect("dilemma")
 
 
@@ -103,8 +105,11 @@ def custom_login(request):
             login(request, user)
             # redirect by role
             try:
-                if hasattr(user, "profile") and user.profile.role == UserProfile.ROLE_MANAGER:
-                    return redirect("manager_dashboard")
+                if hasattr(user, "profile"):
+                    if user.profile.role == UserProfile.ROLE_MANAGER:
+                        return redirect("manager_dashboard")
+                    elif user.profile.role == UserProfile.ROLE_DOCTOR:
+                        return redirect("doctor_dashboard")
             except Exception:
                 pass
             return redirect("dilemma")
@@ -119,10 +124,7 @@ def custom_login(request):
 # -----------------------
 @login_required(login_url='')
 def dilemma_view(request):
-    """
-    Render dilemma without crashing if usac_userprofile isn't migrated yet.
-    Never access request.user.profile directly here.
-    """
+    # Determine role safely
     role = None
     if _table_exists('usac_userprofile'):
         try:
@@ -132,19 +134,22 @@ def dilemma_view(request):
         except Exception:
             role = None
 
-    is_manager_flag = (role == UserProfile.ROLE_MANAGER)
-    is_doctor_flag = (role == UserProfile.ROLE_DOCTOR)
-    is_employee_flag = (role == UserProfile.ROLE_EMPLOYEE)
+    # Doctors and managers go directly to their dashboards
+    if role == UserProfile.ROLE_MANAGER:
+        return redirect('manager_dashboard')
+    elif role == UserProfile.ROLE_DOCTOR:
+        return redirect('doctor_dashboard')
 
+    # Employees (and others) get the dilemma page
     return render(
         request,
         'usac/dilemma2.html',
         {
             'role': role,
-            'is_manager': is_manager_flag,
-            'is_doctor': is_doctor_flag,
-            'is_employee': is_employee_flag,
-            'is_superuser': request.user.is_superuser,  # NEW
+            'is_manager': False,
+            'is_doctor': False,
+            'is_employee': True,
+            'is_superuser': request.user.is_superuser,
         }
     )
 
@@ -416,7 +421,7 @@ def manager_dashboard(request):
     employees = User.objects.filter(
         profile__company=company,
         profile__role=UserProfile.ROLE_EMPLOYEE
-    ).select_related('profile')
+    ).select_related('profile').prefetch_related('health_profile')
 
     invitations = Invitation.objects.filter(company=company).order_by('-created_at')
 
@@ -507,11 +512,33 @@ def member_detail_view(request, user_id):
     double = PredictionResult.objects.filter(user=member).order_by('-created_at')
     profile = HealthProfile.objects.filter(user=member).first()
 
-    return render(request, 'usac/member_detail.html', {
+    examined_employees = []
+    if member.profile.role == UserProfile.ROLE_DOCTOR:
+        examined_employees = User.objects.filter(
+            health_profile__examining_doctor=member
+        ).distinct().select_related('profile', 'health_profile')
+    # Doctor summary stats
+    doctor_stats = {}
+    if member.profile.role == UserProfile.ROLE_DOCTOR:
+        # examined_employees already fetched
+        total_examined = examined_employees.count()
+        # completed: those with a final opinion
+        completed = sum(1 for emp in examined_employees
+                        if hasattr(emp, 'health_profile') and emp.health_profile and
+                        (emp.health_profile.opinion_fit or emp.health_profile.opinion_fit_with_conditions or emp.health_profile.opinion_unfit))
+        pending = total_examined - completed
+        doctor_stats = {
+            'total_examined': total_examined,
+            'completed': completed,
+            'pending': pending,
+        }
+    return render(request, 'usac/member_detail2.html', {
         'member': member,
         'single_results': single,
         'double_results': double,
         'health_profile': profile,
+        'examined_employees': examined_employees,
+        'doctor_stats': doctor_stats,
     })
 
 

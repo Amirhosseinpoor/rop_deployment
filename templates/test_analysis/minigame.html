@@ -1,117 +1,304 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
-  <head>
+<head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Pacman Fullscreen</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>بازی درمانی | MediverseAI</title>
     <style>
-      html, body { height: 100%; margin: 0; background: #0f172a; }
-      iframe { border: 0; width: 100vw; height: 100vh; display: block; }
+        /* ===== فونت وزیر (آفلاین) ===== */
+        @font-face {
+            font-family: Vazirmatn;
+            src: url("{% static 'fonts/Vazirmatn-Regular.woff2' %}") format("woff2");
+        }
+        @font-face {
+            font-family: Vazirmatn;
+            src: url("{% static 'fonts/Vazirmatn-Bold.woff2' %}") format("woff2");
+            font-weight: bold;
+        }
 
-      /* Floating bar */
-      .floating-bar {
-        position: fixed;
-        top: 16px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(15, 23, 42, 0.85);
-        color: #fff;
-        border: 1px solid rgba(255,255,255,.12);
-        border-radius: 999px;
-        padding: 10px 14px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        z-index: 9999;
-        font-family: sans-serif;
-        backdrop-filter: blur(8px);
-      }
-      .floating-bar .dot {
-        width: 8px; height: 8px; border-radius: 50%;
-        display: inline-block;
-        background: #f59e0b; /* amber: processing */
-        box-shadow: 0 0 0 2px rgba(245, 158, 11, .25);
-      }
-      .floating-bar.ready .dot {
-        background: #10b981; /* emerald: ready */
-        box-shadow: 0 0 0 2px rgba(16, 185, 129, .25);
-      }
-      .floating-bar .btn {
-        background: #10b981;
-        color: #0f172a;
-        padding: 8px 12px;
-        border-radius: 999px;
-        font-weight: 800;
-        border: 0;
-        cursor: pointer;
-      }
-      .floating-bar .btn[disabled] {
-        opacity: .5; cursor: not-allowed;
-      }
-      .floating-bar .link {
-        color: #cbd5e1; text-decoration: none; font-weight: 600;
-      }
+        /* ===== متغیرهای ریشه ===== */
+        :root {
+            --medical-blue: #0A6EFF;
+            --medical-teal: #00A896;
+            --gray-100: #F8FAFD;
+            --gray-200: #E9EDF5;
+            --gray-600: #5B6B7C;
+            --gray-800: #1E293B;
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.04);
+            --shadow-md: 0 12px 32px rgba(0,0,0,0.08);
+            --shadow-glow: 0 0 24px rgba(10,110,255,0.18);
+            --radius-xl: 24px;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --transition: 0.25s ease;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: Vazirmatn, Tahoma, sans-serif;
+            background: linear-gradient(150deg, #E3F0FD 0%, #F2F8FF 50%, #FFFFFF 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* پس‌زمینه هگزاگونال */
+        .medical-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5L52.5 17.5V42.5L30 55L7.5 42.5V17.5L30 5Z' fill='none' stroke='%230A6EFF' stroke-opacity='0.07' stroke-width='1'/%3E%3C/svg%3E");
+            background-size: 80px 80px;
+            opacity: 0.35;
+            animation: bgShift 30s linear infinite;
+        }
+        @keyframes bgShift {
+            0% { background-position: 0 0; }
+            100% { background-position: 80px 80px; }
+        }
+
+        /* ===== کارت اصلی (گیم فریم) ===== */
+        .game-card {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 900px;
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(18px) saturate(180%);
+            border: 1px solid rgba(255,255,255,0.5);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-md), var(--shadow-glow);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            animation: cardAppear 0.6s ease-out;
+        }
+        @keyframes cardAppear {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* فریم بازی */
+        .game-frame {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            max-height: 80vh;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            border: 2px solid rgba(10,110,255,0.12);
+            background: #0f172a;
+            flex-shrink: 0;
+        }
+        iframe {
+            border: none;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* ===== نوار وضعیت (Floating bar) ===== */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 20px;
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(12px) saturate(180%);
+            border: 1px solid rgba(255,255,255,0.6);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            flex-wrap: wrap;
+        }
+        .status-bar .indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 0;
+        }
+        .status-bar .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #F59E0B;
+            box-shadow: 0 0 0 2px rgba(245,158,11,0.25);
+            animation: pulse 1.5s infinite;
+            flex-shrink: 0;
+        }
+        .status-bar.ready .dot {
+            background: #10B981;
+            box-shadow: 0 0 0 2px rgba(16,185,129,0.3);
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(245,158,11,0.4); }
+            70% { box-shadow: 0 0 0 8px rgba(245,158,11,0); }
+            100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); }
+        }
+        .status-bar .status-text {
+            font-weight: 600;
+            color: var(--gray-800);
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .status-bar .actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .btn {
+            padding: 8px 18px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #0A6EFF, #3B82F6);
+            color: white;
+            box-shadow: 0 4px 12px rgba(10,110,255,0.25);
+        }
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(10,110,255,0.35);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .btn-link {
+            background: rgba(255,255,255,0.6);
+            border: 1px solid rgba(0,0,0,0.06);
+            color: var(--gray-800);
+            backdrop-filter: blur(6px);
+        }
+        .btn-link:hover {
+            background: rgba(10,110,255,0.08);
+            border-color: var(--medical-blue);
+            color: var(--medical-blue);
+        }
+
+        /* ===== دارک مود ===== */
+        .dark body {
+            background: linear-gradient(150deg, #0B1121 0%, #131A2E 50%, #1A2540 100%);
+        }
+        .dark .game-card {
+            background: rgba(24,30,50,0.75);
+            border-color: rgba(255,255,255,0.08);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5), inset 0 0 30px rgba(255,255,255,0.03);
+        }
+        .dark .status-bar {
+            background: rgba(24,30,50,0.75);
+            border-color: rgba(255,255,255,0.08);
+        }
+        .dark .status-bar .status-text {
+            color: #EDF2F9;
+        }
+        .dark .btn-link {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.1);
+            color: #E2E8F0;
+        }
     </style>
-  </head>
-  <body>
-    <!-- Game -->
-    <iframe src="{% static 'pacman/index.html' %}"></iframe>
+</head>
+<body>
+    <div class="medical-bg"></div>
 
-    <!-- Floating status bar -->
-    <div id="float" class="floating-bar">
-      <span class="dot" aria-hidden="true"></span>
-      <span id="statusText">گزارش در حال پردازش است…</span>
-      <button id="viewBtn" class="btn" disabled>مشاهده گزارش</button>
-      <a class="link" href="{% url 'health_processing' %}">برگشت به وضعیت</a>
+    <div class="game-card">
+        <!-- بازی -->
+        <div class="game-frame">
+            <iframe src="{% static 'pacman/index.html' %}" title="Pacman Game"></iframe>
+        </div>
+
+        <!-- نوار وضعیت -->
+        <div id="statusBar" class="status-bar">
+            <div class="indicator">
+                <span class="dot" aria-hidden="true"></span>
+                <span id="statusText" class="status-text">گزارش در حال پردازش است…</span>
+            </div>
+            <div class="actions">
+                <button id="viewBtn" class="btn btn-primary" disabled>مشاهده گزارش</button>
+                <a href="{% url 'health_processing' %}" class="btn btn-link">برگشت به وضعیت</a>
+            </div>
+        </div>
     </div>
 
     <script>
-      (function(){
-        const floatBar = document.getElementById('float');
-        const statusText = document.getElementById('statusText');
-        const viewBtn = document.getElementById('viewBtn');
-        let detailUrl = null;
-        let stop = false;
+        (function(){
+            const statusBar = document.getElementById('statusBar');
+            const statusText = document.getElementById('statusText');
+            const viewBtn = document.getElementById('viewBtn');
+            let detailUrl = null;
+            let stop = false;
 
-        async function check(){
-          try{
-            const url = new URL("{% url 'health_processing_status' %}", window.location.origin);
-            url.searchParams.set('_', Date.now().toString());
-            const res = await fetch(url, { headers: { 'X-Requested-With': 'fetch' }, cache: 'no-store' });
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            const data = await res.json();
+            async function check(){
+                try{
+                    const url = new URL("{% url 'health_processing_status' %}", window.location.origin);
+                    url.searchParams.set('_', Date.now().toString());
+                    const res = await fetch(url, {
+                        headers: { 'X-Requested-With': 'fetch' },
+                        cache: 'no-store'
+                    });
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    const data = await res.json();
 
-            if (data.error) {
-              statusText.textContent = 'خطا در تولید گزارش: ' + (data.error_msg || 'نامشخص');
-              floatBar.classList.remove('ready');
-              viewBtn.disabled = true;
-              return;
+                    if (data.error) {
+                        statusText.textContent = 'خطا در تولید گزارش: ' + (data.error_msg || 'نامشخص');
+                        statusBar.classList.remove('ready');
+                        viewBtn.disabled = true;
+                        return;
+                    }
+
+                    if (data.ready){
+                        detailUrl = data.detail_url;
+                        statusText.textContent = '🎉 گزارش آماده است.';
+                        statusBar.classList.add('ready');
+                        viewBtn.disabled = false;
+                        // تغییر رنگ دکمه به سبز
+                        viewBtn.style.background = 'linear-gradient(135deg, #059669, #10b981)';
+                    } else {
+                        statusText.textContent = 'گزارش در حال پردازش است…';
+                        statusBar.classList.remove('ready');
+                        viewBtn.disabled = true;
+                        viewBtn.style.background = ''; // بازگشت به رنگ پیش‌فرض
+                    }
+                } catch(e){
+                    // در صورت خطا، سعی مجدد در نوبت بعدی
+                } finally {
+                    if (!stop) setTimeout(check, 5000);
+                }
             }
 
-            if (data.ready){
-              detailUrl = data.detail_url;
-              statusText.textContent = '🎉 گزارش آماده است.';
-              floatBar.classList.add('ready');
-              viewBtn.disabled = false;
-            } else {
-              statusText.textContent = 'گزارش در حال پردازش است…';
-              floatBar.classList.remove('ready');
-              viewBtn.disabled = true;
+            viewBtn.addEventListener('click', function(){
+                if (detailUrl) window.location.assign(detailUrl);
+            });
+
+            // پشتیبانی از تم تاریک (اگر کاربر قبلاً انتخاب کرده باشد)
+            if (localStorage.getItem('theme') === 'dark') {
+                document.documentElement.classList.add('dark');
             }
-          } catch(e){
-            // در سکوت چند ثانیه بعدی دوباره تلاش می‌کنیم
-          } finally {
-            if (!stop) setTimeout(check, 5000);
-          }
-        }
 
-        viewBtn.addEventListener('click', function(){
-          if (detailUrl) window.location.assign(detailUrl);
-        });
-
-        check();
-      })();
+            check();
+        })();
     </script>
-  </body>
+</body>
 </html>

@@ -98,16 +98,14 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 
-
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'aras'),
-        'USER': os.environ.get('DB_USER', 'amir'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'amirhpk1818'),
+        'NAME': 'aras',
+        'USER': 'amir',
+        'PASSWORD': 'amirhpk1818',
         'HOST': 'localhost',
-        'PORT': os.environ.get('DB_PORT', '5432'),
+        'PORT': '5432',
     }
 }
 AUTHENTICATION_BACKENDS = [

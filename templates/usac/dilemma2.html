@@ -3,7 +3,8 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8"/>
-    <title>Choose App</title>
+    <title>ماژول‌های هوش مصنوعی | MediverseAI</title>
+    <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png">
 
     <!-- Offline Font -->
     <style>
@@ -11,357 +12,537 @@
             font-family: Vazirmatn;
             src: url("{% static 'fonts/Vazirmatn-Regular.woff2' %}") format("woff2");
         }
+
         @font-face {
             font-family: Vazirmatn;
             src: url("{% static 'fonts/Vazirmatn-Bold.woff2' %}") format("woff2");
             font-weight: bold;
         }
 
-        * { margin:0; padding:0; box-sizing:border-box; }
+        /* ===== Reset & Variables ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --medical-blue: #0A6EFF;
+            --medical-teal: #00A896;
+            --gray-100: #F8FAFD;
+            --gray-200: #E9EDF5;
+            --gray-600: #5B6B7C;
+            --gray-800: #1E293B;
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.04);
+            --shadow-md: 0 12px 32px rgba(0,0,0,0.08);
+            --shadow-glow: 0 0 24px rgba(10,110,255,0.18);
+            --radius-xl: 24px;
+            --radius-lg: 16px;
+            --transition: 0.3s ease;
+        }
 
         body {
             font-family: Vazirmatn, sans-serif;
-            background: linear-gradient(135deg, #eef2ff, #f7fafc, #f0f9ff);
+            background: linear-gradient(135deg, #f0f5ff 0%, #fafcff 50%, #f3f8ff 100%);
             min-height: 100vh;
-            padding: 20px;
-            color: #1e293b;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* الگوی هگزاگونال (پس‌زمینه) */
+        .medical-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5L52.5 17.5V42.5L30 55L7.5 42.5V17.5L30 5Z' fill='none' stroke='%230A6EFF' stroke-opacity='0.05' stroke-width='1'/%3E%3C/svg%3E");
+            background-size: 80px 80px;
+            opacity: 0.4;
         }
 
         /* ===== Top Navbar (Glass) ===== */
         .topbar {
-            position: fixed;
-            top: 0; left: 0;
+            position: sticky;
+            top: 0;
             width: 100%;
-            padding: 12px 32px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-
-            background: rgba(255,255,255,0.72);
-            border-bottom: 1px solid rgba(255,255,255,0.45);
-            backdrop-filter: blur(16px);
-            box-shadow: 0 8px 35px rgba(0,0,0,0.12);
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(18px) saturate(180%);
+            border-bottom: 1px solid rgba(10, 110, 255, 0.15);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
             z-index: 100;
+            padding: 0 32px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: var(--transition);
         }
 
-        .topbar img { height: 32px; opacity: .95; }
+        .topbar-logo img {
+            height: 38px;
+            opacity: 0.92;
+        }
 
-        .dropdown { position: relative; cursor: pointer; }
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .history-link {
+            color: var(--gray-800);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+            transition: color var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .history-link:hover {
+            color: var(--medical-blue);
+        }
+
+        .history-link svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        /* User Dropdown */
+        .dropdown {
+            position: relative;
+        }
+
+        .dropdown-trigger {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            transition: var(--transition);
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .dropdown-trigger:hover {
+            background: rgba(255, 255, 255, 0.85);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .dropdown-trigger strong {
+            font-weight: 600;
+            color: var(--gray-800);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dropdown-trigger strong svg {
+            width: 16px;
+            height: 16px;
+            stroke: #475569;
+            fill: none;
+            stroke-width: 2;
+            transition: transform var(--transition);
+        }
+
+        .dropdown.open .dropdown-trigger strong svg {
+            transform: rotate(180deg);
+        }
+
+        .role-badge-mini {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: bold;
+            border: 1px solid;
+            background: #eef2ff;
+            border-color: #c7d2fe;
+            color: #4338ca;
+        }
+
         .dropdown-menu {
             position: absolute;
-            right: 0;
-            top: 36px;
-            width: 150px;
-            background: rgba(255,255,255,0.9);
-            border-radius: 14px;
-            border: 1px solid rgba(0,0,0,0.1);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 6px 25px rgba(0,0,0,0.12);
+            left: 0;
+            top: 54px;
+            width: 200px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(14px);
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: var(--shadow-md);
             opacity: 0;
             transform: translateY(10px);
             pointer-events: none;
-            transition: .25s;
+            transition: var(--transition);
+            overflow: hidden;
         }
-        .dropdown.open .dropdown-menu {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateY(0);
-}
 
+        .dropdown.open .dropdown-menu {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .dropdown-menu .user-info {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .dropdown-menu .user-info strong {
+            display: block;
+            color: var(--gray-800);
+            font-size: 14px;
+        }
 
         .dropdown-menu button {
             width: 100%;
-            padding: 10px;
+            padding: 12px 16px;
             background: transparent;
             border: none;
             font-size: 14px;
             color: #dc2626;
             cursor: pointer;
-        }
-        .dropdown-menu button:hover {
-            background: rgba(0,0,0,0.04);
+            text-align: right;
+            font-weight: 500;
+            transition: background 0.2s;
         }
 
-        /* ===== Role Strip ===== */
-        .role-strip {
-            margin-top: 85px;
-            max-width: 850px;
-            margin-left: auto;
-            margin-right: auto;
-            padding: 12px 18px;
-            border-radius: 16px;
-            font-size: 14px;
-            text-align: center;
-            border: 1px solid transparent;
+        .dropdown-menu button:hover {
+            background: rgba(0, 0, 0, 0.03);
         }
 
         /* ===== Main Glass Card ===== */
         .main-card {
-            margin: 40px auto;
-            max-width: 900px;
-            background: rgba(255,255,255,0.75);
-            border-radius: 30px;
-            padding: 40px;
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.45);
+            margin: 40px auto 30px;
+            max-width: 1000px;
+            width: 95%;
+            background: rgba(255, 255, 255, 0.7);
             backdrop-filter: blur(20px);
-            box-shadow: 0 15px 45px rgba(0,0,0,0.15);
-            animation: fadeSlide 0.6s ease-out;
+            border-radius: var(--radius-xl);
+            padding: 30px 25px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: var(--shadow-md), var(--shadow-glow);
+            animation: floatUp 0.7s ease-out;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
 
-        @keyframes fadeSlide {
+        @keyframes floatUp {
             from { opacity: 0; transform: translateY(30px); }
-            to   { opacity: 1; transform: translateY(0); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .header-logo img { height: 45px; }
+        .header-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header-logo img {
+            height: 52px;
+            margin-bottom: 10px;
+        }
+
+        .header-logo h2 {
+            font-size: 26px;
+            font-weight: bold;
+            color: var(--gray-800);
+        }
+
+        .header-logo p {
+            font-size: 14px;
+            color: var(--gray-600);
+            margin-top: 6px;
+        }
 
         /* ===== Grid of Modules ===== */
         .grid {
             display: grid;
-            gap: 28px;
+            gap: 24px;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            margin-top: 10px;
         }
-        @media(min-width: 768px) {
-            .grid { grid-template-columns: repeat(3, 1fr); }
+
+        @media (min-width: 768px) {
+            .grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
 
         /* ===== Cards ===== */
         .card {
-            background: rgba(255,255,255,0.65);
-            border-radius: 22px;
-            border: 1px solid rgba(0,0,0,0.08);
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(255, 255, 255, 0.6);
             overflow: hidden;
             cursor: pointer;
             text-decoration: none;
             color: inherit;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            animation: cardPop 0.6s ease backwards;
+        }
 
-            box-shadow: 0 8px 22px rgba(0,0,0,0.12);
-            transition: .35s ease;
+        .card:nth-child(1) { animation-delay: 0.1s; }
+        .card:nth-child(2) { animation-delay: 0.2s; }
+        .card:nth-child(3) { animation-delay: 0.3s; }
+        .card:nth-child(4) { animation-delay: 0.4s; }
+        .card:nth-child(5) { animation-delay: 0.5s; }
+        .card:nth-child(6) { animation-delay: 0.6s; }
+
+        @keyframes cardPop {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
         }
+
         .card:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 16px 40px rgba(99,102,241,0.20);
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 14px 28px rgba(10, 110, 255, 0.2);
+            border-color: var(--medical-blue);
         }
+
         .card-img {
-            background: #000;
-            height: 190px;
+            height: 150px;
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
+            background: linear-gradient(145deg, #f0f4ff 0%, #e6f0ff 100%);
         }
+
         .card-img img {
-            max-width: 100%;
-            max-height: 100%;
+            max-width: 85%;
+            max-height: 85%;
             object-fit: contain;
-            transition: .35s;
+            transition: var(--transition);
         }
-        .card:hover img { transform: scale(1.05); }
+
+        .card:hover .card-img img {
+            transform: scale(1.08);
+        }
 
         .card-body {
-            padding: 16px;
+            padding: 18px 12px 20px;
             text-align: center;
+            flex: 1;
         }
 
+        .card-body h3 {
+            font-size: 17px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--gray-800);
+        }
+
+        .card-body p {
+            font-size: 13px;
+            color: var(--gray-600);
+            line-height: 1.5;
+        }
+
+        /* ===== Colorful Titles ===== */
+        .card-rop h3 { color: #2563eb; }
+        .card-kc h3 { color: #7c3aed; }
+        .card-marketplace h3 { color: #db2777; }
+        .card-studio h3 { color: #db2777; }
+        .card-manager h3 { color: #4f46e5; }
+        .card-doctor h3 { color: #059669; }
+        .card-employee h3 { color: #059669; }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            .main-card {
+                padding: 25px 20px;
+            }
+            .topbar {
+                padding: 0 16px;
+                height: 64px;
+            }
+            .topbar-right {
+                gap: 16px;
+            }
+        }
     </style>
 </head>
 
 <body>
+    <div class="medical-bg"></div>
 
-<header class="topbar">
+    <!-- ======================= TOP NAVBAR ======================= -->
+    <header class="topbar">
+        <div class="topbar-logo">
+            <img src="{% static 'mediversai_logo_final.png' %}" alt="MediverseAI Logo">
+        </div>
 
-    <div class="flex items-center">
-        <img src="{% static 'mediversai_logo_final.png' %}" alt="MediverseAI Logo">
-    </div>
-
-    {% if user.is_authenticated %}
-    <div style="display:flex; align-items:center; gap:22px; font-size:14px;">
-
-        <a href="{% url 'history' %}" style="color:#1e293b; text-decoration:none;">تاریخچه</a>
-
-        <!-- ================= USER DROPDOWN (Name + Role + Logout) ================= -->
-        <div class="dropdown" style="display:flex; align-items:center; gap:8px;">
-
-            <!-- Trigger: name + role + arrow -->
-            <div style="display:flex; align-items:center; gap:8px;">
-                <strong style="cursor:pointer; display:flex; align-items:center; gap:4px;">
-                    {{ user.username }}
-                    <svg width="16" height="16" stroke="#475569" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M19 9l-7 7-7-7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <div class="topbar-right">
+            {% if user.is_authenticated %}
+                <a href="{% url 'history' %}" class="history-link">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
                     </svg>
-                </strong>
+                    تاریخچه
+                </a>
 
-                <!-- Role badge (نمایشی) -->
-                <span style="
-                    display:inline-flex; align-items:center; gap:6px;
-                    padding:5px 10px;
-                    border-radius:9999px;
-                    font-weight:bold;
-                    font-size:11px;
-                    border:1px solid;
-                    {% if is_manager %} background:#eef2ff; border-color:#c7d2fe; color:#4338ca;
-                    {% elif is_doctor %} background:#ecfdf5; border-color:#bbf7d0; color:#166534;
-                    {% elif is_employee %} background:#eff6ff; border-color:#bfdbfe; color:#1e40af;
-                    {% else %} background:#f1f5f9; border-color:#cbd5e1; color:#334155; {% endif %}
-                ">
-                    ●
-                    <span>{{ role|default:"Super User"|title }}</span>
-                </span>
-            </div>
-
-            <!-- Dropdown menu -->
-            <div class="dropdown-menu" style="width: 190px;">
-                <div style="padding:10px 12px; border-bottom:1px solid rgba(0,0,0,0.05);">
-                    <div style="font-size:13px; color:#64748b;">ورود با</div>
-                    <div style="font-size:14px; font-weight:bold; color:#0f172a; margin-top:2px;">
-                        {{ user.username }}
+                <div class="dropdown" id="userDropdown">
+                    <div class="dropdown-trigger">
+                        <strong>
+                            {{ user.username }}
+                            <svg viewBox="0 0 24 24">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </strong>
+                        <span class="role-badge-mini" style="
+                                {% if is_manager %} background:#eef2ff; border-color:#c7d2fe; color:#4338ca;
+                                {% elif is_doctor %} background:#ecfdf5; border-color:#bbf7d0; color:#166534;
+                                {% elif is_employee %} background:#eff6ff; border-color:#bfdbfe; color:#1e40af;
+                                {% else %} background:#f1f5f9; border-color:#cbd5e1; color:#334155; {% endif %}
+                                ">
+                            ● {{ role|default:"Super User"|title }}
+                        </span>
                     </div>
 
+                    <div class="dropdown-menu">
+                        <div class="user-info">
+                            <span>وارد شده با</span>
+                            <strong>{{ user.username }}</strong>
+                        </div>
+                        <form method="post" action="{% url 'logout' %}">
+                            {% csrf_token %}
+                            <button type="submit">خروج از حساب کاربری</button>
+                        </form>
+                    </div>
                 </div>
-
-                <form method="post" action="{% url 'logout' %}">
-                    {% csrf_token %}
-                    <button type="submit" style="
-                        width:100%;
-                        padding:10px 12px;
-                        background:transparent;
-                        border:none;
-                        font-size:13px;
-                        color:#dc2626;
-                        cursor:pointer;
-                        text-align:right;
-                    ">
-                        خروج از حساب کاربری
-                    </button>
-                </form>
-            </div>
+            {% endif %}
         </div>
-        <!-- ======================================================================= -->
+    </header>
 
+    <!-- ======================= MAIN CARD ======================= -->
+    <div class="main-card">
+        <div class="header-logo">
+            <h2>ماژول‌های هوش مصنوعی</h2>
+            <p>یک ماژول را برای تحلیل هوشمند انتخاب کنید</p>
+        </div>
+
+        <div class="grid">
+            <!-- ROP -->
+            <a href="{% url 'home' %}" class="card card-rop">
+                <div class="card-img">
+                    <img src="{% static 'segmented_rop1.jpg' %}" alt="ROP AI">
+                </div>
+                <div class="card-body">
+                    <h3>ROP AI</h3>
+                    <p>تشخیص بیماری ROP با هوش مصنوعی</p>
+                </div>
+            </a>
+
+            <!-- KC -->
+            <a href="{% url 'double_home' %}" class="card card-kc">
+                <div class="card-img">
+                    <img src="{% static 'kc.jpg' %}" alt="KC AI">
+                </div>
+                <div class="card-body">
+                    <h3>KC AI</h3>
+                    <p>تشخیص بیماری KC با هوش مصنوعی</p>
+                </div>
+            </a>
+
+            <!-- Marketplace -->
+            <a href="{% url 'doctors_marketplace:index' %}" class="card card-marketplace">
+                <div class="card-img">
+                    <img src="{% static 'doctor_market.jpg' %}" alt="Doctors Marketplace">
+                </div>
+                <div class="card-body">
+                    <h3>Doctors Marketplace</h3>
+                    <p>گفتگو با پزشکان هوش مصنوعی</p>
+                </div>
+            </a>
+
+            {% if user.is_superuser %}
+                <a href="{% url 'doctors_marketplace:studio_index' %}" class="card card-studio">
+                    <div class="card-img">
+                        <img src="{% static 'doctor_market.jpg' %}" alt="Studio" style="padding:14px;">
+                    </div>
+                    <div class="card-body">
+                        <h3>Doctors Studio</h3>
+                        <p>مدیریت پزشکان و RAG</p>
+                    </div>
+                </a>
+            {% endif %}
+
+            {% if is_manager %}
+                <a href="{% url 'manager_dashboard' %}" class="card card-manager">
+                    <div class="card-img">
+                        <img src="{% static 'test_analysis.jpg' %}" alt="Managing">
+                    </div>
+                    <div class="card-body">
+                        <h3>پنل مدیریت</h3>
+                        <p>دعوت کارمندان و مشاهده اعضا</p>
+                    </div>
+                </a>
+            {% endif %}
+
+            {% if is_doctor %}
+                <a href="{% url 'doctor_dashboard' %}" class="card card-doctor">
+                    <div class="card-img">
+                        <img src="{% static 'test_analysis.jpg' %}" alt="Doctor Dashboard">
+                    </div>
+                    <div class="card-body">
+                        <h3>پنل پزشک</h3>
+                        <p>مشاهده و معاینه بیماران</p>
+                    </div>
+                </a>
+            {% endif %}
+
+            {% if is_employee or user.is_superuser %}
+                <a href="{% url 'create_update_profile' %}" class="card card-employee">
+                    <div class="card-img">
+                        <img src="{% static 'test_analysis.jpg' %}" alt="Test Analysis">
+                    </div>
+                    <div class="card-body">
+                        <h3>پروفایل سلامت</h3>
+                        <p>تکمیل یا ویرایش اطلاعات سلامت</p>
+                    </div>
+                </a>
+            {% endif %}
+        </div>
     </div>
-    {% endif %}
 
-</header>
-
-<!-- ======================= ROLE STRIP ======================= -->
-{% if user.is_authenticated %}
-<div class="role-strip"
-style="
-
-{% if is_manager %}
-background:#eef2ff; border-color:#c7d2fe; color:#4338ca;
-{% elif is_doctor %}
-background:#ecfdf5; border-color:#bbf7d0; color:#166534;
-{% elif is_employee %}
-background:#eff6ff; border-color:#bfdbfe; color:#1e40af;
-{% else %}
-background:#f1f5f9; border-color:#cbd5e1; color:#475569;
-{% endif %}
-">
-    شما وارد شده‌اید به عنوان:
-    <strong style="margin-right:6px;">{{ role|default:"Super User"|title }}</strong>
-</div>
-{% endif %}
-
-<!-- ======================= MAIN CARD ======================= -->
-<div class="main-card">
-
-    <div class="header-logo" style="text-align:center; margin-bottom:25px;">
-        <img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediverseAI">
-        <h2 style="font-size:22px; font-weight:bold; margin-top:12px;">انتخاب ماژول هوش مصنوعی</h2>
-        <p style="font-size:13px; color:#475569;">نوع تصویر را برای تحلیل انتخاب کنید</p>
-    </div>
-
-    <div class="grid">
-
-        <!-- ROP -->
-        <a href="{% url 'home' %}" class="card">
-            <div class="card-img">
-                <img src="{% static 'segmented_rop1.jpg' %}" alt="ROP AI">
-            </div>
-            <div class="card-body">
-                <h3 style="color:#2563eb; font-size:17px; font-weight:bold;">ROP AI</h3>
-                <p style="font-size:12px; color:#64748b;">تشخیص بیماری ROP با هوش مصنوعی</p>
-            </div>
-        </a>
-
-        <!-- KC -->
-        <a href="{% url 'double_home' %}" class="card">
-            <div class="card-img">
-                <img src="{% static 'kc.jpg' %}" alt="KC AI">
-            </div>
-            <div class="card-body">
-                <h3 style="color:#7c3aed; font-size:17px; font-weight:bold;">KC AI</h3>
-                <p style="font-size:12px; color:#64748b;">تشخیص بیماری KC با هوش مصنوعی</p>
-            </div>
-        </a>
-
-        <!-- Marketplace -->
-        <a href="{% url 'doctors_marketplace:index' %}" class="card">
-            <div class="card-img">
-                <img src="{% static 'doctor_market.jpg' %}" alt="Doctors Marketplace" style="padding:14px;">
-            </div>
-            <div class="card-body">
-                <h3 style="color:#db2777; font-weight:bold;">Doctors Marketplace</h3>
-                <p style="font-size:12px; color:#64748b;">گفتگو با پزشکان هوش مصنوعی</p>
-            </div>
-        </a>
-
-        {% if user.is_superuser %}
-        <a href="{% url 'doctors_marketplace:studio_index' %}" class="card">
-            <div class="card-img">
-                <img src="{% static 'doctor_market.jpg' %}" alt="Studio" style="padding:14px;">
-            </div>
-            <div class="card-body">
-                <h3 style="color:#db2777; font-weight:bold;">Doctors Studio</h3>
-                <p style="font-size:12px; color:#64748b;">مدیریت پزشکان و RAG</p>
-            </div>
-        </a>
-        {% endif %}
-
-        {% if is_manager %}
-        <a href="{% url 'manager_dashboard' %}" class="card">
-            <div class="card-img">
-                <img src="{% static 'test_analysis.jpg' %}" alt="Managing" style="padding:14px;">
-            </div>
-            <div class="card-body">
-                <h3 style="color:#4f46e5; font-weight:bold;">Managing</h3>
-                <p style="font-size:12px; color:#64748b;">دعوت کارمندان و مشاهده اعضا</p>
-            </div>
-        </a>
-        {% endif %}
-
-        {% if is_doctor or is_employee or user.is_superuser %}
-        <a href="{% url 'create_update_profile' %}" class="card">
-            <div class="card-img">
-                <img src="{% static 'test_analysis.jpg' %}" alt="Test Analysis" style="padding:14px;">
-            </div>
-            <div class="card-body">
-                <h3 style="color:#059669; font-weight:bold;">Test Analysis</h3>
-                <p style="font-size:12px; color:#64748b;">تکمیل یا ویرایش پروفایل سلامت</p>
-            </div>
-        </a>
-        {% endif %}
-
-    </div>
-</div>
-
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const dropdown = document.getElementById("userDropdown");
+            if (dropdown) {
+                dropdown.addEventListener("click", function (e) {
+                    e.stopPropagation();
+                    dropdown.classList.toggle("open");
+                });
+                document.addEventListener("click", function () {
+                    dropdown.classList.remove("open");
+                });
+            }
+        });
+    </script>
 </body>
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const dropdown = document.querySelector(".dropdown");
-
-    if (dropdown) {
-        dropdown.addEventListener("click", function(e) {
-            e.stopPropagation();
-            dropdown.classList.toggle("open");
-        });
-
-        // بستن dropdown با کلیک بیرون
-        document.addEventListener("click", function() {
-            dropdown.classList.remove("open");
-        });
-    }
-});
-</script>
-
 </html>
