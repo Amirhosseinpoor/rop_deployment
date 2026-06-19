@@ -1,0 +1,26 @@
+# Test-Analysis (health) service dependencies.
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+
+# Feature 1: hypertension model
+scikit-learn==1.6.0
+joblib==1.4.2
+pandas==2.2.3
+
+# Feature 2 & 3: LLM clients
+openai==1.59.6
+
+# Feature 2 & 3: web scrapers
+requests==2.32.3
+beautifulsoup4==4.12.3
+# Selenium is only needed by the chat assistant's medications_finder_tool.
+# Requires a Chrome/Chromedriver install. Uncomment to enable.
+# selenium==4.27.1
+
+# Feature 3: report RAG pipeline (heavy)
+langchain==0.3.14
+langchain-community==0.3.14
+langchain-openai==0.2.14
+faiss-cpu==1.9.0
+sentence-transformers==3.3.1      # backs HuggingFaceEmbeddings
+pypdf==5.1.0                      # PyPDFLoader backend

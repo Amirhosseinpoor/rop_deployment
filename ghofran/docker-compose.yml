@@ -1,0 +1,147 @@
+# SurgiNote microservices — orchestration for all six FastAPI services.
+#
+# Usage:
+#   cp .env.example .env        # then fill in your API keys / secrets
+#   docker compose up --build   # build & run everything
+#   docker compose up -d single_rop double_rop   # run a subset
+#
+# Each service is built from its own directory (independent image) and exposed on
+# its own host port, so they can all run simultaneously. Heavy/optional features
+# (LLM keys, Ollama, the report corpus) are wired via env vars / volumes below.
+
+services:
+  # --------------------------------------------------------------------- #
+  # Imaging services (self-contained: models are baked into the images).
+  # --------------------------------------------------------------------- #
+  single_rop:
+    build: ./single_rop
+    image: surginote/single_rop
+    container_name: surginote_single_rop
+    ports:
+      - "8001:8001"
+    environment:
+      # ROP_DEVICE: cpu        # uncomment to force CPU (default auto-detects)
+      ROP_ZONE_THRESHOLD: "0.5"
+    restart: unless-stopped
+
+  double_rop:
+    build: ./double_rop
+    image: surginote/double_rop
+    container_name: surginote_double_rop
+    ports:
+      - "8002:8002"
+    restart: unless-stopped
+
+  # --------------------------------------------------------------------- #
+  # Identity service (SQLite persisted in a named volume).
+  # --------------------------------------------------------------------- #
+  usac:
+    build: ./usac
+    image: surginote/usac
+    container_name: surginote_usac
+    ports:
+      - "8003:8003"
+    environment:
+      USAC_DATABASE_URL: "sqlite:////data/usac.db"
+      USAC_JWT_SECRET: "${USAC_JWT_SECRET:?set USAC_JWT_SECRET in .env}"
+      USAC_ACCESS_TOKEN_MINUTES: "720"
+    volumes:
+      - usac_data:/data
+    restart: unless-stopped
+
+  # --------------------------------------------------------------------- #
+  # Doctors marketplace (LLM + per-doctor FAISS RAG).
+  # --------------------------------------------------------------------- #
+  doctors_marketplace:
+    build: ./doctors_marketplace
+    image: surginote/doctors_marketplace
+    container_name: surginote_doctors_marketplace
+    ports:
+      - "8004:8004"
+    environment:
+      DM_DATABASE_URL: "sqlite:////data/dm.db"
+      DM_KNOWLEDGE_ROOT: "/data/knowledge"
+      VECTOR_ROOT: "/data/vectors"
+      DM_STUDIO_API_KEY: "${DM_STUDIO_API_KEY:-}"
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+      OPENAI_MODEL: "${OPENAI_MODEL:-gpt-4o-mini}"
+      BASE_URL: "${OPENAI_BASE_URL:-}"
+      DM_EMBEDDING_MODEL: "${DM_EMBEDDING_MODEL:-BAAI/bge-small-en-v1.5}"
+    volumes:
+      - dm_data:/data
+      - hf_cache:/root/.cache/huggingface   # persist downloaded embedding model
+    restart: unless-stopped
+
+  # --------------------------------------------------------------------- #
+  # ROP-RAG (hybrid local + web RAG). Uses Ollama for embeddings.
+  # --------------------------------------------------------------------- #
+  rag_api:
+    build: ./rag_api
+    image: surginote/rag_api
+    container_name: surginote_rag_api
+    ports:
+      - "8005:8005"
+    environment:
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+      OPENAI_BASE_URL: "${OPENAI_BASE_URL:-https://api.openai.com/v1}"
+      LLM_MODEL: "${RAG_LLM_MODEL:-gpt-4o-mini}"
+      OLLAMA_API_URL: "http://ollama:11434"
+      EMBEDDINGS_MODEL: "${RAG_EMBEDDINGS_MODEL:-nomic-embed-text:latest}"
+      CROSS_ENCODER_MODEL: "${CROSS_ENCODER_MODEL:-cross-encoder/ms-marco-MiniLM-L-6-v2}"
+      RAG_DOCUMENTS_DIR: "/app/rag_api/rag_documents"
+      SERPER_API_KEY: "${SERPER_API_KEY:-}"
+    volumes:
+      - hf_cache:/root/.cache/huggingface   # persist the cross-encoder reranker
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+  # --------------------------------------------------------------------- #
+  # Test-Analysis (health AI). Mounts the report corpus + drugstore CSV
+  # from the repo root (read-only); the hypertension model is baked in.
+  # --------------------------------------------------------------------- #
+  test_analysis:
+    build: ./test_analysis
+    image: surginote/test_analysis
+    container_name: surginote_test_analysis
+    ports:
+      - "8006:8006"
+    environment:
+      # Chat assistant (feature 2)
+      GAPGPT_API_KEY: "${GAPGPT_API_KEY:-}"
+      GAPGPT_BASE_URL: "${GAPGPT_BASE_URL:-}"
+      GAPGPT_MODEL: "${GAPGPT_MODEL:-gpt-5-nano}"
+      # Report pipeline (feature 3)
+      METIS_API_KEY: "${METIS_API_KEY:-}"
+      BASE_URL: "${METIS_BASE_URL:-}"
+      MODEL_NAME_LLM: "${METIS_MODEL:-gpt-4o-mini}"
+      OLLAMA_API_URL: "http://ollama:11434"
+      HEALTH_EMBEDDING_MODEL: "${HEALTH_EMBEDDING_MODEL:-BAAI/bge-small-en-v1.5}"
+      KNOWLEDGE_BASE_DIR: "/data/knowledge_base"
+      DRUGSTORES_CSV: "/data/data_csv/drugstores.csv"
+    volumes:
+      # The corpus and CSV live at the repo root (parent of ghofran/).
+      - ../knowledge_base:/data/knowledge_base:ro
+      - ../data_csv:/data/data_csv:ro
+      - hf_cache:/root/.cache/huggingface
+    restart: unless-stopped
+
+  # --------------------------------------------------------------------- #
+  # Ollama embedding server (used by rag_api and test_analysis report).
+  # After first start, pull the embedding model once:
+  #   docker compose exec ollama ollama pull nomic-embed-text
+  # --------------------------------------------------------------------- #
+  ollama:
+    image: ollama/ollama:latest
+    container_name: surginote_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  usac_data:
+  dm_data:
+  ollama_data:
+  hf_cache:

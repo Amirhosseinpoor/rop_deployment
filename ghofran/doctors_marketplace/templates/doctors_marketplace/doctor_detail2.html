@@ -1,0 +1,463 @@
+{% load static dm_extras %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ doctor.name_fa|default:doctor.name }} | MediverseAI</title>
+    <style>
+        /* ===== Font & Variables ===== */
+        @font-face {
+            font-family: Vazirmatn;
+            src: url("{% static 'fonts/Vazirmatn-Regular.woff2' %}") format("woff2");
+        }
+        @font-face {
+            font-family: Vazirmatn;
+            src: url("{% static 'fonts/Vazirmatn-Bold.woff2' %}") format("woff2");
+            font-weight: bold;
+        }
+
+        :root {
+            --medical-blue: #0A6EFF;
+            --medical-teal: #00A896;
+            --gray-100: #F8FAFD;
+            --gray-200: #E9EDF5;
+            --gray-600: #5B6B7C;
+            --gray-800: #1E293B;
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.04);
+            --shadow-md: 0 12px 32px rgba(0,0,0,0.08);
+            --shadow-glow: 0 0 24px rgba(10,110,255,0.18);
+            --radius-xl: 24px;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --transition: 0.25s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Vazirmatn, Tahoma, sans-serif;
+            background: linear-gradient(150deg, #E3F0FD 0%, #F2F8FF 50%, #FFFFFF 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Medical hex background */
+        .medical-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5L52.5 17.5V42.5L30 55L7.5 42.5V17.5L30 5Z' fill='none' stroke='%230A6EFF' stroke-opacity='0.07' stroke-width='1'/%3E%3C/svg%3E");
+            background-size: 80px 80px;
+            opacity: 0.35;
+        }
+
+        /* Top Bar */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            width: 100%;
+            padding: 12px 32px;
+            background: rgba(255,255,255,0.75);
+            backdrop-filter: blur(18px) saturate(180%);
+            border-bottom: 1px solid rgba(10,110,255,0.12);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .topbar-left img {
+            height: 36px;
+        }
+        .topbar-left h1 {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--gray-800);
+            white-space: nowrap;
+        }
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.6);
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: 999px;
+            color: var(--gray-800);
+            font-size: 14px;
+            text-decoration: none;
+            transition: var(--transition);
+            backdrop-filter: blur(6px);
+        }
+        .back-btn:hover {
+            background: rgba(10,110,255,0.08);
+            border-color: var(--medical-blue);
+            color: var(--medical-blue);
+        }
+        .theme-toggle {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0,0,0,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+        .theme-toggle:hover {
+            background: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        /* ---------- Main Content ---------- */
+        .main-container {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        /* ---------- Hero Card ---------- */
+        .hero-card {
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(18px) saturate(180%);
+            border: 1px solid rgba(255,255,255,0.5);
+            border-radius: var(--radius-xl);
+            padding: 35px;
+            box-shadow: var(--shadow-md), var(--shadow-glow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            animation: fadeSlideIn 0.7s ease-out;
+        }
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Floating avatar */
+        .avatar-wrapper {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--medical-blue), var(--medical-teal));
+            padding: 4px;
+            box-shadow: 0 0 0 6px rgba(10,110,255,0.12);
+            animation: softFloat 4s ease-in-out infinite;
+        }
+        @keyframes softFloat {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0); }
+        }
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .doctor-name {
+            font-size: 30px;
+            font-weight: bold;
+            color: var(--gray-800);
+            margin-top: 20px;
+        }
+        .specialty-badge {
+            display: inline-block;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--medical-blue);
+            background: rgba(10,110,255,0.08);
+            padding: 6px 18px;
+            border-radius: 999px;
+            margin-top: 8px;
+        }
+        .headline-text {
+            color: var(--gray-600);
+            margin-top: 16px;
+            font-size: 16px;
+            line-height: 1.8;
+            max-width: 600px;
+        }
+
+        /* Tags */
+        .tags {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+        .tag {
+            font-size: 13px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(10,110,255,0.15);
+            color: var(--gray-800);
+        }
+
+        /* Chat button with pulse */
+        .chat-btn {
+            margin-top: 28px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 32px;
+            border: none;
+            border-radius: var(--radius-lg);
+            background: linear-gradient(135deg, #0A6EFF, #3B82F6);
+            color: white;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 8px 22px rgba(10,110,255,0.3);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .chat-btn::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 20px;
+            background: inherit;
+            z-index: -1;
+            animation: pulseRing 2s ease-out infinite;
+            opacity: 0;
+        }
+        @keyframes pulseRing {
+            0% { transform: scale(1); opacity: 0.6; }
+            100% { transform: scale(1.08); opacity: 0; }
+        }
+        .chat-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(10,110,255,0.45);
+        }
+
+        /* ---------- Bio Card ---------- */
+        .bio-card {
+            background: rgba(255,255,255,0.6);
+            backdrop-filter: blur(14px) saturate(180%);
+            border: 1px solid rgba(255,255,255,0.5);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+            animation: fadeSlideIn 0.7s ease-out 0.2s backwards;
+        }
+        .bio-card h2 {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--gray-800);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .bio-card h2::before {
+            content: "🩺";
+        }
+        .bio-text {
+            font-size: 16px;
+            line-height: 2;
+            color: var(--gray-600);
+        }
+
+        /* Mini stats */
+        .stats-row {
+            margin-top: 24px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .stat-item {
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(0,0,0,0.05);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            text-align: center;
+        }
+        .stat-label {
+            font-size: 13px;
+            color: var(--gray-600);
+            margin-bottom: 6px;
+        }
+        .stat-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        /* Dark mode */
+        .dark body {
+            background: linear-gradient(150deg, #0B1121 0%, #131A2E 50%, #1A2540 100%);
+        }
+        .dark .topbar {
+            background: rgba(24,30,50,0.8);
+            border-bottom-color: rgba(255,255,255,0.08);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+        .dark .topbar-left h1 { color: #EDF2F9; }
+        .dark .back-btn {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.1);
+            color: #E2E8F0;
+        }
+        .dark .theme-toggle {
+            background: rgba(30,40,65,0.8);
+            color: #E2E8F0;
+            border-color: rgba(255,255,255,0.1);
+        }
+        .dark .hero-card, .dark .bio-card {
+            background: rgba(24,30,50,0.7);
+            border-color: rgba(255,255,255,0.08);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4), inset 0 0 30px rgba(255,255,255,0.03);
+        }
+        .dark .doctor-name, .dark .stat-value, .dark .bio-card h2 {
+            color: #EDF2F9;
+        }
+        .dark .specialty-badge {
+            background: rgba(79,144,255,0.15);
+            color: #A5C9FF;
+        }
+        .dark .headline-text, .dark .bio-text, .dark .stat-label {
+            color: #B9C5DA;
+        }
+        .dark .tag {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.12);
+            color: #E2E8F0;
+        }
+        .dark .stat-item {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.08);
+        }
+        .dark .chat-btn {
+            background: linear-gradient(135deg, #2A6EFF, #4F8CFF);
+        }
+    </style>
+</head>
+<body>
+    <div class="medical-bg"></div>
+
+    <!-- ========== Top Bar ========== -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <img src="{% static 'icons/mediversai_logo_final-032.png' %}" alt="MediverseAI">
+            <h1>بازار پزشکان هوشمند</h1>
+        </div>
+        <div class="topbar-actions">
+            <a href="{% url 'doctors_marketplace:index' %}" class="back-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 18l-6-6 6-6"/>
+                </svg>
+                بازگشت به لیست پزشکان
+            </a>
+            <div class="theme-toggle" id="themeToggle">🌓</div>
+        </div>
+    </header>
+
+    <!-- ========== Main Content ========== -->
+    <div class="main-container">
+        <!-- Hero Card -->
+        <div class="hero-card">
+            <div class="avatar-wrapper">
+                <img src="{% if doctor.avatar %}{{ doctor.avatar.url }}{% else %}{% static 'avatars/doctor-default.png' %}{% endif %}"
+                     class="avatar-img" alt="{{ doctor.name_fa|default:doctor.name }}">
+            </div>
+
+            <h1 class="doctor-name">{{ doctor.name_fa|default:doctor.name }}</h1>
+            <div class="specialty-badge">{{ doctor.specialization_fa|default:doctor.get_specialization_display }}</div>
+
+            {% if doctor.headline_fa or doctor.headline %}
+                <p class="headline-text">{{ doctor.headline_fa|default:doctor.headline }}</p>
+            {% endif %}
+
+            {% if doctor.tags_fa %}
+                <div class="tags">
+                    {% for t in doctor.tags_fa|split:","|slice:":6" %}
+                        <span class="tag">{{ t }}</span>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Only one chat button here -->
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="chat-btn">
+                    شروع گفتگو
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M9 18l6-6-6-6v12z"/></svg>
+                </button>
+            </form>
+        </div>
+
+        <!-- Bio Card -->
+        <div class="bio-card">
+            <h2>درباره پزشک</h2>
+            <p class="bio-text">
+                {{ doctor.bio_fa|default:doctor.bio|default:"اطلاعاتی دربارهٔ رویکرد پزشک و نوع خدمات ارائه‌شده." }}
+            </p>
+
+            <div class="stats-row">
+                <div class="stat-item">
+                    <div class="stat-label">سبک پاسخ‌گویی</div>
+                    <div class="stat-value">{{ doctor.persona|default:"دقیق و علمی" }}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">وضعیت</div>
+                    <div class="stat-value">پزشک هوشمند · آنلاین</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme toggle
+        const root = document.documentElement;
+        const toggle = document.getElementById('themeToggle');
+        function setThemeIcon() {
+            toggle.textContent = root.classList.contains('dark') ? '☀️' : '🌓';
+        }
+        if (localStorage.getItem('theme') === 'dark') {
+            root.classList.add('dark');
+        }
+        setThemeIcon();
+        toggle.onclick = () => {
+            root.classList.toggle('dark');
+            localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+            setThemeIcon();
+        };
+    </script>
+</body>
+</html>

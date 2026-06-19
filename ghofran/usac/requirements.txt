@@ -1,0 +1,9 @@
+# USAC (auth / users / companies / invitations) service dependencies.
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+sqlalchemy==2.0.36
+pydantic[email]==2.10.4            # EmailStr needs the email-validator extra
+python-jose[cryptography]==3.3.0   # JWT encode/decode
+passlib[bcrypt]==1.7.4             # password hashing
+# Optional: PostgreSQL driver. Uncomment to use a Postgres USAC_DATABASE_URL.
+# psycopg2-binary==2.9.10

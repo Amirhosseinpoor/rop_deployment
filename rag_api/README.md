@@ -52,4 +52,5 @@ This module implements a state-of-the-art **Hybrid RAG** architecture.
 | `GET` | `/health` | Service status monitor. |
 
 ---
+
 *Note: This is a headless backend service. No frontend templates are present.*

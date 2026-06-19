@@ -1,0 +1,8 @@
+# Double-ROP service dependencies (versions match the parent project).
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20          # required for multipart/form-data uploads
+
+torch==2.6.0
+torchvision==0.21.0
+pillow==11.1.0

@@ -1,0 +1,1004 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ایجاد پرونده سلامت | MediverseAI</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+    <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png">
+
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f1f5f9; /* slate-100 */
+        }
+
+        /* --- Custom Form Styles --- */
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            border-radius: 0.5rem; /* rounded-lg */
+            border: 1px solid #cbd5e1; /* slate-300 */
+            background-color: white;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            color: #334155; /* slate-700 */
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #4f46e5; /* indigo-600 */
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            right: 0.75rem;
+            color: #94a3b8; /* slate-400 */
+            pointer-events: none;
+        }
+
+        .form-input-with-icon {
+            padding-right: 2.5rem !important;
+        }
+
+        /* --- Custom Checkbox/Radio Card Styles --- */
+        .choice-card {
+            display: block;
+            position: relative;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0; /* slate-200 */
+            border-radius: 0.5rem;
+            background-color: #fdfdfe;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .choice-card:hover {
+            border-color: #c7d2fe; /* indigo-200 */
+            background-color: white;
+        }
+
+        .choice-card-input { /* This is the actual checkbox/radio */
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            cursor: pointer;
+        }
+
+        .choice-card:has(.choice-card-input:checked) {
+            border-color: #4f46e5;
+            background-color: #eef2ff;
+            color: #4338ca;
+            font-weight: 600;
+        }
+
+        .final-opinion-card {
+            padding: 1.5rem;
+        }
+
+        .final-opinion-card:has(.choice-card-input:checked) {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+        }
+
+        /* --- Conditional Field Visibility (CSS Only) --- */
+        .details-panel {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, margin-top 0.4s ease-out, opacity 0.4s ease-out;
+            opacity: 0;
+        }
+
+        .conditional-card:has(.choice-card-input:checked) + .details-panel {
+            max-height: 20rem; /* Adjust as needed */
+            margin-top: 1rem;
+            opacity: 1;
+        }
+
+        /* --- Beautiful Model Selector --- */
+        .model-selector {
+            position: relative;
+            display: inline-block;
+        }
+
+        .model-selector-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            background-color: white;
+            border: 1px solid #e2e8f0; /* slate-200 */
+            border-radius: 0.5rem;
+            font-weight: 600;
+            color: #334155; /* slate-700 */
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .model-selector-button:hover {
+            background-color: #f8fafc; /* slate-50 */
+            border-color: #cbd5e1; /* slate-300 */
+        }
+
+        .model-selector-button .chevron-icon {
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .model-selector.is-open .model-selector-button {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+
+        .model-selector.is-open .chevron-icon {
+            transform: rotate(180deg);
+        }
+
+        .model-selector-dropdown {
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            left: 0;
+            width: 260px;
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0; /* slate-200 */
+            z-index: 10;
+            padding: 0.5rem;
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .model-selector.is-open .model-selector-dropdown {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .model-selector-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            cursor: pointer;
+            border-radius: 0.5rem;
+        }
+
+        .model-selector-item:hover {
+            background-color: #f8fafc; /* slate-50 */
+        }
+
+        .model-selector-item input {
+            display: none; /* Hide the radio button */
+        }
+
+        .model-selector-item .icon {
+            margin-left: 0.75rem;
+            color: #94a3b8; /* slate-400 */
+            flex-shrink: 0;
+        }
+
+        .model-selector-item .title {
+            font-weight: 600;
+            color: #1e293b; /* slate-800 */
+        }
+
+        .model-selector-item .description {
+            font-size: 0.8rem;
+            color: #64748b; /* slate-500 */
+        }
+
+        .model-selector-item .check-icon {
+            margin-right: auto;
+            color: #4f46e5; /* indigo-600 */
+            opacity: 0; /* Hide checkmark by default */
+            transition: opacity 0.2s ease;
+        }
+
+        .model-selector-item input:checked + .content .check-icon {
+            opacity: 1; /* Show for selected item */
+        }
+
+        .model-selector-item input:checked + .content {
+            background-color: #eef2ff; /* indigo-50 */
+        }
+
+        .model-selector-item input:checked + .content .title {
+            color: #4338ca; /* indigo-700 */
+        }
+
+
+        /* --- Base Sidebar & Form Styles (Largely Unchanged) --- */
+        label.field-label {
+            display: block;
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .step-nav-item.active {
+            background-color: #eef2ff;
+            border-color: #c7d2fe;
+            font-weight: 700;
+            color: #4338ca;
+        }
+
+        .step-nav-item.completed {
+            color: #374151;
+        }
+
+        .step-nav-item:not(.active):not(.completed) {
+            color: #64748b;
+        }
+
+        .step-nav-item:not(.active):hover {
+            background-color: #f8fafc;
+        }
+
+        .step-icon {
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 1rem;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .step-nav-item.active .step-icon {
+            background-color: #4f46e5;
+            color: white;
+        }
+
+        .step-nav-item.completed .step-icon {
+            background-color: #16a34a;
+            color: white;
+        }
+
+        .step-nav-item:not(.active):not(.completed) .step-icon {
+            background-color: #e2e8f0;
+            color: #64748b;
+        }
+
+        .form-step {
+            display: none;
+            animation: fadeIn 0.5s forwards;
+        }
+
+        .form-step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .error-message {
+            color: #dc2626;
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+
+        .formset-item {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-6 lg:p-8">
+
+<div class="max-w-screen-xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden grid grid-cols-12">
+    <aside class="col-span-12 md:col-span-4 lg:col-span-3 bg-slate-50/70 p-6 border-l border-slate-200">
+        <div class="sticky top-6">
+            <a href="#"><img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediversAI Logo"
+                             class="h-8 mb-8"></a>
+            <h2 class="font-bold text-slate-700 mb-2">مراحل تکمیل پرونده</h2>
+            <p class="text-sm text-slate-500 mb-6">برای ناوبری بین بخش‌ها کلیک کنید.</p>
+            <nav id="step-navigation">
+                <ol class="space-y-2"></ol>
+            </nav>
+        </div>
+    </aside>
+
+    <main class="col-span-12 md:col-span-8 lg:col-span-9 p-6 sm:p-8 lg:p-12">
+        <div class="flex justify-between items-start mb-8">
+            <div>
+                <h1 id="step-title" class="text-3xl font-extrabold text-slate-800"></h1>
+                <p id="step-subtitle" class="text-slate-500 mt-2"></p>
+            </div>
+
+            <div id="model-selector" class="model-selector">
+                <button type="button" id="model-selector-btn" class="model-selector-button">
+                    <span id="selected-model-text">GPT-4o-mini (Cloud)</span>
+                    <svg class="h-5 w-5 ml-2 text-slate-500 chevron-icon" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                              d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.23 8.27a.75.75 0 01.02-1.06z"
+                              clip-rule="evenodd"/>
+                    </svg>
+                </button>
+                <div class="model-selector-dropdown">
+                    <label class="model-selector-item" for="model-cloud_gpt">
+                        <input type="radio" id="model-cloud_gpt" name="model_choice" value="cloud_gpt"
+                               data-text="GPT-4o-mini (Cloud)" checked>
+                        <div class="flex items-center w-full content p-2 rounded-md transition-colors">
+                            <div class="icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                     stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.5 4.5 0 002.25 15z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="title">GPT-4o-mini</div>
+                                <div class="description">سریع و هوشمند، مناسب اکثر وظایف</div>
+                            </div>
+                            <svg class="h-5 w-5 check-icon" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd"
+                                      d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.052-.143z"
+                                      clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                    </label>
+                    <label class="model-selector-item" for="model-local_llama">
+                        <input type="radio" id="model-local_llama" name="model_choice" value="local_llama"
+                               data-text="Llama 3.2 (Local)">
+                        <div class="flex items-center w-full content p-2 rounded-md transition-colors">
+                            <div class="icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                     stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25A2.25 2.25 0 015.25 3h13.5A2.25 2.25 0 0121 5.25z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="title">Llama 3.2 (Local)</div>
+                                <div class="description">اجرای محلی، مناسب داده‌های حساس</div>
+                            </div>
+                            <svg class="h-5 w-5 check-icon" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd"
+                                      d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.052-.143z"
+                                      clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <form id="multi-step-form"
+              method="post"
+              enctype="multipart/form-data"
+              action="{% url 'create_update_profile' %}">
+
+            {% if form.errors or job_formset.errors or referral_formset.errors %}
+                <div class="bg-red-50 border-l-4 border-red-500 text-red-800 p-4 rounded-lg mb-8" role="alert">
+                    <p class="font-bold">خطا در اطلاعات وارد شده</p>
+                    <p>لطفاً موارد مشخص‌شده را بررسی و اصلاح نمایید. می‌توانید با کلیک روی مراحل، به بخش دارای خطا
+                        بروید.</p>
+                </div>
+            {% endif %}
+            {% csrf_token %}
+            <input type="hidden" name="selected_model" id="selected_model_input" value="cloud_gpt">
+
+            <div id="navigation-buttons"
+                 class="flex justify-between items-center pt-10 mt-10 border-t border-slate-200">
+                <button type="button" id="prev-btn"
+                        class="px-6 py-2.5 text-sm rounded-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold transition-all duration-200">
+                    قبلی
+                </button>
+                <button type="button" id="next-btn"
+                        class="px-8 py-3 text-base rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all duration-200 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30">
+                    مرحله بعد
+                </button>
+                <button type="submit" id="submit-btn"
+                        class="px-8 py-3 text-base rounded-full bg-green-600 hover:bg-green-700 text-white font-bold transition-all duration-200 shadow-lg shadow-green-500/20 hover:shadow-green-500/30">
+                    ثبت و ایجاد پرونده
+                </button>
+            </div>
+        </form>
+    </main>
+</div>
+
+<div id="form-steps-source" class="hidden">
+    <div class="form-step">
+        <fieldset class="p-5 border rounded-xl bg-white space-y-6">
+            <legend class="text-lg font-bold text-slate-700 px-2">اطلاعات هویتی</legend>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div><label class="field-label" for="{{ form.father_name.id_for_label }}">نام پدر</label>
+                    <div class="input-group">
+                        <div class="input-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                 fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                                      clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        {{ form.father_name }}</div>{% if form.father_name.errors %}
+                        <div class="error-message">{{ form.father_name.errors }}</div>{% endif %}</div>
+                <div><label class="field-label" for="{{ form.national_id.id_for_label }}">کد ملی</label>
+                    <div class="input-group">
+                        <div class="input-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                 fill="currentColor">
+                                <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+                                <path fill-rule="evenodd"
+                                      d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h2a1 1 0 100-2H9z"
+                                      clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        {{ form.national_id }}</div>{% if form.national_id.errors %}
+                        <div class="error-message">{{ form.national_id.errors }}</div>{% endif %}</div>
+                <div><label class="field-label" for="{{ form.date_of_birth.id_for_label }}">تاریخ تولد</label>
+                    <div class="input-group">
+                        <div class="input-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                 fill="currentColor">
+                                <path fill-rule="evenodd"
+                                      d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                                      clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        {{ form.date_of_birth }}</div>{% if form.date_of_birth.errors %}
+                        <div class="error-message">{{ form.date_of_birth.errors }}</div>{% endif %}</div>
+                <div><label class="field-label"
+                            for="{{ form.age.id_for_label }}">{{ form.age.label }}</label>{{ form.age }}
+                    {% if form.age.errors %}
+                        <div class="error-message">{{ form.age.errors }}</div>{% endif %}</div>
+                <div><label class="field-label" for="{{ form.gender.id_for_label }}">جنسیت</label>{{ form.gender }}
+                    {% if form.gender.errors %}
+                        <div class="error-message">{{ form.gender.errors }}</div>{% endif %}</div>
+                <div><label class="field-label" for="{{ form.marital_status.id_for_label }}">وضعیت
+                    تاهل</label>{{ form.marital_status }}{% if form.marital_status.errors %}
+                    <div class="error-message">{{ form.marital_status.errors }}</div>{% endif %}</div>
+                <div><label class="field-label" for="{{ form.children_count.id_for_label }}">تعداد
+                    فرزند</label>{{ form.children_count }}{% if form.children_count.errors %}
+                    <div class="error-message">{{ form.children_count.errors }}</div>{% endif %}</div>
+                <div><label class="field-label"
+                            for="{{ form.province_of_residence.id_for_label }}">{{ form.province_of_residence.label }}</label>{{ form.province_of_residence }}
+                </div>
+                <div><label class="field-label" for="{{ form.military_service_status.id_for_label }}">وضعیت نظام
+                    وظیفه</label>{{ form.military_service_status }}{% if form.military_service_status.errors %}
+                    <div class="error-message">{{ form.military_service_status.errors }}</div>{% endif %}</div>
+                <div><label class="field-label" for="{{ form.military_service_rank.id_for_label }}">رسته
+                    خدمت</label>{{ form.military_service_rank }}{% if form.military_service_rank.errors %}
+                    <div class="error-message">{{ form.military_service_rank.errors }}</div>{% endif %}</div>
+                <div class="lg:col-span-3"><label class="field-label"
+                                                  for="{{ form.medical_exemption_reason.id_for_label }}">علت معافیت
+                    پزشکی (در صورت وجود)</label>{{ form.medical_exemption_reason }}
+                    {% if form.medical_exemption_reason.errors %}
+                        <div class="error-message">{{ form.medical_exemption_reason.errors }}</div>{% endif %}</div>
+                <div class="lg:col-span-2"><label class="field-label" for="{{ form.work_address.id_for_label }}">آدرس
+                    محل کار</label>{{ form.work_address }}{% if form.work_address.errors %}
+                    <div class="error-message">{{ form.work_address.errors }}</div>{% endif %}</div>
+                <div><label class="field-label" for="{{ form.work_phone.id_for_label }}">تلفن محل
+                    کار</label>{{ form.work_phone }}{% if form.work_phone.errors %}
+                    <div class="error-message">{{ form.work_phone.errors }}</div>{% endif %}</div>
+            </div>
+        </fieldset>
+    </div>
+
+    <div class="form-step">
+        <fieldset>
+            <div class="p-5 border rounded-xl bg-white">
+                <h3 class="font-bold text-xl mb-4 text-slate-700">شغل فعلی</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div><label class="field-label">عنوان شغلی فعلی</label>{{ form.current_job_title }}
+                        {% if form.current_job_title.errors %}
+                            <div class="error-message">{{ form.current_job_title.errors }}</div>{% endif %}</div>
+                    <div><label class="field-label">تاریخ شروع</label>{{ form.current_job_start_date }}
+                        {% if form.current_job_start_date.errors %}
+                            <div class="error-message">{{ form.current_job_start_date.errors }}</div>{% endif %}
+                    </div>
+                    <div class="md:col-span-2"><label class="field-label">وظیفه محوله
+                        فعلی</label>{{ form.current_job_duties }}{% if form.current_job_duties.errors %}
+                        <div class="error-message">{{ form.current_job_duties.errors }}</div>{% endif %}</div>
+                </div>
+            </div>
+            <h3 class="font-bold text-xl mt-10 mb-4 text-slate-700">مشاغل قبلی</h3>
+            {{ job_formset.management_form }}
+            {% for job_form in job_formset %}
+                <div class="formset-item">
+                    {{ job_form.id }}
+                    {% if job_form.instance.pk %}
+                        <div class="absolute top-4 left-4"><label for="{{ job_form.DELETE.id_for_label }}"
+                                                                  class="text-red-500 hover:text-red-700 cursor-pointer"
+                                                                  title="حذف">{{ job_form.DELETE }}
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </label></div>{% endif %}
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="md:col-span-3"><label class="field-label">عنوان سمت</label>{{ job_form.title }}
+                        </div>
+                        <div><label class="field-label">تاریخ شروع</label>{{ job_form.start_date }}</div>
+                        <div><label class="field-label">تاریخ پایان</label>{{ job_form.end_date }}</div>
+                        <div class="md:col-span-3"><label class="field-label">وظیفه محوله</label>{{ job_form.duties }}
+                        </div>
+                        <div class="md:col-span-3"><label class="field-label">علت تغییر
+                            شغل</label>{{ job_form.reason_for_leaving }}</div>
+                    </div>
+                </div>
+            {% endfor %}
+        </fieldset>
+    </div>
+
+    <div class="form-step">
+        <fieldset class="space-y-6">
+            <div class="p-5 border rounded-xl bg-white"><h4 class="font-bold text-slate-700 mb-4">فیزیکی</h4>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">{% for field in form %}
+                    {% if 'hazard_physical' in field.name and field.field.widget.input_type == 'checkbox' %}
+                        <label class="choice-card text-sm">{{ field }} {{ field.label }}</label>{% endif %}{% endfor %}
+                </div>
+                <div class="mt-4">{{ form.hazard_physical_other }}</div>
+            </div>
+            <div class="p-5 border rounded-xl bg-white"><h4 class="font-bold text-slate-700 mb-4">شیمیایی</h4>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">{% for field in form %}
+                    {% if 'hazard_chemical' in field.name and field.field.widget.input_type == 'checkbox' %}
+                        <label class="choice-card text-sm">{{ field }} {{ field.label }}</label>{% endif %}{% endfor %}
+                </div>
+                <div class="mt-4">{{ form.hazard_chemical_other }}</div>
+            </div>
+            <div class="p-5 border rounded-xl bg-white"><h4 class="font-bold text-slate-700 mb-4">بیولوژیک</h4>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">{% for field in form %}
+                    {% if 'hazard_biological' in field.name and field.field.widget.input_type == 'checkbox' %}
+                        <label class="choice-card text-sm">{{ field }} {{ field.label }}</label>{% endif %}{% endfor %}
+                </div>
+                <div class="mt-4">{{ form.hazard_biological_other }}</div>
+            </div>
+            <div class="p-5 border rounded-xl bg-white"><h4 class="font-bold text-slate-700 mb-4">ارگونومی</h4>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">{% for field in form %}
+                    {% if 'hazard_ergonomic' in field.name and field.field.widget.input_type == 'checkbox' %}
+                        <label class="choice-card text-sm">{{ field }} {{ field.label }}</label>{% endif %}{% endfor %}
+                </div>
+                <div class="mt-4">{{ form.hazard_ergonomic_other }}</div>
+            </div>
+            <div class="p-5 border rounded-xl bg-white"><h4 class="font-bold text-slate-700 mb-4">روانی</h4>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">{% for field in form %}
+                    {% if 'hazard_psychological' in field.name and field.field.widget.input_type == 'checkbox' %}
+                        <label class="choice-card text-sm">{{ field }} {{ field.label }}</label>{% endif %}{% endfor %}
+                </div>
+                <div class="mt-4">{{ form.hazard_psychological_other }}</div>
+            </div>
+        </fieldset>
+    </div>
+
+    <div class="form-step">
+        <fieldset class="space-y-4">
+            <div class="p-5 border rounded-xl bg-white">
+                <label class="choice-card conditional-card text-left">{{ form.has_disease_history }} آیا سابقه بیماری
+                    دارید؟</label>
+                <div class="details-panel pl-4 pr-4"><label class="field-label text-sm">توضیحات
+                    بیماری:</label>{{ form.disease_history_details }}{% if form.disease_history_details.errors %}
+                    <div class="error-message">{{ form.disease_history_details.errors }}</div>{% endif %}</div>
+            </div>
+            <div class="p-5 border rounded-xl bg-white">
+                <label class="choice-card conditional-card text-left">{{ form.has_allergies }} آیا حساسیت دارید؟</label>
+                <div class="details-panel pl-4 pr-4"><label class="field-label text-sm">توضیحات
+                    حساسیت:</label>{{ form.allergy_details }}{% if form.allergy_details.errors %}
+                    <div class="error-message">{{ form.allergy_details.errors }}</div>{% endif %}</div>
+            </div>
+            <div class="p-5 border rounded-xl bg-white">
+                <label class="choice-card conditional-card text-left">{{ form.has_hospitalization_history }} سابقه بستری
+                    در بیمارستان</label>
+                <div class="details-panel pl-4 pr-4"><label class="field-label text-sm">علت
+                    بستری:</label>{{ form.hospitalization_reason }}{% if form.hospitalization_reason.errors %}
+                    <div class="error-message">{{ form.hospitalization_reason.errors }}</div>{% endif %}</div>
+            </div>
+            <div class="p-5 border rounded-xl bg-white">
+                <label class="choice-card conditional-card text-left">{{ form.has_surgery_history }} سابقه جراحی</label>
+                <div class="details-panel pl-4 pr-4"><label class="field-label text-sm">توضیحات
+                    جراحی:</label>{{ form.surgery_details }}{% if form.surgery_details.errors %}
+                    <div class="error-message">{{ form.surgery_details.errors }}</div>{% endif %}</div>
+            </div>
+            <div class="p-5 border rounded-xl bg-white">
+                <label class="choice-card conditional-card text-left">{{ form.has_family_cancer_or_chronic_disease }}
+                    سابقه سرطان یا بیماری مزمن در خانواده</label>
+                <div class="details-panel pl-4 pr-4"><label class="field-label text-sm">توضیحات بیماری
+                    خانواده:</label>{{ form.family_disease_details }}
+                    {% if form.family_disease_details.errors %}
+                        <div class="error-message">{{ form.family_disease_details.errors }}</div>{% endif %}</div>
+            </div>
+            <div class="p-5 border rounded-xl bg-white">
+                <label class="choice-card conditional-card text-left">{{ form.is_on_medication }} آیا داروی خاصی مصرف
+                    می‌کنید؟</label>
+                <div class="details-panel pl-4 pr-4"><label class="field-label text-sm">نام
+                    داروها:</label>{{ form.medication_details }}{% if form.medication_details.errors %}
+                    <div class="error-message">{{ form.medication_details.errors }}</div>{% endif %}</div>
+            </div>
+            <div class="p-5 border rounded-xl bg-white">
+                <label class="choice-card conditional-card text-left">{{ form.is_currently_smoking }} آیا اکنون دخانیات
+                    مصرف می‌کنید؟</label>
+                <div class="details-panel pl-4 pr-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="mt-0"><label class="field-label text-sm"
+                                             for="{{ form.cigs_per_day.id_for_label }}">{{ form.cigs_per_day.label }}:</label>{{ form.cigs_per_day }}
+                        {% if form.cigs_per_day.errors %}
+                            <div class="error-message">{{ form.cigs_per_day.errors }}</div>{% endif %}</div>
+                    <div class="mt-0"><label class="field-label text-sm">توضیحات بیشتر (نوع،
+                        مدت):</label>{{ form.smoking_details }}{% if form.smoking_details.errors %}
+                        <div class="error-message">{{ form.smoking_details.errors }}</div>{% endif %}</div>
+                </div>
+            </div>
+            <div class="p-5 border rounded-xl bg-white">
+                <label class="choice-card text-left">{{ form.has_past_smoking_history }} آیا سابقه قبلی مصرف دخانیات
+                    دارید؟</label>
+            </div>
+            <div class="p-5 border rounded-xl bg-white">
+                <label class="field-label">ورزش یا سرگرمی</label>{{ form.hobbies }}{% if form.hobbies.errors %}
+                <div class="error-message">{{ form.hobbies.errors }}</div>{% endif %}
+            </div>
+        </fieldset>
+    </div>
+
+    <div class="form-step">
+        <fieldset class="space-y-6">
+            <div class="p-5 border rounded-xl bg-white">
+                <h4 class="font-bold text-slate-700 mb-4">شاخص‌های حیاتی</h4>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div><label class="field-label" for="{{ form.exam_date.id_for_label }}">تاریخ
+                        معاینه</label>{{ form.exam_date }}</div>
+                    <div><label class="field-label" for="{{ form.exam_weight.id_for_label }}">وزن
+                        (Kg)</label>{{ form.exam_weight }}</div>
+                    <div><label class="field-label" for="{{ form.exam_height.id_for_label }}">قد
+                        (Cm)</label>{{ form.exam_height }}</div>
+                    <div><label class="field-label"
+                                for="{{ form.bmi.id_for_label }}">{{ form.bmi.label }}</label>{{ form.bmi }}
+                        {% if form.bmi.errors %}
+                            <div class="error-message">{{ form.bmi.errors }}</div>{% endif %}</div>
+                    <div><label class="field-label"
+                                for="{{ form.exam_systolic_bp.id_for_label }}">{{ form.exam_systolic_bp.label }}</label>{{ form.exam_systolic_bp }}
+                        {% if form.exam_systolic_bp.errors %}
+                            <div class="error-message">{{ form.exam_systolic_bp.errors }}</div>{% endif %}</div>
+                    <div><label class="field-label"
+                                for="{{ form.exam_diastolic_bp.id_for_label }}">{{ form.exam_diastolic_bp.label }}</label>{{ form.exam_diastolic_bp }}
+                        {% if form.exam_diastolic_bp.errors %}
+                            <div class="error-message">{{ form.exam_diastolic_bp.errors }}</div>{% endif %}</div>
+                    <div><label class="field-label"
+                                for="{{ form.exam_pulse_rate.id_for_label }}">{{ form.exam_pulse_rate.label }}</label>{{ form.exam_pulse_rate }}
+                        {% if form.exam_pulse_rate.errors %}
+                            <div class="error-message">{{ form.exam_pulse_rate.errors }}</div>{% endif %}</div>
+                </div>
+            </div>
+            <div class="p-5 border rounded-xl bg-white">
+                <h4 class="font-bold text-slate-700 mb-4">یادداشت‌های پزشک</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div><label class="field-label">شرح معاینه عمومی</label>{{ form.general_exam_notes }}</div>
+                    <div><label class="field-label">شرح معاینه چشم</label>{{ form.eye_exam_notes }}</div>
+                    <div><label class="field-label">شرح معاینه پوست و مو</label>{{ form.skin_hair_nails_exam_notes }}
+                    </div>
+                    <div><label class="field-label">شرح معاینه گوش، حلق و بینی</label>{{ form.ent_mouth_exam_notes }}
+                    </div>
+                    <div><label class="field-label">شرح معاینه ریه</label>{{ form.lung_exam_notes }}</div>
+                    <div><label class="field-label">شرح معاینه قلب و عروق</label>{{ form.cardiovascular_exam_notes }}
+                    </div>
+                    <div><label class="field-label">شرح معاینه شکم و لگن</label>{{ form.abdomen_pelvis_exam_notes }}
+                    </div>
+                    <div><label class="field-label">شرح معاینه کلیه و مجاری
+                        ادراری</label>{{ form.urinary_system_exam_notes }}</div>
+                    <div><label class="field-label">شرح معاینه اسکلتی و
+                        عضلانی</label>{{ form.musculoskeletal_exam_notes }}</div>
+                    <div><label class="field-label">شرح معاینه سیستم عصبی</label>{{ form.nervous_system_exam_notes }}
+                    </div>
+                    <div class="md:col-span-2"><label class="field-label">شرح معاینه اعصاب و
+                        روان</label>{{ form.mental_health_exam_notes }}</div>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+
+    <div class="form-step">
+        <fieldset class="space-y-6">
+            <div class="p-6 border rounded-xl bg-white space-y-6">
+                <h4 class="font-bold text-slate-700">آزمایش‌ها</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div><label class="field-label"
+                                for="{{ form.lab_total_cholesterol.id_for_label }}">{{ form.lab_total_cholesterol.label }}</label>{{ form.lab_total_cholesterol }}
+                        {% if form.lab_total_cholesterol.errors %}
+                            <div class="error-message">{{ form.lab_total_cholesterol.errors }}</div>{% endif %}
+                    </div>
+                    <div><label class="field-label"
+                                for="{{ form.lab_glucose.id_for_label }}">{{ form.lab_glucose.label }}</label>{{ form.lab_glucose }}
+                        {% if form.lab_glucose.errors %}
+                            <div class="error-message">{{ form.lab_glucose.errors }}</div>{% endif %}</div>
+                </div>
+                <div><label class="field-label">آپلود فایل نتایج آزمایش‌ها</label>{{ form.lab_test_files }}
+                    {% if form.lab_test_files.errors %}
+                        <div class="error-message">{{ form.lab_test_files.errors }}</div>{% endif %}</div>
+            </div>
+            <div class="p-6 border rounded-xl bg-white space-y-6">
+                <h4 class="font-bold text-slate-700">اسپیرومتری</h4>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <div><label class="field-label">FVC</label>{{ form.spirometry_fvc }}</div>
+                    <div><label class="field-label">FEV1</label>{{ form.spirometry_fev1 }}</div>
+                    <div><label class="field-label">FEV1/FVC%</label>{{ form.spirometry_fev1_fvc_ratio }}</div>
+                    <div><label class="field-label">FEF 25-75%</label>{{ form.spirometry_fef_25_75 }}</div>
+                    <div><label class="field-label">PEF</label>{{ form.spirometry_pef }}</div>
+                    <div class="col-span-full"><label class="field-label">تفسیر
+                        اسپیرومتری</label>{{ form.spirometry_interpretation }}</div>
+                </div>
+            </div>
+            <div class="p-6 border rounded-xl bg-white space-y-4">
+                <h4 class="font-bold text-slate-700">یافته‌های دیگر</h4>
+                <div><label class="field-label">یافته‌های ECG</label>{{ form.ecg_findings }}</div>
+                <div><label class="field-label">یافته‌های CXR</label>{{ form.chest_xray_findings }}</div>
+                <div><label class="field-label">نتایج سایر موارد (سونوگرافی و
+                    ...)</label>{{ form.other_paraclinical_notes }}</div>
+            </div>
+        </fieldset>
+    </div>
+
+    <div class="form-step">
+        <fieldset>
+            <h3 class="font-bold text-xl mb-4 text-slate-700">ارجاعات</h3>
+            {{ referral_formset.management_form }}
+            {% for ref_form in referral_formset %}
+                <div class="formset-item">
+                    {{ ref_form.id }}
+                    {% if ref_form.instance.pk %}
+                        <div class="absolute top-4 left-4"><label for="{{ ref_form.DELETE.id_for_label }}"
+                                                                  class="text-red-500 hover:text-red-700 cursor-pointer"
+                                                                  title="حذف">{{ ref_form.DELETE }}
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </label></div>{% endif %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div><label class="field-label">تاریخ ارجاع</label>{{ ref_form.date }}</div>
+                        <div><label class="field-label">نوع تخصص</label>{{ ref_form.specialty }}</div>
+                        <div class="md:col-span-2"><label class="field-label">علت ارجاع</label>{{ ref_form.reason }}
+                        </div>
+                        <div class="md:col-span-2"><label class="field-label">نتیجه ارجاع</label>{{ ref_form.result }}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+
+            <h3 class="font-bold text-xl mt-10 mb-4 text-slate-700">نظریه نهایی پزشک</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
+                <label class="choice-card final-opinion-card space-y-2">
+                    {{ form.opinion_fit }}
+                    <svg class="h-10 w-10 mx-auto text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="font-bold text-lg">بلامانع برای کار</span>
+                </label>
+                <label class="choice-card final-opinion-card space-y-2 conditional-card">
+                    {{ form.opinion_fit_with_conditions }}
+                    <svg class="h-10 w-10 mx-auto text-yellow-500" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    <span class="font-bold text-lg">مشروط برای کار</span>
+                </label>
+                <label class="choice-card final-opinion-card space-y-2 conditional-card">
+                    {{ form.opinion_unfit }}
+                    <svg class="h-10 w-10 mx-auto text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="font-bold text-lg">عدم صلاحیت</span>
+                </label>
+            </div>
+
+            <div class="details-panel"><label class="field-label">شرح شروط (در صورت
+                وجود)</label>{{ form.opinion_fit_conditions_details }}</div>
+            <div class="details-panel"><label class="field-label">علت عدم صلاحیت (در صورت
+                وجود)</label>{{ form.opinion_unfit_reason }}</div>
+
+            <div class="mt-6"><label class="field-label">توصیه‌های پزشکی لازم</label>{{ form.medical_recommendations }}
+            </div>
+        </fieldset>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // This script handles the multi-step navigation logic. It remains unchanged.
+        const form = document.getElementById('multi-step-form');
+        const stepsSource = document.getElementById('form-steps-source');
+        const steps = Array.from(stepsSource.querySelectorAll('.form-step'));
+        steps.forEach(step => form.insertBefore(step, form.lastElementChild));
+
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        const stepNavContainer = document.getElementById('step-navigation').querySelector('ol');
+        const stepTitleEl = document.getElementById('step-title');
+        const stepSubtitleEl = document.getElementById('step-subtitle');
+        let currentStep = 0;
+
+        const stepData = [
+            {
+                title: "مشخصات فردی",
+                subtitle: "اطلاعات اولیه و هویتی خود را وارد کنید.",
+                icon: "M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z M4.5 20.25a8.25 8.25 0 1115 0v.75H4.5v-.75z"
+            },
+            {
+                title: "سوابق شغلی",
+                subtitle: "اطلاعات مربوط به شغل فعلی و مشاغل قبلی خود را بنویسید.",
+                icon: "M2.25 21h19.5m-18-18v18m10.5-18v18m-6-13.5h.008v.008h-.008v-.008zm0 4.5h.008v.008h-.008v-.008zm0 4.5h.008v.008h-.008v-.008zm4.5-9h.008v.008h-.008v-.008zm0 4.5h.008v.008h-.008v-.008zm0 4.5h.008v.008h-.008v-.008zm4.5-9h.008v.008h-.008v-.008zm0 4.5h.008v.008h-.008v-.008z"
+            },
+            {
+                title: "عوامل زیان آور شغلی",
+                subtitle: "عوامل فیزیکی، شیمیایی و ... که در محیط کار با آن‌ها مواجه هستید.",
+                icon: "M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+            },
+            {
+                title: "سابقه پزشکی",
+                subtitle: "سوابق بیماری‌ها، حساسیت‌ها، داروها و سایر موارد مرتبط.",
+                icon: "M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"
+            },
+            {
+                title: "معاینات",
+                subtitle: "نتایج معاینات انجام شده توسط پزشک.",
+                icon: "M3.75 9.75h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            },
+            {
+                title: "آزمایش‌ها و پاراکلینیک",
+                subtitle: "نتایج آزمایش خون، اسپیرومتری و سایر موارد.",
+                icon: "M3.75 4.5A2.25 2.25 0 016 2.25h12A2.25 2.25 0 0120.25 4.5v15A2.25 2.25 0 0118 21.75H6A2.25 2.25 0 013.75 19.5v-15zM9 12.75a.75.75 0 01.75-.75h4.5a.75.75 0 010 1.5h-4.5a.75.75 0 01-.75-.75z"
+            },
+            {
+                title: "ارجاعات و نظریه نهایی",
+                subtitle: "تکمیل ارجاعات و نظر نهایی پزشک برای تایید پرونده.",
+                icon: "M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            }
+        ];
+
+        stepData.forEach((data, index) => {
+            const li = document.createElement('li');
+            li.innerHTML = `<div class="step-nav-item" data-step="${index}"><div class="step-icon"><svg class="h-5 w-5 icon-default" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="${data.icon}" /></svg><svg class="h-5 w-5 icon-completed hidden" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></div><span>${data.title}</span></div>`;
+            stepNavContainer.appendChild(li);
+        });
+
+        const stepNavItems = stepNavContainer.querySelectorAll('.step-nav-item');
+
+        function updateUI() {
+            steps.forEach((step, index) => step.classList.toggle('active', index === currentStep));
+            stepTitleEl.textContent = stepData[currentStep].title;
+            stepSubtitleEl.textContent = stepData[currentStep].subtitle;
+            stepNavItems.forEach((navItem, index) => {
+                navItem.classList.toggle('active', index === currentStep);
+                navItem.classList.toggle('completed', index < currentStep);
+                navItem.querySelector('.icon-default').classList.toggle('hidden', index < currentStep);
+                navItem.querySelector('.icon-completed').classList.toggle('hidden', index >= currentStep);
+            });
+            prevBtn.style.display = currentStep === 0 ? 'none' : 'inline-flex';
+            nextBtn.style.display = currentStep === steps.length - 1 ? 'none' : 'inline-flex';
+            submitBtn.style.display = currentStep === steps.length - 1 ? 'inline-flex' : 'none';
+            document.getElementById('navigation-buttons').style.justifyContent = currentStep === 0 ? 'flex-end' : 'space-between';
+        }
+
+        nextBtn.addEventListener('click', () => {
+            if (currentStep < steps.length - 1) {
+                currentStep++;
+                updateUI();
+                window.scrollTo(0, 0);
+            }
+        });
+        prevBtn.addEventListener('click', () => {
+            if (currentStep > 0) {
+                currentStep--;
+                updateUI();
+                window.scrollTo(0, 0);
+            }
+        });
+        stepNavItems.forEach(navItem => {
+            navItem.addEventListener('click', () => {
+                const stepIndex = parseInt(navItem.getAttribute('data-step'));
+                if (stepIndex < currentStep || navItem.classList.contains('active')) {
+                    currentStep = stepIndex;
+                    updateUI();
+                }
+            });
+        });
+        updateUI();
+
+        // --- Script for applying styles dynamically ---
+        const allTextInputs = form.querySelectorAll('input[type="text"], input[type="email"], input[type="number"], input[type="date"], input[type="file"]');
+        allTextInputs.forEach(input => input.classList.add('form-input'));
+        form.querySelectorAll('select').forEach(select => select.classList.add('form-select'));
+        form.querySelectorAll('textarea').forEach(textarea => textarea.classList.add('form-textarea'));
+        form.querySelectorAll('.input-group .form-input').forEach(input => input.classList.add('form-input-with-icon'));
+        form.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(input => {
+            if (input.parentElement.classList.contains('choice-card')) {
+                input.classList.add('choice-card-input');
+            }
+            if (input.name.includes('DELETE')) {
+                input.classList.add('hidden'); // Hide the original checkbox for formsets
+            }
+        });
+
+        // ===== NEW & IMPROVED MODEL SELECTOR SCRIPT =====
+        const modelSelector = document.getElementById('model-selector');
+        if (modelSelector) {
+            const modelSelectorBtn = document.getElementById('model-selector-btn');
+            const selectedModelText = document.getElementById('selected-model-text');
+            const selectedModelInput = document.getElementById('selected_model_input');
+            const radioButtons = modelSelector.querySelectorAll('input[type="radio"]');
+
+            // Toggle dropdown visibility
+            modelSelectorBtn.addEventListener('click', (event) => {
+                event.stopPropagation(); // prevent window listener from closing it immediately
+                modelSelector.classList.toggle('is-open');
+            });
+
+            // Handle selection from dropdown
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', function () {
+                    if (this.checked) {
+                        const selectedText = this.getAttribute('data-text');
+                        const selectedValue = this.value;
+
+                        selectedModelText.textContent = selectedText;
+                        selectedModelInput.value = selectedValue;
+
+                        console.log(`Model changed to: ${selectedValue}`);
+                        modelSelector.classList.remove('is-open'); // Close dropdown after selection
+                    }
+                });
+            });
+
+            // Close dropdown when clicking outside of it
+            window.addEventListener('click', () => {
+                if (modelSelector.classList.contains('is-open')) {
+                    modelSelector.classList.remove('is-open');
+                }
+            });
+        }
+    });
+</script>
+
+</body>
+</html>

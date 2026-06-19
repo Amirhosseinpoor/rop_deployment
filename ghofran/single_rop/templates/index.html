@@ -1,0 +1,1216 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ROP Detection | MediversAI</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{% static 'icons/mediversai_logo_final-032.png' %}">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Poppins', sans-serif;
+            background-color: #f7f9fc;
+        }
+
+        .main-container-bg {
+            background-color: #ffffff;
+        }
+
+        /* --- استایل‌های نهایی برای چت --- */
+        .chat-message {
+            display: flex;
+            padding: 0.5rem 0;
+            gap: 1rem;
+            max-width: 90%;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .user-message {
+            margin-left: auto;
+        }
+
+        .assistant-message {
+            margin-right: auto;
+        }
+
+        .message-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .user-message .message-wrapper {
+            flex-direction: row-reverse;
+        }
+
+        .avatar-wrapper {
+            width: 36px;
+            height: 36px;
+            flex-shrink: 0;
+            position: relative;
+            margin-top: 0.25rem;
+        }
+
+        .avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .avatar-wrapper.thinking::after {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            border-top-color: #4338ca; /* indigo-700 */
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .message-content {
+            color: #1f2937; /* gray-800 */
+            line-height: 1.75;
+        }
+
+        .user-message .message-content p {
+            background-color: #eef2ff; /* indigo-50 */
+            color: #3730a3; /* indigo-800 */
+            padding: 0.75rem 1.25rem;
+            border-radius: 1.5rem;
+        }
+
+        .prose {
+            font-size: 1rem;
+        }
+
+        .prose p:first-child {
+            margin-top: 0;
+        }
+
+        .prose p:last-child {
+            margin-bottom: 0;
+        }
+
+        @keyframes pulse {
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .thinking-text {
+            animation: pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        .thinking-details summary {
+            cursor: pointer;
+            padding: 0.25rem 0.75rem;
+            margin-top: 1rem;
+            border-radius: 9999px;
+            background-color: #f3f4f6;
+            color: #4b5563;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            outline: none;
+            transition: background-color 0.2s;
+        }
+
+        .thinking-details summary:hover {
+            background-color: #e5e7eb;
+        }
+
+        .thinking-details summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .thinking-details[open] summary svg.chevron {
+            transform: rotate(180deg);
+        }
+
+        .thinking-details pre {
+            background-color: #f8f9fa;
+            border: 1px solid #e8eaed;
+            color: #3c4043;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 0.75rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+            font-size: 0.8rem;
+            position: relative;
+        }
+
+        .prose pre {
+            background-color: #202124 !important;
+            padding: 1rem !important;
+            border-radius: 8px !important;
+            position: relative;
+        }
+
+        .prose code {
+            color: #e8eaed !important;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #3c4043;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        pre:hover .copy-btn {
+            opacity: 1;
+        }
+
+        .copy-btn:hover {
+            background-color: #5f6368;
+        }
+
+        .chat-input-form {
+            background-color: #f0f2f5;
+            border-radius: 1.5rem;
+            padding: 0.5rem;
+            padding-left: 1.25rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-input-form input {
+            background: transparent;
+            border: none;
+            outline: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ----- Pretty range slider ----- */
+        input.pretty-range {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 0.6rem;
+            border-radius: 9999px;
+            background: linear-gradient(to right, #2563eb 100%, #e5e7eb 0%);
+            outline: none;
+        }
+
+        input.pretty-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 9999px;
+            background: white;
+            border: 2px solid #2563eb; /* indigo-600 */
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .15);
+            cursor: pointer;
+            transition: transform .12s ease;
+        }
+
+        input.pretty-range:active::-webkit-slider-thumb {
+            transform: scale(1.05);
+        }
+
+        input.pretty-range::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 9999px;
+            background: white;
+            border: 2px solid #2563eb;
+            cursor: pointer;
+        }
+
+        /* Bubble over the thumb */
+        .range-bubble {
+            position: absolute;
+            top: -1.85rem;
+            transform: translateX(-50%);
+            background: #111827;
+            color: white;
+            font-size: .70rem;
+            padding: .15rem .45rem;
+            border-radius: 0.35rem;
+            white-space: nowrap;
+            pointer-events: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
+        }
+
+        /* ----- Nice toggle switch ----- */
+        .pretty-switch {
+            position: relative;
+            width: 48px;
+            height: 28px;
+        }
+
+        .pretty-switch input {
+            display: none;
+        }
+
+        .pretty-switch .track {
+            position: absolute;
+            inset: 0;
+            border-radius: 9999px;
+            background: #e5e7eb;
+            transition: background .15s ease;
+            box-shadow: inset 0 0 0 1px #d1d5db;
+        }
+
+        .pretty-switch .thumb {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 22px;
+            height: 22px;
+            border-radius: 9999px;
+            background: white;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
+            transition: transform .18s ease;
+        }
+
+        .pretty-switch input:checked + .track {
+            background: #2563eb33;
+            box-shadow: inset 0 0 0 2px #2563eb;
+        }
+
+        .pretty-switch input:checked + .track + .thumb {
+            transform: translateX(20px);
+        }
+
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen py-12 px-4 flex flex-col items-center">
+
+<header class="w-full bg-white shadow-md border-b border-gray-200 px-6 py-3 flex justify-between items-center fixed top-0 left-0 z-50">
+    <div class="flex items-center space-x-3"><img src="{% static 'icons/mediversai_logo_final.png' %}"
+                                                  class="h-8 opacity-90" alt="MediversAI">
+        <h1 class="text-lg font-semibold text-gray-800">ROP Detection</h1></div>
+    {% if user.is_authenticated %}
+        <div class="flex items-center space-x-6 text-sm">
+            <a href="{% url 'history' %}" class="text-gray-700 hover:underline">History</a>
+            <a href="{% url 'double_home' %}" class="text-gray-700 hover:underline">KC AI</a>
+            <div class="relative group">
+                <button class="flex items-center space-x-1 text-gray-700 font-medium focus:outline-none">
+                    <span>{{ user.username }}</span>
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2"
+                         viewBox="0 0 24 24">
+                        <path d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div class="absolute right-0 mt-2 w-28 bg-white border rounded-md shadow-md opacity-0 group-hover:opacity-100 z-50">
+                    <form method="post" action="{% url 'logout' %}">{% csrf_token %}
+                        <button type="submit"
+                                class="block w-full px-4 py-2 text-red-600 text-sm hover:bg-gray-50 text-left">Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</header>
+
+<div class="mt-20"></div>
+
+<main class="w-full max-w-6xl main-container-bg shadow-xl rounded-2xl p-6 md:p-14">
+    {% if not result %}
+        <form method="post" enctype="multipart/form-data" class="space-y-6 text-center">
+            {% csrf_token %}
+            <div id="upload-box" class="flex justify-center">
+                <label id="upload-label" for="file-input"
+                       class="cursor-pointer w-full max-w-3xl min-h-60 flex flex-col items-center justify-center bg-gray-50 border-2 border-dashed border-blue-400 rounded-2xl hover:bg-blue-50 transition relative overflow-hidden p-4">
+                    <div id="upload-content" class="flex flex-col items-center justify-center space-y-1">
+                        <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M4 12l1.41 1.41L11 7.83v8.34h2V7.83l5.59 5.58L20 12l-8-8-8 8z"/>
+                        </svg>
+                        <span class="text-sm text-blue-600">Select one or more images</span>
+                        <span class="text-xs text-gray-500">You can upload multiple fundus photos for the same patient</span>
+                    </div>
+                    <input id="file-input" type="file" name="files" accept="image/*" class="hidden" multiple>
+
+                    <div id="preview-grid"
+                         class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 w-full"></div>
+                </label>
+            </div>
+
+            <button type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-8 rounded-full shadow-sm transition inline-flex items-center gap-2">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clip-rule="evenodd"/>
+                </svg>
+                <span>Submit</span>
+            </button>
+        </form>
+    {% else %}
+
+        <div class="space-y-10">
+            <div class="text-center">
+                {% if result.image_data %}
+                    <div class="w-full flex flex-col items-center gap-4">
+                        <!-- Canvas -->
+                        <div class="rounded shadow-md bg-white p-2">
+                            <canvas id="vesselCanvas" class="rounded max-h-96"></canvas>
+                        </div>
+
+                        <!-- Controls -->
+                        <div class="w-full max-w-xl flex flex-col gap-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-gray-500">Real photo</span>
+                                <span id="intensityValue" class="text-xs font-medium text-gray-600">100%</span>
+                                <span class="text-xs text-gray-500">Max highlight</span>
+                            </div>
+
+                            <!-- Pretty slider with bubble -->
+                            <div class="relative w-full">
+                                <input id="overlayAlpha" type="range" min="0" max="100" value="100"
+                                       class="pretty-range w-full">
+                                <div id="rangeBubble" class="range-bubble">100%</div>
+                            </div>
+
+                            <!-- Toggle + quick actions -->
+                            <div class="flex items-center gap-4 pt-1">
+                                <label class="pretty-switch">
+                                    <input id="toggleOverlay" type="checkbox" checked>
+                                    <span class="track"></span>
+                                    <span class="thumb"></span>
+                                </label>
+                                <span class="text-sm text-gray-700 select-none">Show highlight</span>
+
+                                <div class="ml-auto flex items-center gap-2">
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sources for JS -->
+                        <div id="overlay-sources"
+                             data-original="{{ result.original_image_data }}"
+                             data-overlay="{{ result.image_data }}"
+                             style="display:none;"></div>
+
+                    </div>
+                {% endif %}
+            </div>
+
+
+            <div class="grid md:grid-cols-4 gap-6 text-center">
+                <div class="bg-white border rounded-xl p-6 shadow-sm"><h3
+                        class="text-lg font-semibold text-blue-600 mb-2">Plus Prediction</h3>
+                    <p class="text-gray-700 text-sm"><span
+                            class="font-medium">Result:</span> {{ result.predictions.class_name }}</p>
+                    <p class="text-gray-500 text-xs"><span
+                            class="font-medium">Probability:</span> {{ result.predictions.class_prob }}</p></div>
+                <div class="bg-white border rounded-xl p-6 shadow-sm"><h3
+                        class="text-lg font-semibold text-purple-600 mb-2">Stage Prediction</h3>
+                    <p class="text-gray-700 text-sm"><span
+                            class="font-medium">Stage:</span> {{ result.stage_prediction.stage_name }}</p>
+                    <p class="text-gray-500 text-xs"><span
+                            class="font-medium">Probability:</span> {{ result.stage_prediction.stage_prob }}</p></div>
+                <div class="bg-white border rounded-xl p-6 shadow-sm"><h3
+                        class="text-lg font-semibold text-blue-600 mb-2">Zone Prediction</h3>
+                    <p class="text-gray-700 text-sm"><span
+                            class="font-medium">Result:</span> {{ result.zone_prediction.zone_name }}</p>
+                    <p class="text-gray-500 text-xs"><span
+                            class="font-medium">Probability:</span> {{ result.zone_prediction.zone_prob }}</p></div>
+                <div class="bg-white border rounded-xl p-6 shadow-sm">
+                    <h3 class="text-lg font-semibold text-red-600 mb-2">Final Decision</h3>
+                    <p class="text-gray-700 text-sm">
+                        <span class="font-medium">Decision:</span>
+                        {{ result.final_decision }}
+                    </p>
+                    <p class="text-gray-500 text-xs">
+                        <span class="font-medium">Based on:</span>
+                        {{ result.predictions.class_name }} · {{ result.stage_prediction.stage_name }}
+                        · {{ result.zone_prediction.zone_name }}
+                    </p>
+                </div>
+
+            </div>
+            {% if results %}
+                <div class="mt-8">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Per-image predictions</h3>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white border rounded-xl shadow-sm">
+                            <thead class="bg-gray-50 text-gray-600 text-sm">
+                            <tr>
+                                <th class="px-4 py-2 text-left">File</th>
+                                <th class="px-4 py-2 text-left">Images</th>
+                                <th class="px-4 py-2 text-left">Plus</th>
+                                <th class="px-4 py-2 text-left">Stage</th>
+                                <th class="px-4 py-2 text-left">Zone</th>
+                                <th class="px-4 py-2 text-left">Final</th>
+                                <th class="px-4 py-2 text-left">Chosen</th>
+                            </tr>
+                            </thead>
+
+                            <tbody class="text-sm">
+                            {% for r in results %}
+                                <tr class="border-t">
+                                    <!-- File -->
+                                    <td class="px-4 py-2">{{ r.file_name|default:"-" }}</td>
+
+                                    <!-- Images (Raw / Segmented / Preview) -->
+                                    {#                                    <td class="px-4 py-2 space-x-2">#}
+                                    {#                                        {% if r.original_image_data or r.image_url %}#}
+                                    {#                                            <a#}
+                                    {#                                                    href="{{ r.image_url|default:r.original_image_data }}"#}
+                                    {#                                                    target="_blank" rel="noopener"#}
+                                    {#                                                    class="text-blue-600 hover:underline"#}
+                                    {#                                                    download="{{ r.file_name|default:'original.jpg' }}">#}
+                                    {##}
+                                    {#                                            </a>#}
+                                    {#                                        {% endif %}#}
+                                    {##}
+                                    {#                                        {% if r.image_data or r.segmented_image_url %}#}
+                                    {#                                            <a#}
+                                    {#                                                    href="{{ r.segmented_image_url|default:r.image_data }}"#}
+                                    {#                                                    target="_blank" rel="noopener"#}
+                                    {#                                                    class="text-purple-600 hover:underline"#}
+                                    {#                                                    download="segmented_{{ forloop.counter0 }}.jpg">#}
+                                    {##}
+                                    {#                                            </a>#}
+                                    {#                                        {% endif %}#}
+                                    <td class="px-4 py-2">
+                                        {% if r.original_image_data or r.image_data or r.image_url or r.segmented_image_url %}
+                                            <button
+                                                    type="button"
+                                                    class="inline-flex items-center px-2 py-1 text-xs border rounded hover:bg-gray-50"
+                                                    data-orig="{{ r.image_url|default:r.original_image_data }}"
+                                                    data-seg="{{ r.segmented_image_url|default:r.image_data }}"
+                                                    data-name="{{ r.file_name|default:'image' }}"
+                                                    onclick="openImagePreview(this)">
+                                                Preview
+                                            </button>
+                                        {% else %}
+                                            <span class="text-gray-400 text-xs">No preview</span>
+                                        {% endif %}
+                                    </td>
+
+
+                                    <!-- Plus -->
+                                    <td class="px-4 py-2">{{ r.predictions.class_name|default:"-" }}</td>
+                                    <!-- Stage -->
+                                    <td class="px-4 py-2">{{ r.stage_prediction.stage_name|default:"-" }}</td>
+                                    <!-- Zone -->
+                                    <td class="px-4 py-2">{{ r.zone_prediction.zone_name|default:"-" }}</td>
+                                    <!-- Final -->
+                                    <td class="px-4 py-2">{{ r.final_decision|default:"-" }}</td>
+                                    <!-- Chosen -->
+                                    <td class="px-4 py-2">
+                                        {% if forloop.counter0 == result.worst_index %}
+                                            <span class="px-2 py-1 text-xs rounded bg-red-50 text-red-700">worst</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+
+                        </table>
+                    </div>
+                </div>
+            {% endif %}
+            <!-- Image preview modal -->
+            <div id="imgPreviewModal"
+                 class="fixed inset-0 z-50 hidden items-center justify-center">
+                <!-- backdrop -->
+                <div class="absolute inset-0 bg-black bg-opacity-40" onclick="closeImagePreview()"></div>
+
+                <!-- dialog -->
+                <div class="relative bg-white w-[95vw] max-w-5xl rounded-2xl shadow-xl p-4 md:p-6">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 id="imgPreviewTitle" class="text-lg font-semibold text-gray-800">Preview</h4>
+                        <button class="text-gray-600 hover:text-gray-900" onclick="closeImagePreview()">✕</button>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="border rounded-lg p-2 bg-gray-50">
+                            <div class="text-sm font-medium text-gray-700 mb-2">Raw</div>
+                            <img id="imgPreviewOrig" src="" alt="raw"
+                                 class="w-full max-h-[70vh] object-contain rounded">
+                            <div class="mt-2 text-right">
+                                <a id="downloadOrig" href="#" download class="text-blue-600 hover:underline text-sm">Download
+                                    raw</a>
+                            </div>
+                        </div>
+
+                        <div class="border rounded-lg p-2 bg-gray-50">
+                            <div class="text-sm font-medium text-gray-700 mb-2">Segmented</div>
+                            <img id="imgPreviewSeg" src="" alt="segmented"
+                                 class="w-full max-h-[70vh] object-contain rounded">
+                            <div class="mt-2 text-right">
+                                <a id="downloadSeg" href="#" download class="text-purple-600 hover:underline text-sm">Download
+                                    segmented</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 text-right">
+                        <button class="px-3 py-1.5 rounded border hover:bg-gray-50" onclick="closeImagePreview()">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ===== Clinical Guidance (static per diagnosis) ===== -->
+            <div class="mt-10">
+                <div class="bg-white border rounded-2xl p-6 md:p-8 shadow-sm">
+                    <div class="flex items-center gap-3 mb-4">
+                        <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/>
+                        </svg>
+                        <h2 class="text-xl md:text-2xl font-semibold text-gray-800">
+                            Clinical Guidance for This Case
+                        </h2>
+                    </div>
+
+                    {% if result.guidance %}
+                        <h3 class="text-lg md:text-xl font-semibold text-gray-900 mb-2">
+                            {{ result.guidance.title }}
+                        </h3>
+                        <p class="text-gray-700 leading-relaxed">
+                            {{ result.guidance.text }}
+                        </p>
+
+                        <!-- Small recap chips -->
+                        <div class="flex flex-wrap gap-2 mt-4">
+        <span class="px-3 py-1 text-xs rounded-full bg-blue-50 text-blue-700">
+          {{ result.zone_prediction.zone_name }}
+        </span>
+                            <span class="px-3 py-1 text-xs rounded-full bg-purple-50 text-purple-700">
+          {{ result.predictions.class_name }}
+        </span>
+                            <span class="px-3 py-1 text-xs rounded-full bg-indigo-50 text-indigo-700">
+          {{ result.stage_prediction.stage_name }}
+        </span>
+                            <span class="px-3 py-1 text-xs rounded-full bg-red-50 text-red-700">
+          {{ result.final_decision }}
+        </span>
+                        </div>
+                    {% else %}
+                        <p class="text-gray-600">No guidance available for this combination.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="bg-gray-100 border border-gray-200 rounded-xl p-6 shadow-sm space-y-4 mt-8 text-left">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="feedback_mode" value="true">
+                    <div class="grid sm:grid-cols-3 gap-4">
+                        <div><label class="block text-xs font-medium text-gray-600 mb-1">Correct Stage</label><select
+                                name="stage_corrected_class"
+                                class="w-full px-3 py-2 text-sm border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">-- Select --</option>
+                            <option value="Normal">Normal</option>
+                            <option value="Stage 0">Stage 0</option>
+                            <option value="Stage 1">Stage 1</option>
+                            <option value="Stage 2">Stage 2</option>
+                            <option value="Stage 3">Stage 3</option>
+                            <option value="Stage 4">Stage 4</option>
+                            <option value="Stage 5">Stage 5</option>
+                        </select></div>
+                        <div><label class="block text-xs font-medium text-gray-600 mb-1">Correct Class</label><select
+                                name="corrected_class"
+                                class="w-full px-3 py-2 text-sm border rounded-md focus:ring-purple-500 focus:border-purple-500">
+                            <option value="">-- Select --</option>
+                            <option value="No Plus">No Plus</option>
+                            <option value="Plus">Plus</option>
+                        </select></div>
+                        <div><label class="block text-xs font-medium text-gray-600 mb-1">Correct Zone</label><select
+                                name="corrected_class"
+                                class="w-full px-3 py-2 text-sm border rounded-md focus:ring-purple-500 focus:border-purple-500">
+                            <option value="">-- Select --</option>
+                            <option value="Zone 1">Zone 1</option>
+                            <option value="Zone 2">Zone 2</option>
+                            <option value="Zone 3">Zone 3</option>
+                        </select></div>
+
+                    </div>
+                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Comment</label><textarea
+                            name="review_comment" rows="3"
+                            class="w-full px-3 py-2 text-sm border rounded-md focus:ring-indigo-500 resize-none"
+                            placeholder="Optional notes or explanation..."></textarea></div>
+                    <div class="text-center mt-4">
+                        <button type="submit"
+                                class="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-full text-sm shadow-md">
+                            Submit Feedback
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="bg-gray-50 border border-gray-200 rounded-xl p-6 shadow-sm space-y-4 mt-8">
+            <div class="w-full max-w-4xl mx-auto">
+                <div class="flex items-center justify-center gap-3 mb-6">
+                    <div class="avatar-wrapper"><img src="{% static 'icons/gemini.png' %}" alt="AI" class="avatar">
+                    </div>
+                    <h3 class="text-2xl font-semibold text-gray-800">Chat with Medical Assistant</h3>
+                </div>
+                <div id="chat-messages" class="h-[32rem] overflow-y-auto p-4 mb-4"></div>
+                <div id="chat-form" class="flex items-center gap-3 p-2">
+                    <div class="flex-grow flex items-center chat-input-form">
+                        <input type="text" id="chat-input" class="p-2" placeholder="Ask about the results...">
+                    </div>
+                    <button id="send-btn"
+                            class="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold w-12 h-12 rounded-lg flex items-center justify-center transition-all duration-200">
+                        <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                  clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- CRITICAL: Contains the prediction results as a JSON string -->
+        <div id="prediction-context"
+             data-context='{{ result.llm_diagnostic_text|escapejs }}'
+             style="display: none;"></div>
+
+    {% endif %}
+</main>
+<script>
+    /* ---------- Image preview on upload ---------- */
+    function load(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        const label = document.getElementById('upload-label');
+        if (!label) return;
+
+        const oldImg = document.getElementById('preview-image');
+        if (oldImg) oldImg.remove();
+
+        const preview = document.createElement('img');
+        preview.src = URL.createObjectURL(file);
+        preview.id = 'preview-image';
+        preview.className = 'absolute inset-0 w-full h-full object-contain rounded-xl';
+        label.appendChild(preview);
+
+        const content = document.getElementById('upload-content');
+        if (content) content.classList.add('hidden');
+    }
+
+    /* ---------- Chat widget ---------- */
+    document.addEventListener('DOMContentLoaded', () => {
+        const sendBtn = document.getElementById('send-btn');
+        const chatInput = document.getElementById('chat-input');
+        const chatMessages = document.getElementById('chat-messages');
+        const contextDiv = document.getElementById('prediction-context');
+
+        if (!sendBtn || !chatInput || !chatMessages || !contextDiv) return;
+
+        // Parse result JSON embedded by Django (should exclude base64 image_data)
+
+        const diagText = contextDiv ? contextDiv.dataset.context || '' : '';
+
+
+        let chatHistory = [];
+
+        const userAvatarSvg = `
+    <div class="avatar-wrapper">
+      <div class="avatar bg-gray-200">
+        <svg class="w-6 h-6 text-gray-600" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
+        </svg>
+      </div>
+    </div>`;
+
+        const aiAvatarHtml = `
+    <div class="avatar-wrapper">
+      <img src="{% static 'icons/gemini.png' %}" alt="AI" class="avatar">
+    </div>`;
+
+        const computationIconSvg = `
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    </svg>`;
+
+        async function typewriter(element, text, speed = 15) {
+            element.innerHTML = '▌';
+            for (let i = 0; i < text.length; i++) {
+                element.innerHTML = text.substring(0, i + 1) + '▌';
+                await new Promise(res => setTimeout(res, speed));
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            element.innerHTML = text;
+        }
+
+        function addCopyButtons(element) {
+            element.querySelectorAll('pre').forEach(pre => {
+                const btn = document.createElement('button');
+                btn.className = 'copy-btn';
+                btn.innerText = 'Copy';
+                btn.onclick = () => {
+                    const code = pre.querySelector('code').innerText;
+                    const el = document.createElement('textarea');
+                    el.value = code;
+                    document.body.appendChild(el);
+                    el.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(el);
+                    btn.innerText = 'Copied!';
+                    setTimeout(() => (btn.innerText = 'Copy'), 2000);
+                };
+                pre.appendChild(btn);
+            });
+        }
+
+        async function addMessage(role, data) {
+            const row = document.createElement('div');
+            row.className = `chat-message ${role}-message`;
+
+            const wrap = document.createElement('div');
+            wrap.className = 'message-wrapper';
+
+            const content = document.createElement('div');
+            content.className = 'message-content';
+
+            if (role === 'user') {
+                content.innerHTML = `<p>${data}</p>`;
+                wrap.innerHTML = userAvatarSvg;
+                wrap.appendChild(content);
+            } else {
+                const answerDiv = document.createElement('div');
+                answerDiv.className = 'prose prose-sm max-w-none';
+                content.appendChild(answerDiv);
+                wrap.innerHTML = aiAvatarHtml;
+                wrap.appendChild(content);
+
+                const finalAnswer = data.final_answer || '';
+// Clean up structural section titles like "Diagnostic Summary", "User Question", etc.
+                const cleanedAnswer = (finalAnswer || "")
+                    .replace(/^#*\s*Diagnostic Summary[\s\S]*?(?=#*\s*Comprehensive Explanation)/i, "")
+                    .replace(/^#*\s*User Question[\s\S]*?(?=#*\s*Comprehensive Explanation)/i, "")
+                    .replace(/^#*\s*Comprehensive Explanation\s*/i, "")
+                    .trim();
+
+// Typewriter effect for the cleaned text only
+                await typewriter(answerDiv, cleanedAnswer);
+                answerDiv.innerHTML = marked.parse(cleanedAnswer);
+                // --- Reference chips (URLs from RAG) ---
+                // --- Inline web sources (URLs from RAG) ---
+                if (Array.isArray(data.sources) && data.sources.length > 0) {
+                    const refsWrapper = document.createElement('div');
+                    refsWrapper.className = 'mt-3 text-xs text-gray-500 flex flex-wrap gap-2 items-center';
+
+                    const labelSpan = document.createElement('span');
+                    labelSpan.textContent = 'Sources:';
+                    labelSpan.className = 'font-medium';
+                    refsWrapper.appendChild(labelSpan);
+
+                    data.sources.forEach(src => {
+                        const url = src.source || '';
+                        if (!url || !url.startsWith('http')) return;   // skip non-URLs
+
+                        let display = url;
+                        try {
+                            const u = new URL(url);
+                            display = u.hostname.replace(/^www\./, '');
+                        } catch (e) {
+                            // fallback: keep full URL
+                        }
+
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.target = '_blank';
+                        link.rel = 'noopener noreferrer';
+                        link.textContent = display;
+                        link.className =
+                            'inline-flex items-center px-2 py-0.5 rounded-full ' +
+                            'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-100';
+
+                        link.title = url;
+                        refsWrapper.appendChild(link);
+                    });
+
+                    // Only append if at least one valid URL
+                    if (refsWrapper.children.length > 1) {
+                        content.appendChild(refsWrapper);
+                    }
+                }
+
+
+                const thinkingHtml = `
+        <details class="thinking-details">
+          <summary>${computationIconSvg} <span>Show grounding sources</span></summary>
+          <pre><code>${data.thinking_process || 'No grounding process available.'}</code></pre>
+        </details>`;
+                content.insertAdjacentHTML('beforeend', thinkingHtml);
+            }
+
+            row.appendChild(wrap);
+            chatMessages.appendChild(row);
+            addCopyButtons(row);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function handleSend() {
+            const query = chatInput.value.trim();
+            if (!query) return;
+
+            await addMessage('user', query);
+            chatInput.value = '';
+            sendBtn.disabled = true;
+
+            const thinkingMsg = document.createElement('div');
+            thinkingMsg.id = 'thinking';
+            thinkingMsg.className = 'chat-message assistant-message';
+            thinkingMsg.innerHTML =
+                `<div class="avatar-wrapper thinking"><img src="{% static 'icons/gemini.png' %}" alt="AI" class="avatar"></div>` +
+                `<div class="message-content"><p class="thinking-text bg-gray-100 p-3 rounded-lg">Thinking...</p></div>`;
+            chatMessages.appendChild(thinkingMsg);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            try {
+                const apiPayload = {
+                    query: query,
+                    diagnostic_context_text: diagText, // small, direct string
+                    chat_history: JSON.stringify(chatHistory.slice(-4))
+                };
+
+
+                // No trailing slash to avoid 307 redirect
+                const response = await fetch('http://127.0.0.1:8001/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(apiPayload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+// ✅ Only care about web documents for references
+                const webDocs = data.web_context_documents || [];
+
+// Plain-text view for the collapsible “Show grounding sources”
+                const sourceText = webDocs.map((doc, idx) => {
+                    const src = doc.source || '';
+                    const snippet = (doc.content || '').substring(0, 200);
+                    const label = src && src.startsWith('http')
+                        ? `[${src}](${src})`
+                        : src || '(web source)';
+
+                    return `Source ${idx + 1}: ${label}\nSnippet: ${snippet}...`;
+                }).join('\n\n---\n\n');
+
+// Structured list for pretty inline links
+                const sources = webDocs.map((doc, idx) => ({
+                    index: idx + 1,
+                    source: doc.source || '',
+                    snippet: (doc.content || '').substring(0, 160)
+                }));
+
+                const responseData = {
+                    final_answer: data.answer,
+                    thinking_process:
+                        `User Query:\n${query}\n\n` +
+                        `Diagnostic Context Used (text):\n${diagText}\n\n` +
+                        (webDocs.length
+                            ? `--- Retrieved Web Sources (truncated) ---\n\n${sourceText}`
+                            : `--- No web sources were used for this answer. ---`),
+
+                    sources: sources
+                };
+
+
+                chatMessages.removeChild(thinkingMsg);
+                await addMessage('assistant', responseData);
+
+                chatHistory.push({role: 'user', content: query});
+                chatHistory.push({role: 'assistant', content: data.answer});
+            } catch (error) {
+                console.error('Error connecting to RAG API:', error);
+                if (document.getElementById('thinking')) {
+                    chatMessages.removeChild(document.getElementById('thinking'));
+                }
+                await addMessage('assistant', {
+                    final_answer:
+                        'Sorry, I encountered an error. Please ensure the RAG API is running at **http://127.0.0.1:8001** and try again.',
+                    thinking_process: JSON.stringify({error: error.message}, null, 2)
+                });
+            } finally {
+                sendBtn.disabled = false;
+            }
+        }
+
+        // Boot greeting
+        chatMessages.innerHTML = '';
+        addMessage('assistant', {
+            final_answer: 'Hello! I am your medical assistant. You can ask me questions about the diagnostic results above.',
+            thinking_process: 'Initial greeting protocol.'
+        });
+
+        // Bind events
+        sendBtn.addEventListener('click', handleSend);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+            }
+        });
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const srcDiv = document.getElementById('overlay-sources');
+        const canvas = document.getElementById('vesselCanvas');
+        const range = document.getElementById('overlayAlpha');
+        const toggle = document.getElementById('toggleOverlay');
+
+        if (!srcDiv || !canvas || !range || !toggle) return;
+
+        const originalSrc = srcDiv.dataset.original || '';
+        const overlaySrc = srcDiv.dataset.overlay || '';
+
+        const ctx = canvas.getContext('2d');
+        const imgOriginal = new Image();
+        const imgOverlay = new Image();
+        imgOriginal.crossOrigin = 'anonymous';
+        imgOverlay.crossOrigin = 'anonymous';
+
+        let readyOriginal = false, readyOverlay = false;
+
+        function fitCanvasToImage(img) {
+            const maxH = 384;
+            const scale = Math.min(1, maxH / img.naturalHeight);
+            canvas.width = Math.round(img.naturalWidth * scale);
+            canvas.height = Math.round(img.naturalHeight * scale);
+        }
+
+        // ✅ only declare these once
+        const bubble = document.getElementById('rangeBubble');
+        const intensityValue = document.getElementById('intensityValue');
+        const btnReal = document.getElementById('btnReal');
+        const btnFull = document.getElementById('btnFull');
+
+        function updateSliderUI() {
+            const min = parseInt(range.min || '0', 10);
+            const max = parseInt(range.max || '100', 10);
+            const val = parseInt(range.value || '0', 10);
+            const pct = ((val - min) * 100) / (max - min);
+            range.style.background = `linear-gradient(to right, #2563eb ${pct}%, #e5e7eb ${pct}%)`;
+            if (bubble) {
+                bubble.textContent = `${val}%`;
+                bubble.style.left = `${pct}%`;
+            }
+            if (intensityValue) intensityValue.textContent = `${val}%`;
+            draw();
+        }
+
+        btnReal?.addEventListener('click', () => {
+            range.value = 0;
+            updateSliderUI();
+        });
+        btnFull?.addEventListener('click', () => {
+            range.value = 100;
+            updateSliderUI();
+        });
+        toggle?.addEventListener('change', updateSliderUI);
+        range.addEventListener('input', updateSliderUI);
+
+        function draw() {
+            if (!readyOriginal) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.globalAlpha = 1.0;
+            ctx.drawImage(imgOriginal, 0, 0, canvas.width, canvas.height);
+            if (toggle.checked && readyOverlay) {
+                const alpha = (parseInt(range.value, 10) || 0) / 100;
+                if (alpha > 0) {
+                    ctx.globalAlpha = alpha;
+                    ctx.drawImage(imgOverlay, 0, 0, canvas.width, canvas.height);
+                }
+            }
+            ctx.globalAlpha = 1.0;
+        }
+
+        imgOriginal.onload = () => {
+            readyOriginal = true;
+            fitCanvasToImage(imgOriginal);
+            imgOverlay.onload = () => {
+                readyOverlay = true;
+                draw();
+            };
+            imgOverlay.src = overlaySrc;
+            draw();
+        };
+
+        imgOriginal.src = originalSrc;
+        updateSliderUI();
+    });
+</script>
+<script>
+    // --- Multi-select accumulator (supports multiple picks + drag & drop) ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const input = document.getElementById('file-input');
+        const label = document.getElementById('upload-label');
+        const grid = document.getElementById('preview-grid');
+        const content = document.getElementById('upload-content');
+
+        if (!input || !label || !grid) return;
+
+        // A DataTransfer lets us build a mutable FileList for the input
+        const dt = new DataTransfer();
+
+        // Rerender preview grid from current dt.files
+        function renderGrid() {
+            grid.innerHTML = '';
+            if (dt.files.length > 0 && content) content.classList.add('hidden');
+            Array.from(dt.files).forEach(file => {
+                const url = URL.createObjectURL(file);
+                const card = document.createElement('div');
+                card.className = 'relative bg-white rounded-xl border shadow-sm overflow-hidden';
+                card.innerHTML = `
+          <img src="${url}" class="w-full h-32 object-cover" />
+          <div class="px-2 py-1 text-xs text-gray-600 truncate">${file.name}</div>
+          <button type="button"
+                  class="absolute top-2 right-2 text-xs bg-white/90 border rounded px-2 py-0.5 hover:bg-white"
+                  data-remove="${file.name}">✕</button>
+        `;
+                grid.appendChild(card);
+            });
+
+            // enable remove buttons
+            grid.querySelectorAll('button[data-remove]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const name = btn.getAttribute('data-remove');
+                    // rebuild dt without this file
+                    const nextDT = new DataTransfer();
+                    Array.from(dt.files).forEach(f => {
+                        if (f.name !== name) nextDT.items.add(f);
+                    });
+                    // swap references
+                    dt.items.clear();
+                    Array.from(nextDT.files).forEach(f => dt.items.add(f));
+                    // sync input and rerender
+                    input.files = dt.files;
+                    renderGrid();
+                });
+            });
+        }
+
+        // Add files, avoiding duplicates by name (simple heuristic)
+        function addFiles(fileList) {
+            const existingNames = new Set(Array.from(dt.files).map(f => f.name));
+            Array.from(fileList).forEach(file => {
+                if (!existingNames.has(file.name)) {
+                    dt.items.add(file);
+                    existingNames.add(file.name);
+                }
+            });
+            input.files = dt.files;     // keep <input> in sync
+            renderGrid();
+        }
+
+        // When user picks from the OS file picker (can do this multiple times)
+        input.addEventListener('change', (e) => addFiles(e.target.files));
+
+        // Clicking the big label opens the picker
+        {#label.addEventListener('click', () => input.click());#}
+        input.addEventListener('click', () => {
+            input.value = '';
+        }); // ریست قبل از انتخاب
+
+        // Drag & drop support on the label zone
+        ;['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev =>
+            label.addEventListener(ev, e => {
+                e.preventDefault();
+                e.stopPropagation();
+            }, false)
+        );
+        label.addEventListener('dragover', () => label.classList.add('ring', 'ring-blue-400'));
+        label.addEventListener('dragleave', () => label.classList.remove('ring', 'ring-blue-400'));
+        label.addEventListener('drop', (e) => {
+            label.classList.remove('ring', 'ring-blue-400');
+            if (e.dataTransfer?.files?.length) addFiles(e.dataTransfer.files);
+        });
+
+        // Optional: allow paste of images (Ctrl/Cmd+V)
+        document.addEventListener('paste', (e) => {
+            const files = Array.from(e.clipboardData?.files || []);
+            if (files.length) addFiles(files);
+        });
+
+        // Initial render
+        renderGrid();
+    });
+</script>
+
+<script>
+    function openImagePreview(btn) {
+        const orig = btn.getAttribute('data-orig') || '';
+        const seg = btn.getAttribute('data-seg') || '';
+        const name = btn.getAttribute('data-name') || 'image';
+
+        const modal = document.getElementById('imgPreviewModal');
+        const imgO = document.getElementById('imgPreviewOrig');
+        const imgS = document.getElementById('imgPreviewSeg');
+        const dlO = document.getElementById('downloadOrig');
+        const dlS = document.getElementById('downloadSeg');
+        const ttl = document.getElementById('imgPreviewTitle');
+
+        imgO.src = orig;
+        imgS.src = seg;
+        dlO.href = orig;
+        dlS.href = seg;
+        dlO.setAttribute('download', `${name}_raw.jpg`);
+        dlS.setAttribute('download', `${name}_segmented.jpg`);
+        ttl.textContent = `Preview — ${name}`;
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeImagePreview() {
+        const modal = document.getElementById('imgPreviewModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+</script>

@@ -1,0 +1,28 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Virtualenvs ---
+.venv/
+venv/
+env/
+
+# --- Environment / secrets ---
+.env
+.env.*
+!.env.example
+
+# --- OS / editor ---
+.DS_Store
+.idea/
+.vscode/
+
+# --- Large model weights ---
+# Bundled on disk and baked into the Docker image (see .dockerignore), but too
+# large to belong in git. Track them with Git LFS, or provide them at runtime
+# via KC_MODEL_PATH / MODEL_DIR. Remove this block if you really want them in git.
+model/

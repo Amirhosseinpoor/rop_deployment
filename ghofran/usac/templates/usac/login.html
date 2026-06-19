@@ -1,0 +1,148 @@
+{% load static %}
+{% load static socialaccount %}
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="h-full" data-theme>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ورود | MediverseAI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81'},
+          },
+          boxShadow: { soft: '0 10px 30px -12px rgba(0,0,0,.18)' }
+        }
+      },
+      darkMode: 'class'
+    }
+  </script>
+  <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    html, body { font-family: Vazirmatn, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; }
+    .glass { background: rgba(255,255,255,.75); backdrop-filter: blur(12px); }
+    .dark .glass { background: rgba(17,24,39,.7); }
+    .fade-slide { animation: fadeSlide .6s ease-out; }
+    @keyframes fadeSlide { from{opacity:0; transform: translateY(16px)} to{opacity:1; transform: translateY(0)} }
+  </style>
+</head>
+
+<body class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 text-slate-800 dark:text-slate-100 flex items-center justify-center px-4">
+  <!-- Theme toggle -->
+  <button id="themeToggle" class="fixed top-4 left-4 z-10 inline-flex items-center justify-center rounded-full border border-slate-300 dark:border-slate-700 p-2 bg-white/70 dark:bg-slate-900/70 backdrop-blur hover:bg-white dark:hover:bg-slate-800 transition" title="تغییر تم">
+    <svg id="sun" class="w-5 h-5 hidden dark:inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    <svg id="moon" class="w-5 h-5 dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+
+  <main class="w-full max-w-md fade-slide">
+    <div class="glass rounded-3xl shadow-soft border border-slate-200/60 dark:border-slate-700/50 p-8">
+      <!-- Logo -->
+      <div class="text-center mb-6">
+        <img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediverseAI" class="h-12 mx-auto mb-3 opacity-90">
+        <h1 class="text-2xl font-extrabold">خوش آمدید</h1>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">برای ادامه وارد حساب خود شوید</p>
+      </div>
+
+      <!-- Form -->
+      <form method="post" class="space-y-5" novalidate>
+        {% csrf_token %}
+        {% if error %}
+          <div class="bg-rose-50 dark:bg-rose-900/30 border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-200 text-sm rounded-xl px-4 py-2 text-center">
+            {{ error }}
+          </div>
+        {% endif %}
+
+        <div>
+          <label class="block text-sm mb-1 text-slate-600 dark:text-slate-300">نام کاربری</label>
+          <div class="relative">
+            <input type="text" name="username" autocomplete="username" required placeholder="نام کاربری خود را وارد کنید"
+                   class="w-full ps-10 pe-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/50 placeholder-slate-400 focus:ring-4 focus:ring-primary-200 focus:border-primary-500 outline-none" />
+            <span class="absolute inset-y-0 right-3 flex items-center text-slate-400">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm mb-1 text-slate-600 dark:text-slate-300">رمز عبور</label>
+          <div class="relative">
+            <input id="password" type="password" name="password" autocomplete="current-password" required placeholder="رمز عبور"
+                   class="w-full ps-10 pe-11 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/50 placeholder-slate-400 focus:ring-4 focus:ring-primary-200 focus:border-primary-500 outline-none" />
+            <span class="absolute inset-y-0 right-3 flex items-center text-slate-400">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.58 10.58A4 4 0 0 1 12 8a4 4 0 0 1 4 4"/><path d="M16.24 16.24A10.94 10.94 0 0 1 12 19c-5 0-9-4-9-4a21.71 21.71 0 0 1 5.06-4.66"/></svg>
+            </span>
+            <button type="button" id="togglePassword" class="absolute inset-y-0 left-2 px-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300" aria-label="نمایش/مخفی کردن رمز">
+              <svg id="eyeOff" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-5 0-9-4-9-4a21.65 21.65 0 0 1 5.08-4.69"/><path d="M1 1l22 22"/><path d="M9.88 9.88A4 4 0 0 1 12 8a4 4 0 0 1 4 4"/></svg>
+              <svg id="eyeOn" class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="flex items-center justify-between mt-2 text-xs">
+            <label class="inline-flex items-center gap-2 select-none">
+              <input type="checkbox" name="remember" class="rounded border-slate-300 text-primary-600 focus:ring-primary-500" />
+              <span class="text-slate-500">مرا به خاطر بسپار</span>
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-2.5 rounded-2xl bg-primary-600 hover:bg-primary-700 text-white font-semibold shadow-soft transition">
+          ورود
+        </button>
+      </form>
+
+      <!-- Divider -->
+      <div class="flex items-center gap-3 my-5">
+        <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"></span>
+        <span class="text-xs text-slate-500">یا</span>
+        <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"></span>
+      </div>
+
+      <!-- Social login -->
+      <a href="{% provider_login_url 'google' %}"
+         class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/50 text-slate-700 dark:text-slate-200 hover:shadow-soft transition text-sm font-medium">
+        <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" class="w-5 h-5"/>
+        <span>ورود با حساب گوگل</span>
+      </a>
+
+      <p class="text-xs text-center text-slate-500 dark:text-slate-400 mt-6">
+        حساب کاربری ندارید؟
+        <a href="{% url 'signup_choose_role' %}" class="text-primary-600 hover:underline font-medium">ثبت‌نام</a>
+      </p>
+    </div>
+  </main>
+
+  <script>
+    // Theme toggle
+    const root = document.documentElement;
+    const toggle = document.getElementById('themeToggle');
+    const stored = localStorage.getItem('theme');
+    if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      root.classList.add('dark');
+    }
+    toggle?.addEventListener('click', () => {
+      root.classList.toggle('dark');
+      localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+      document.getElementById('sun')?.classList.toggle('hidden');
+      document.getElementById('moon')?.classList.toggle('hidden');
+    });
+
+    // Password visibility
+    const pass = document.getElementById('password');
+    const btn = document.getElementById('togglePassword');
+    const eyeOn = document.getElementById('eyeOn');
+    const eyeOff = document.getElementById('eyeOff');
+    btn?.addEventListener('click', () => {
+      const isHidden = pass.type === 'password';
+      pass.type = isHidden ? 'text' : 'password';
+      eyeOn.classList.toggle('hidden', !isHidden);
+      eyeOff.classList.toggle('hidden', isHidden);
+    });
+  </script>
+</body>
+</html>

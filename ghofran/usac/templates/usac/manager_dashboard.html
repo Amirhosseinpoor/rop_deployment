@@ -1,0 +1,509 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="h-full" data-theme>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>مدیریت | MediverseAI</title>
+  <!-- Tailwind v3 CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81'
+            },
+          },
+          boxShadow: { 'soft':'0 10px 25px -10px rgba(0,0,0,.12)' }
+        }
+      },
+      darkMode: 'class'
+    }
+  </script>
+  <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    html, body { font-family: Vazirmatn, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; }
+    .glass { background: rgba(255,255,255,.7); backdrop-filter: blur(10px); }
+    .dark .glass { background: rgba(17,24,39,.6); }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 text-slate-800 dark:text-slate-100">
+  <!-- Top bar -->
+  <header class="sticky top-0 z-50 border-b border-slate-200/60 dark:border-slate-700/50 bg-white/80 dark:bg-slate-900/70 backdrop-blur">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="h-16 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <img src="{% static 'mediversai_logo_final.png' %}" alt="MediverseAI" class="h-9 w-auto opacity-90" />
+          <div>
+            <div class="font-extrabold text-slate-900 dark:text-white">پنل مدیر</div>
+            <div class="text-xs text-slate-500 dark:text-slate-400">مدیریت اعضا و دعوت‌نامه‌ها</div>
+          </div>
+          <span class="mx-3 h-6 w-px bg-slate-200 dark:bg-slate-700"></span>
+          <span class="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-primary-50 text-primary-700 border border-primary-200 dark:bg-primary-900/20 dark:text-primary-200 dark:border-primary-900/40">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+            MediverseAI
+          </span>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="themeToggle" class="group relative inline-flex items-center justify-center rounded-full border border-slate-300 dark:border-slate-700 p-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+            <svg id="sun" class="w-5 h-5 hidden dark:inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+            <svg id="moon" class="w-5 h-5 dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <span class="sr-only">تغییر تم</span>
+          </button>
+
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button class="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-rose-600 hover:bg-rose-700 text-white text-sm shadow-soft transition">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              خروج
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Page container -->
+  <main class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+    {% if messages %}
+      <div class="space-y-2">
+        {% for message in messages %}
+          <div class="px-4 py-3 rounded-xl glass border
+            {% if message.tags == 'success' %} border-green-300 text-green-800 dark:text-green-200
+            {% elif message.tags == 'error' %} border-rose-300 text-rose-800 dark:text-rose-200
+            {% else %} border-blue-300 text-blue-800 dark:text-blue-200 {% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Stats -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="glass rounded-2xl p-5 border border-slate-200/60 dark:border-slate-700/50 shadow-soft">
+        <div class="text-sm text-slate-500">پزشکان</div>
+        <div class="mt-2 flex items-end justify-between">
+          <div class="text-3xl font-extrabold text-slate-900 dark:text-white">{{ doctors|length }}</div>
+          <div class="text-xs px-2 py-1 rounded bg-primary-100 text-primary-800 dark:bg-primary-900/40 dark:text-primary-200">فعال</div>
+        </div>
+      </div>
+      <div class="glass rounded-2xl p-5 border border-slate-200/60 dark:border-slate-700/50 shadow-soft">
+        <div class="text-sm text-slate-500">کارمندان</div>
+        <div class="mt-2 flex items-end justify-between">
+          <div class="text-3xl font-extrabold text-slate-900 dark:text-white">{{ employees|length }}</div>
+          <div class="text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">ثبت‌شده</div>
+        </div>
+      </div>
+      <div class="glass rounded-2xl p-5 border border-slate-200/60 dark:border-slate-700/50 shadow-soft">
+        <div class="text-sm text-slate-500">دعوت‌های باز</div>
+        <div class="mt-2 flex items-end justify-between">
+          <div class="text-3xl font-extrabold text-slate-900 dark:text-white">{% if invitations %}{{ invitations|length }}{% else %}0{% endif %}</div>
+          <div class="text-xs px-2 py-1 rounded bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">در انتظار</div>
+        </div>
+      </div>
+      <div class="glass rounded-2xl p-5 border border-slate-200/60 dark:border-slate-700/50 shadow-soft">
+        <div class="text-sm text-slate-500">شرکت</div>
+        <div class="mt-2 flex items-end justify-between">
+          <div class="text-lg font-bold text-slate-900 dark:text-white truncate" title="{{ company.name }}">{{ company.name }}</div>
+          <div class="text-xs px-2 py-1 rounded bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200">فعال</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Company card -->
+    <section class="glass rounded-2xl p-6 border border-slate-200/60 dark:border-slate-700/50 shadow-soft">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-extrabold">اطلاعات شرکت</h2>
+        <span class="text-xs text-slate-500">مدیر: <span class="font-semibold">{{ company.manager.username }}</span></span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+        <div><span class="font-semibold text-slate-600 dark:text-slate-300">نام شرکت:</span> {{ company.name }}</div>
+        <div><span class="font-semibold text-slate-600 dark:text-slate-300">ایمیل:</span> {{ company.email }}</div>
+        <div><span class="font-semibold text-slate-600 dark:text-slate-300">تلفن:</span> {{ company.phone }}</div>
+        <div class="md:col-span-2"><span class="font-semibold text-slate-600 dark:text-slate-300">آدرس:</span> {{ company.address }}</div>
+      </div>
+    </section>
+
+    <!-- ========== NEW: Analytics (Charts) ========== -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- BMI Bar -->
+      <div class="glass rounded-2xl p-6 border border-slate-200/60 dark:border-slate-700/50 shadow-soft">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold">توزیع BMI کارمندان</h3>
+          <span class="text-xs text-slate-500">بر اساس آخرین معاینه</span>
+        </div>
+        <div class="h-64">
+          <canvas id="bmiChart" dir="rtl"></canvas>
+        </div>
+      </div>
+
+      <!-- Risks Doughnut -->
+      <div class="glass rounded-2xl p-6 border border-slate-200/60 dark:border-slate-700/50 shadow-soft">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold">ریسک‌های سلامت</h3>
+          <span class="text-xs text-slate-500">شیوع در میان کارمندان</span>
+        </div>
+        <div class="h-64">
+          <canvas id="risksChart" dir="rtl"></canvas>
+        </div>
+      </div>
+
+      <!-- Opinions Pie -->
+      <div class="glass rounded-2xl p-6 border border-slate-200/60 dark:border-slate-700/50 shadow-soft">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold">نتیجه نهایی پزشک</h3>
+          <span class="text-xs text-slate-500">وضعیت صلاحیت شغلی</span>
+        </div>
+        <div class="h-64">
+          <canvas id="opinionsChart" dir="rtl"></canvas>
+        </div>
+      </div>
+    </section>
+    <!-- ========== /Analytics ========== -->
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Add invitation -->
+      <section class="lg:col-span-1 space-y-8">
+        <div class="glass rounded-2xl p-6 border border-slate-200/60 dark:border-slate-700/50 shadow-soft">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-bold">افزودن پرسنل با کد ملی</h3>
+            <span class="text-xs text-slate-500">کد ملی ۱۰ رقمی</span>
+          </div>
+          <p class="text-sm text-slate-500 mb-4">کد ملی را ثبت کنید تا پزشک/کارمند بتواند با آن ثبت‌نام کند.</p>
+          <form method="post" action="{% url 'manager_dashboard' %}" class="space-y-4" novalidate>
+            {% csrf_token %}
+            <div>
+              <label class="block text-sm font-medium mb-1">کد ملی (۱۰ رقمی)</label>
+              <div class="relative">
+                <input name="national_code" maxlength="10" pattern="\d{10}" required inputmode="numeric"
+                       class="w-full ps-10 pe-3 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl bg-white/80 dark:bg-slate-900/50 focus:ring-4 focus:ring-primary-200 focus:border-primary-500 outline-none"
+                       placeholder="مثلاً 1234567890" />
+                <span class="absolute inset-y-0 right-2 flex items-center text-slate-400">
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                </span>
+              </div>
+              <p class="mt-1 text-xs text-slate-500">فقط اعداد را وارد کنید.</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">نقش</label>
+              <select name="invite_role" class="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl bg-white/80 dark:bg-slate-900/50 focus:ring-4 focus:ring-primary-200 focus:border-primary-500 outline-none">
+                <option value="doctor">پزشک</option>
+                <option value="employee">کارمند</option>
+              </select>
+            </div>
+            <button type="submit" class="w-full py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-semibold shadow-soft transition">ثبت کد ملی</button>
+          </form>
+        </div>
+
+        <!-- Pending invitations -->
+        <div class="glass rounded-2xl p-6 border border-slate-200/60 dark:border-slate-700/50 shadow-soft">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-bold">دعوت‌های در انتظار</h3>
+            {% if invitations %}
+              <span class="text-xs text-slate-500">{{ invitations|length }} مورد</span>
+            {% endif %}
+          </div>
+          {% if invitations %}
+            <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+              <table class="min-w-full text-sm">
+                <thead class="bg-slate-50/80 dark:bg-slate-800/50">
+                  <tr class="text-slate-500">
+                    <th class="text-right py-2 px-3">کد ملی</th>
+                    <th class="text-right py-2 px-3">نقش</th>
+                    <th class="text-right py-2 px-3">ایجاد</th>
+                    <th class="text-right py-2 px-3">وضعیت</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                {% for inv in invitations %}
+                  <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                    <td class="py-2 px-3 font-mono">{{ inv.national_code }}</td>
+                    <td class="py-2 px-3">{{ inv.get_role_display }}</td>
+                    <td class="py-2 px-3 text-slate-500">{{ inv.created_at|date:"Y-m-d H:i" }}</td>
+                    <td class="py-2 px-3">
+                      {% if inv.used_by %}
+                        <span class="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-300 text-xs px-2 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+                          <span class="w-2 h-2 rounded-full bg-emerald-500"></span> استفاده شده
+                        </span>
+                      {% else %}
+                        <span class="inline-flex items-center gap-1 text-amber-700 dark:text-amber-300 text-xs px-2 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30">
+                          <span class="w-2 h-2 rounded-full bg-amber-500"></span> در انتظار
+                        </span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p class="text-slate-500 text-sm">فعلاً دعوتی ثبت نشده است.</p>
+          {% endif %}
+        </div>
+      </section>
+
+      <!-- Members lists -->
+      <section class="lg:col-span-2 space-y-8">
+        <!-- Doctors -->
+        <div class="glass rounded-2xl p-6 border border-slate-200/60 dark:border-slate-700/50 shadow-soft">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <h3 class="text-lg font-bold">پزشکان</h3>
+              <span class="text-xs text-slate-500">تعداد: {{ doctors|length }}</span>
+            </div>
+            <div class="relative">
+              <input id="searchDoctors" type="search" placeholder="جستجو..." class="ps-9 pe-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/50 focus:ring-4 focus:ring-primary-200 outline-none" />
+              <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </div>
+          </div>
+          {% if doctors %}
+            <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+              <table class="min-w-full text-sm" id="doctorsTable">
+                <thead class="bg-slate-50/80 dark:bg-slate-800/50">
+                  <tr class="text-slate-500">
+                    <th class="text-right py-2 px-3">کاربر</th>
+                    <th class="text-right py-2 px-3">ایمیل</th>
+                    <th class="text-right py-2 px-3">کد ملی</th>
+                    <th class="text-right py-2 px-3">تلفن</th>
+                    <th class="text-right py-2 px-3">پرونده</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                {% for u in doctors %}
+                  <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                    <td class="py-2 px-3">{{ u.username }}</td>
+                    <td class="py-2 px-3">{{ u.email }}</td>
+                    <td class="py-2 px-3">{{ u.profile.national_code|default:"-" }}</td>
+                    <td class="py-2 px-3">{{ u.profile.phone|default:"-" }}</td>
+                    <td class="py-2 px-3">
+                      <a href="{% url 'member_detail' u.id %}" class="text-primary-600 hover:text-primary-700 hover:underline">مشاهده</a>
+                    </td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p class="text-slate-500 text-sm">پزشکی ثبت نشده است.</p>
+          {% endif %}
+        </div>
+
+        <!-- Employees -->
+        <div class="glass rounded-2xl p-6 border border-slate-200/60 dark:border-slate-700/50 shadow-soft">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <h3 class="text-lg font-bold">کارمندان</h3>
+              <span class="text-xs text-slate-500">تعداد: {{ employees|length }}</span>
+            </div>
+            <div class="relative">
+              <input id="searchEmployees" type="search" placeholder="جستجو..." class="ps-9 pe-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/50 focus:ring-4 focus:ring-primary-200 outline-none" />
+              <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </div>
+          </div>
+          {% if employees %}
+            <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+              <table class="min-w-full text-sm" id="employeesTable">
+                <thead class="bg-slate-50/80 dark:bg-slate-800/50">
+                  <tr class="text-slate-500">
+                    <th class="text-right py-2 px-3">کاربر</th>
+                    <th class="text-right py-2 px-3">ایمیل</th>
+                    <th class="text-right py-2 px-3">کد ملی</th>
+                    <th class="text-right py-2 px-3">تلفن</th>
+                    <th class="text-right py-2 px-3">پرونده</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                {% for u in employees %}
+                  <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                    <td class="py-2 px-3">{{ u.username }}</td>
+                    <td class="py-2 px-3">{{ u.email }}</td>
+                    <td class="py-2 px-3">{{ u.profile.national_code|default:"-" }}</td>
+                    <td class="py-2 px-3">{{ u.profile.phone|default:"-" }}</td>
+                    <td class="py-2 px-3">
+                      <a href="{% url 'member_detail' u.id %}" class="text-primary-600 hover:text-primary-700 hover:underline">مشاهده</a>
+                    </td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p class="text-slate-500 text-sm">کارمندی ثبت نشده است.</p>
+          {% endif %}
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="mt-12 py-8 text-center text-xs text-slate-500 dark:text-slate-400">
+    ساخته‌شده با ❤️ در MediverseAI — {{ company.name }}
+  </footer>
+
+  <!-- Chart.js + Analytics payloads -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.5/dist/chart.umd.min.js"></script>
+  <script id="bmi-data" type="application/json">{{ bmi_bins_json|safe }}</script>
+  <script id="risks-data" type="application/json">{{ risks_json|safe }}</script>
+  <script id="opinions-data" type="application/json">{{ opinions_json|safe }}</script>
+
+  <script>
+    // Theme toggle with localStorage
+    const root = document.documentElement;
+    const toggle = document.getElementById('themeToggle');
+    const stored = localStorage.getItem('theme');
+    if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      root.classList.add('dark');
+    }
+    toggle?.addEventListener('click', () => {
+      root.classList.toggle('dark');
+      localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+      document.getElementById('sun')?.classList.toggle('hidden');
+      document.getElementById('moon')?.classList.toggle('hidden');
+      // update charts theme after toggle
+      setTimeout(() => {
+        [bmiChart, risksChart, opinionsChart].forEach(ch => ch && updateChartTheme(ch));
+      }, 0);
+    });
+
+    // Simple client-side filters for tables
+    function attachFilter(inputId, tableId) {
+      const input = document.getElementById(inputId);
+      const table = document.getElementById(tableId);
+      if (!input || !table) return;
+      input.addEventListener('input', () => {
+        const q = input.value.trim().toLowerCase();
+        table.querySelectorAll('tbody tr').forEach(tr => {
+          const text = tr.innerText.toLowerCase();
+          tr.style.display = text.includes(q) ? '' : 'none';
+        });
+      });
+    }
+    attachFilter('searchDoctors', 'doctorsTable');
+    attachFilter('searchEmployees', 'employeesTable');
+
+    // ===== Charts =====
+    const BMI_DATA = JSON.parse(document.getElementById('bmi-data')?.textContent || "{}");
+    const RISKS_DATA = JSON.parse(document.getElementById('risks-data')?.textContent || "{}");
+    const OPINIONS_DATA = JSON.parse(document.getElementById('opinions-data')?.textContent || "{}");
+
+    function getChartColors() {
+      const isDark = document.documentElement.classList.contains('dark');
+      return {
+        grid: isDark ? 'rgba(148,163,184,0.2)' : 'rgba(100,116,139,0.2)',
+        ticks: isDark ? 'rgba(226,232,240,0.9)' : 'rgba(30,41,59,0.9)',
+        border: isDark ? 'rgba(148,163,184,0.4)' : 'rgba(100,116,139,0.4)',
+      };
+    }
+
+    const palette = [
+      '#6366F1','#22C55E','#F59E0B','#EF4444','#06B6D4',
+      '#8B5CF6','#10B981','#F97316','#84CC16','#E11D48'
+    ];
+
+    function makeChart(ctx, cfgBuilder) {
+      const colors = getChartColors();
+      const cfg = cfgBuilder(colors);
+      return new Chart(ctx, cfg);
+    }
+
+    const bmiLabels = Object.keys(BMI_DATA || {});
+    const bmiValues = Object.values(BMI_DATA || {});
+    const risksLabels = Object.keys(RISKS_DATA || {});
+    const risksValues = Object.values(RISKS_DATA || {});
+    const opinionsLabels = Object.keys(OPINIONS_DATA || {});
+    const opinionsValues = Object.values(OPINIONS_DATA || {});
+
+    const bmiChart = makeChart(document.getElementById('bmiChart'), (c) => ({
+      type: 'bar',
+      data: {
+        labels: bmiLabels,
+        datasets: [{
+          label: 'تعداد کارمندان',
+          data: bmiValues,
+          borderWidth: 1,
+          backgroundColor: bmiLabels.map((_, i) => palette[i % palette.length]),
+          borderColor: c.border,
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        locale: 'fa-IR',
+        scales: {
+          x: { grid: { display: false }, ticks: { color: c.ticks } },
+          y: { beginAtZero: true, grid: { color: c.grid }, ticks: { color: c.ticks, stepSize: 1, precision: 0 } }
+        },
+        plugins: {
+          legend: { labels: { color: c.ticks } },
+          tooltip: { rtl: true, titleColor: c.ticks, bodyColor: c.ticks }
+        }
+      }
+    }));
+
+    const risksChart = makeChart(document.getElementById('risksChart'), (c) => ({
+      type: 'doughnut',
+      data: {
+        labels: risksLabels,
+        datasets: [{
+          data: risksValues,
+          backgroundColor: risksLabels.map((_, i) => palette[(i+3) % palette.length]),
+          borderColor: c.border,
+          borderWidth: 1
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        locale: 'fa-IR',
+        plugins: {
+          legend: { position: 'bottom', labels: { color: c.ticks } },
+          tooltip: { rtl: true, titleColor: c.ticks, bodyColor: c.ticks }
+        },
+        cutout: '60%'
+      }
+    }));
+
+    const opinionsChart = makeChart(document.getElementById('opinionsChart'), (c) => ({
+      type: 'pie',
+      data: {
+        labels: opinionsLabels,
+        datasets: [{
+          data: opinionsValues,
+          backgroundColor: opinionsLabels.map((_, i) => palette[(i+5) % palette.length]),
+          borderColor: c.border,
+          borderWidth: 1
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        locale: 'fa-IR',
+        plugins: {
+          legend: { position: 'bottom', labels: { color: c.ticks } },
+          tooltip: { rtl: true, titleColor: c.ticks, bodyColor: c.ticks }
+        }
+      }
+    }));
+
+    function updateChartTheme(chart) {
+      const c = getChartColors();
+      const t = chart.options;
+      if (t.scales?.x) {
+        t.scales.x.ticks.color = c.ticks;
+        if (t.scales.x.grid) t.scales.x.grid.color = c.grid;
+      }
+      if (t.scales?.y) {
+        t.scales.y.ticks.color = c.ticks;
+        if (t.scales.y.grid) t.scales.y.grid.color = c.grid;
+      }
+      if (t.plugins?.legend?.labels) t.plugins.legend.labels.color = c.ticks;
+      if (t.plugins?.tooltip) {
+        t.plugins.tooltip.titleColor = c.ticks;
+        t.plugins.tooltip.bodyColor = c.ticks;
+      }
+      chart.update();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+# ROP-RAG service dependencies.
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+
+# RAG / LLM stack
+langchain==0.3.14
+langchain-community==0.3.14
+langchain-openai==0.2.14
+langchain-core==0.3.29
+faiss-cpu==1.9.0
+rank-bm25==0.2.2
+sentence-transformers==3.3.1      # CrossEncoder reranker
+torch==2.6.0                      # device detection + embeddings backend
+
+# Document loading
+pypdf==5.1.0                      # PyPDFLoader backend
+docx2txt==0.8                     # Docx2txtLoader backend
+
+# Web RAG
+requests==2.32.3
+beautifulsoup4==4.12.3
+# Optional: dynamic-page fallback. Requires a Chrome/Chromedriver install.
+# selenium==4.27.1

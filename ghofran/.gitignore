@@ -1,0 +1,26 @@
+# Repo-level ignores for the ghofran/ microservices workspace.
+# (Each service also has its own .gitignore for service-specific artifacts.)
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Virtualenvs ---
+.venv/
+venv/
+env/
+
+# --- Secrets ---
+# The docker compose env file holds real API keys — never commit it.
+.env
+.env.*
+!.env.example
+
+# --- OS / editor ---
+.DS_Store
+.idea/
+.vscode/

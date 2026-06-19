@@ -1,0 +1,28 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Virtualenvs ---
+.venv/
+venv/
+env/
+
+# --- Environment / secrets ---
+.env
+.env.*
+!.env.example
+
+# --- OS / editor ---
+.DS_Store
+.idea/
+.vscode/
+
+# --- Model weights ---
+# The hypertension joblib model is bundled on disk and baked into the Docker
+# image (see .dockerignore) but should not be committed to git. Provide it via
+# HYPERTENSION_MODEL_PATH / MODEL_DIR if not committing. Remove to track it.
+model/

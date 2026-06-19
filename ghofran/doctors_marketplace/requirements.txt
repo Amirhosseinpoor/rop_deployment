@@ -1,0 +1,18 @@
+# Doctors-Marketplace service dependencies.
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20            # multipart uploads for KB files
+sqlalchemy==2.0.36
+
+# LLM client
+openai==1.59.6
+
+# RAG stack
+langchain==0.3.14
+langchain-community==0.3.14
+faiss-cpu==1.9.0
+sentence-transformers==3.3.1       # backs HuggingFaceEmbeddings
+PyPDF2==3.0.1
+chardet==5.2.0
+# Optional: enable .docx knowledge files
+# docx2txt==0.8

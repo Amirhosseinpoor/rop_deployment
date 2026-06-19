@@ -1,0 +1,13 @@
+# Single-ROP service dependencies.
+# Pinned to the versions used by the original project for reproducible inference.
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20          # required by FastAPI for multipart/form-data uploads
+
+# Scientific / CV / DL stack (matches the parent project's requirements.txt)
+torch==2.6.0
+torchvision==0.21.0
+segmentation-models-pytorch==0.3.4
+opencv-python==4.11.0.86
+numpy==2.2.4
+pillow==11.1.0
