@@ -1,0 +1,566 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MediverseAI | The Next Generation Clinical Suite</title>
+  <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #000000;
+      --bg-surface: #0a0a0a;
+      --text-main: #ffffff;
+      --text-muted: #888888;
+      --accent: #5e6ad2;
+      --accent-glow: rgba(94, 106, 210, 0.5);
+      --accent-secondary: #26b5ce;
+      --border: rgba(255, 255, 255, 0.1);
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      overflow-x: hidden;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    /* Grid Background */
+    .bg-grid {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      mask-image: radial-gradient(ellipse at top, black 40%, transparent 70%);
+      -webkit-mask-image: radial-gradient(ellipse at top, black 40%, transparent 70%);
+      z-index: -2;
+      pointer-events: none;
+    }
+
+    /* Animated Glow */
+    .glow-blob {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      border-radius: 50%;
+      top: -300px;
+      left: 50%;
+      transform: translateX(-50%);
+      filter: blur(80px);
+      z-index: -1;
+      animation: pulseGlow 8s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+
+    @keyframes pulseGlow {
+      0% { opacity: 0.5; transform: translateX(-50%) scale(1); }
+      100% { opacity: 0.8; transform: translateX(-50%) scale(1.1); }
+    }
+
+    /* Navigation */
+    nav {
+      position: fixed;
+      top: 0; width: 100%;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 1.2rem;
+      letter-spacing: -0.02em;
+    }
+
+    .nav-brand img {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+    }
+
+    .nav-brand span {
+      background: linear-gradient(to right, #fff, #a1a1aa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .nav-links a.link {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+    
+    .nav-links a.link:hover {
+      color: #fff;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #7a85e8);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 9999px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 14px 0 rgba(94, 106, 210, 0.39);
+      cursor: pointer;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(94, 106, 210, 0.5);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 9999px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      border: 1px solid var(--border);
+      transition: background 0.2s;
+      cursor: pointer;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 180px 20px 100px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      padding: 6px 16px;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #a1a1aa;
+      margin-bottom: 24px;
+      animation: fadeUp 1s ease-out;
+    }
+
+    .pill .badge {
+      background: var(--accent);
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .hero h1 {
+      font-size: clamp(3rem, 6vw, 5rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.1;
+      max-width: 900px;
+      margin-bottom: 24px;
+      background: linear-gradient(to bottom right, #ffffff 30%, #71717a 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: fadeUp 1s ease-out 0.1s backwards;
+    }
+
+    .hero p {
+      font-size: clamp(1.1rem, 2vw, 1.25rem);
+      color: var(--text-muted);
+      max-width: 600px;
+      margin-bottom: 40px;
+      line-height: 1.6;
+      animation: fadeUp 1s ease-out 0.2s backwards;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      animation: fadeUp 1s ease-out 0.3s backwards;
+    }
+
+    /* App Preview / Dashboard graphic */
+    .app-preview-container {
+      margin-top: 60px;
+      width: 100%;
+      max-width: 1100px;
+      position: relative;
+      perspective: 1200px;
+      animation: fadeUp 1.2s ease-out 0.4s backwards;
+    }
+
+    .app-preview {
+      width: 100%;
+      border-radius: 16px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      overflow: hidden;
+      transform: rotateX(5deg) scale(0.95);
+      transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+      position: relative;
+    }
+
+    .app-preview-container:hover .app-preview {
+      transform: rotateX(0deg) scale(1);
+    }
+
+    .app-preview::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.5;
+    }
+
+    .app-header-fake {
+      height: 48px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 8px;
+    }
+
+    .app-header-fake .dot {
+      width: 12px; height: 12px; border-radius: 50%;
+      background: #333;
+    }
+    .app-header-fake .dot:nth-child(1) { background: #ff5f56; }
+    .app-header-fake .dot:nth-child(2) { background: #ffbd2e; }
+    .app-header-fake .dot:nth-child(3) { background: #27c93f; }
+
+    .app-content-fake {
+      height: 500px;
+      background: url('{% static "test_analysis.jpg" %}') center/cover no-repeat;
+      position: relative;
+      filter: saturate(1.2) contrast(1.1);
+    }
+    .app-content-fake::after {
+      content:''; position: absolute; inset:0;
+      background: linear-gradient(to top, var(--bg-surface) 0%, transparent 30%);
+    }
+
+    /* Features Section */
+    .features {
+      padding: 120px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      text-align: center;
+      margin-bottom: 80px;
+    }
+
+    .section-title h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      letter-spacing: -0.03em;
+    }
+
+    .section-title p {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+    }
+
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      grid-auto-rows: minmax(300px, auto);
+    }
+
+    .bento-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.3s, border-color 0.3s;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .bento-card:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .bento-card.col-2 {
+      grid-column: span 2;
+    }
+
+    .bento-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      display: grid;
+      place-items: center;
+      margin-bottom: 24px;
+      color: var(--accent);
+    }
+
+    .bento-card h3 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+
+    .bento-card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .bento-image-container {
+      margin-top: 32px;
+      flex: 1;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      position: relative;
+    }
+    
+    .bento-image-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s;
+    }
+
+    .bento-card:hover .bento-image-container img {
+      transform: scale(1.05);
+    }
+
+    .card-glow {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      background: var(--accent);
+      filter: blur(100px);
+      border-radius: 50%;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 60px 40px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    /* Animations */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 900px) {
+      .bento-grid {
+        grid-template-columns: 1fr;
+      }
+      .bento-card.col-2 {
+        grid-column: span 1;
+      }
+      .nav-links .link { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="glow-blob"></div>
+
+  <nav>
+    <a href="/" class="nav-brand">
+      <img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediverseAI">
+      <span>MediverseAI</span>
+    </a>
+    <div class="nav-links">
+      <a href="#features" class="link">Features</a>
+      <a href="#solutions" class="link">Solutions</a>
+      <a href="{% url 'login' %}" class="btn-secondary">Sign In</a>
+      <a href="{% url 'signup_choose_role' %}" class="btn-primary">Get Started</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="pill">
+      <span class="badge">New</span> Introducing Advanced ROP & KC Modules
+    </div>
+    <h1>The clinical AI suite for modern healthcare.</h1>
+    <p>Empower your clinical decisions with ultra-fast AI-assisted diagnosis, secure private consultations, and deep research on patient health records.</p>
+    <div class="hero-actions">
+      <a href="{% url 'signup_choose_role' %}" class="btn-primary">Start Building Now</a>
+      <a href="#features" class="btn-secondary">Explore Platform</a>
+    </div>
+
+    <div class="app-preview-container">
+      <div class="app-preview">
+        <div class="app-header-fake">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+        <div class="app-content-fake"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features" class="features">
+    <div class="section-title">
+      <h2>Intelligent modules built for doctors.</h2>
+      <p>From image analysis to deep clinical research, everything you need in one unified platform.</p>
+    </div>
+
+    <div class="bento-grid">
+      <!-- ROP Card -->
+      <div class="bento-card col-2">
+        <div class="card-glow"></div>
+        <div class="bento-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12A10 10 0 0015 21.5M2 12A10 10 0 0115 2.5M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+        </div>
+        <h3>ROP AI Diagnosis</h3>
+        <p>Instantly detect Retinopathy of Prematurity from retinal images using state-of-the-art computer vision models. High precision analysis at your fingertips.</p>
+        <div class="bento-image-container" style="background: #09090b;">
+          <img src="{% static 'segmented_rop1.jpg' %}" alt="ROP AI Diagnosis" style="opacity: 0.8; mix-blend-mode: screen;">
+        </div>
+      </div>
+
+      <!-- Marketplace Card -->
+      <div class="bento-card">
+        <div class="card-glow"></div>
+        <div class="bento-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+        </div>
+        <h3>Doctors Marketplace</h3>
+        <p>Chat privately with AI specialists. Discuss symptoms, lab results, and uncover clinical next steps securely.</p>
+        <div class="bento-image-container">
+          <img src="{% static 'doctor_market.jpg' %}" alt="Doctors Marketplace">
+        </div>
+      </div>
+
+      <!-- KC Card -->
+      <div class="bento-card">
+        <div class="card-glow"></div>
+        <div class="bento-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
+        </div>
+        <h3>Keratoconus (KC) Screening</h3>
+        <p>Screen for Keratoconus utilizing dual-eye topographies and AI-driven classification maps.</p>
+        <div class="bento-image-container">
+          <img src="{% static 'kc.jpg' %}" alt="Keratoconus Screening">
+        </div>
+      </div>
+
+      <!-- Deep Report -->
+      <div class="bento-card col-2">
+        <div class="card-glow"></div>
+        <div class="bento-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+        </div>
+        <h3>Smart Health Records</h3>
+        <p>A comprehensive clinical suite that merges patient history, lab results, and AI findings into a cohesive, deep research report.</p>
+        <div class="bento-image-container">
+          <img src="{% static 'test_analysis.jpg' %}" alt="Smart Health Record" style="object-position: top;">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>&copy; 2026 MediverseAI. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // Interactive Glow Effect for Bento Cards
+    document.querySelectorAll('.bento-card').forEach(card => {
+      const glow = card.querySelector('.card-glow');
+      
+      card.addEventListener('mousemove', e => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left - 100;
+        const y = e.clientY - rect.top - 100;
+        
+        glow.style.transform = `translate(${x}px, ${y}px)`;
+        glow.style.opacity = '1';
+      });
+      
+      card.addEventListener('mouseleave', () => {
+        glow.style.opacity = '0';
+      });
+    });
+
+    // Parallax effect on Hero Preview
+    const preview = document.querySelector('.app-preview');
+    document.addEventListener('mousemove', e => {
+      if (!preview) return;
+      const xAxis = (window.innerWidth / 2 - e.pageX) / 50;
+      const yAxis = (window.innerHeight / 2 - e.pageY) / 50;
+      preview.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg) scale(0.95)`;
+    });
+    
+    document.querySelector('.app-preview-container').addEventListener('mouseleave', () => {
+      preview.style.transform = `rotateX(5deg) scale(0.95)`;
+    });
+  </script>
+</body>
+</html>

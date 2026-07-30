@@ -18,19 +18,23 @@ This module manages the professional marketplace and "Studio" environment, where
 
 ### 2. Core Logic & AI Pipeline (`services/`)
 #### **RAG Pipeline (`rag.py`):**
-1.  **Ingestion**: `index_file_for_doctor` reads PDFs (via `PdfReader`), chunks text using `RecursiveCharacterTextSplitter`, and generates embeddings using the local **BGE-Small** model.
-2.  **Indexing**: Builds or updates a localized **FAISS** index stored in the doctor's media directory.
-3.  **Retrieval**: `retrieve_context` performing similarity searches to find the top `k` relevant snippets from the doctor's private library.
+1.  **Ingestion**: `index_file_for_doctor` reads PDFs via **PyMuPDF** (much better Persian/Arabic handling than PyPDF2) and **NFKC-normalises** the text so presentation-form glyphs match user queries. Chunking is **token-aware** (tiktoken `RecursiveCharacterTextSplitter`, ~320 tokens / 60 overlap) with Persian-aware separators.
+2.  **Embeddings**: GAPGPT **`text-embedding-3-large`** (3072-dim) over the OpenAI-compatible API — no local model / torch needed, so `runserver` stays light.
+3.  **Indexing**: Builds or updates a per-doctor **FAISS** store under `media/doctor_vectors/<slug>/`. Indexing runs in a **background thread** on upload (no Celery/Redis required); set `DM_USE_CELERY=1` to offload to Celery instead.
+4.  **Retrieval**: `retrieve_context` uses **MMR** (relevance + diversity) and is dimension-safe — it returns `[]` (chat degrades gracefully) if an index is missing or was built with an older embedding model.
+
+> After changing embedding models, rebuild stores with `python manage.py reindex_kb` (or the **«بازسازی ایندکس»** button in the KB studio).
 
 #### **LLM Integration (`llm.py`):**
-- A wrapper for the OpenAI API (`LLMClient`) that manages system prompt injection and temperature settings for medical consistency.
+- `LLMClient` wraps the **GAPGPT** chat API (`gpt-5-nano`, a vision-language model). It accepts standard OpenAI messages, including **multimodal content** (`image_url` parts), and retries transient rate limits. Configured via `GAPGPT_*` env vars (falls back to `OPENAI_*` / `BASE_URL`).
 
 ---
 
 ### 3. Views & Handlers (`views.py`)
 - **`api_send_message`**:
     - The core business handler for the chat interface.
-    - **Flow**: Saves User message → Retrieves RAG context from the doctor's FAISS index → Injects context as a "system" block into the message history → Calls `LLMClient` → Saves and returns the Assistant's reply.
+    - **Flow**: Saves the user message + any **attachments** (`ChatAttachment`) → extracts text from attached **documents** and encodes attached **images** as base64 `image_url` parts → retrieves RAG context → calls the vision-capable `LLMClient` → saves and returns the assistant reply.
+    - Accepts `multipart/form-data` with a `message` field and zero or more `attachments` files (images and/or documents).
 - **`studio_kb`**:
     - Administrative view for doctors (or superusers) to upload and manage their medical knowledge files.
     - Triggers immediate re-indexing on file upload.

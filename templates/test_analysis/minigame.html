@@ -1,304 +1,187 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="en" dir="ltr" class="h-full">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>بازی درمانی | MediverseAI</title>
-    <style>
-        /* ===== فونت وزیر (آفلاین) ===== */
-        @font-face {
-            font-family: Vazirmatn;
-            src: url("{% static 'fonts/Vazirmatn-Regular.woff2' %}") format("woff2");
-        }
-        @font-face {
-            font-family: Vazirmatn;
-            src: url("{% static 'fonts/Vazirmatn-Bold.woff2' %}") format("woff2");
-            font-weight: bold;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mini game | MediverseAI</title>
+  <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png">
+  <style>
+    @font-face { font-family: Vazirmatn; src: url("{% static 'fonts/Vazirmatn-Regular.woff2' %}") format("woff2"); font-weight: 400; font-display: swap; }
+    @font-face { font-family: Vazirmatn; src: url("{% static 'fonts/Vazirmatn-Bold.woff2' %}") format("woff2"); font-weight: 700; font-display: swap; }
+    :root {
+      --bg: #F7F7F5; --surface: #FFFFFF; --surface-2: #F3F2EF; --surface-hover: rgba(23,23,28,.045);
+      --ink: #1C1C22; --ink-soft: #3B3B44; --muted: #6E6E79;
+      --border: rgba(23,23,28,.09); --border-strong: rgba(23,23,28,.15);
+      --accent: #6D5AE6; --accent-2: #8B6DF0; --accent-ink: #4B3CB5;
+      --accent-soft: rgba(109,90,230,.10); --accent-ring: rgba(109,90,230,.30);
+      --user-grad: linear-gradient(135deg,#6D5AE6 0%,#8B6DF0 100%);
+      --spark-grad: linear-gradient(140deg,#7C6BF0 0%,#9B7DF5 55%,#63C7F0 100%);
+      --danger: #E5484D; --online: #22C55E;
+      --shadow-sm: 0 1px 2px rgba(20,20,30,.06),0 1px 3px rgba(20,20,30,.04);
+      --shadow-md: 0 10px 34px rgba(24,24,44,.10); --shadow-lg: 0 28px 70px rgba(24,24,44,.18);
+      --radius-xl: 26px; --radius-lg: 20px; --radius-md: 14px; --radius-sm: 10px;
+      --transition: .22s cubic-bezier(.4,0,.2,1);
+      --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Vazirmatn", sans-serif;
+    }
+    .dark {
+      --bg: #0E0E11; --surface: #1A1A1E; --surface-2: #212127; --surface-hover: rgba(255,255,255,.06);
+      --ink: #ECECEF; --ink-soft: #C9C9D2; --muted: #8C8C99;
+      --border: rgba(255,255,255,.09); --border-strong: rgba(255,255,255,.16);
+      --accent: #8B6DF0; --accent-2: #A78BFA; --accent-ink: #C4B2FF;
+      --accent-soft: rgba(139,109,240,.16); --accent-ring: rgba(139,109,240,.40);
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.4); --shadow-md: 0 12px 40px rgba(0,0,0,.5); --shadow-lg: 0 28px 70px rgba(0,0,0,.62);
+    }
+    *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body { font-family: var(--sans); color: var(--ink); min-height: 100vh;
+      background: radial-gradient(900px 520px at 100% -8%, var(--accent-soft), transparent 60%),
+                  radial-gradient(720px 460px at -6% 2%, rgba(99,199,240,.10), transparent 58%), var(--bg);
+      background-attachment: fixed; -webkit-font-smoothing: antialiased; transition: background .35s ease, color .35s ease; }
+    a { text-decoration: none; color: inherit; }
 
-        /* ===== متغیرهای ریشه ===== */
-        :root {
-            --medical-blue: #0A6EFF;
-            --medical-teal: #00A896;
-            --gray-100: #F8FAFD;
-            --gray-200: #E9EDF5;
-            --gray-600: #5B6B7C;
-            --gray-800: #1E293B;
-            --shadow-sm: 0 4px 12px rgba(0,0,0,0.04);
-            --shadow-md: 0 12px 32px rgba(0,0,0,0.08);
-            --shadow-glow: 0 0 24px rgba(10,110,255,0.18);
-            --radius-xl: 24px;
-            --radius-lg: 16px;
-            --radius-md: 12px;
-            --transition: 0.25s ease;
-        }
+    .topbar { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(14px);
+      background: color-mix(in srgb, var(--bg) 80%, transparent); border-bottom: 1px solid var(--border); }
+    .topbar-in { max-width: 960px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { display: flex; align-items: center; gap: 11px; }
+    .brand-mark { width: 38px; height: 38px; border-radius: 11px; background: var(--surface); border: 1px solid var(--border); display: grid; place-items: center; box-shadow: var(--shadow-sm); }
+    .brand-mark img { width: 26px; height: 26px; object-fit: contain; }
+    .brand-name { font-weight: 700; font-size: 16.5px; letter-spacing: -.3px; }
+    .brand-name span { color: var(--accent); }
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+    .top-link { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 15px; border-radius: var(--radius-md);
+      background: var(--surface); border: 1px solid var(--border); color: var(--ink); font-size: 14px; font-weight: 600; box-shadow: var(--shadow-sm); transition: var(--transition); }
+    .top-link svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .top-link:hover { border-color: var(--accent); color: var(--accent); }
+    .theme-toggle { width: 40px; height: 40px; border-radius: var(--radius-md); background: transparent; border: 1px solid var(--border); display: grid; place-items: center; font-size: 18px; cursor: pointer; transition: var(--transition); }
+    .theme-toggle:hover { background: var(--surface-hover); }
 
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body {
-            font-family: Vazirmatn, Tahoma, sans-serif;
-            background: linear-gradient(150deg, #E3F0FD 0%, #F2F8FF 50%, #FFFFFF 100%);
-            background-attachment: fixed;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            position: relative;
-            overflow-x: hidden;
-        }
+    .wrap { max-width: 680px; margin: 30px auto 60px; padding: 0 24px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; color: var(--accent);
+      background: var(--accent-soft); border-radius: 999px; padding: 6px 14px; margin-bottom: 14px; }
+    .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--online); box-shadow: 0 0 0 3px rgba(34,197,94,.18); animation: pulse 1.6s infinite; }
+    @keyframes pulse { 0%,100% { box-shadow: 0 0 0 3px rgba(34,197,94,.18); } 50% { box-shadow: 0 0 0 6px rgba(34,197,94,.05); } }
+    h1 { font-size: clamp(1.6rem,3.4vw,2.1rem); font-weight: 750; letter-spacing: -.03em; line-height: 1.15;
+      background: linear-gradient(120deg, var(--ink) 42%, var(--accent) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .sub { color: var(--muted); font-size: 15px; margin-top: 8px; margin-bottom: 20px; }
 
-        /* پس‌زمینه هگزاگونال */
-        .medical-bg {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5L52.5 17.5V42.5L30 55L7.5 42.5V17.5L30 5Z' fill='none' stroke='%230A6EFF' stroke-opacity='0.07' stroke-width='1'/%3E%3C/svg%3E");
-            background-size: 80px 80px;
-            opacity: 0.35;
-            animation: bgShift 30s linear infinite;
-        }
-        @keyframes bgShift {
-            0% { background-position: 0 0; }
-            100% { background-position: 80px 80px; }
-        }
+    .game-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); overflow: hidden; animation: rise .5s ease both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+    .game-frame { background: #0b0b12; display: flex; justify-content: center; }
+    /* Pacman keeps a ~342:450 portrait ratio and sizes to the iframe viewport,
+       so make the frame tall + portrait so the game fills it (no small black bars). */
+    .game-frame iframe { display: block; border: 0; height: min(82vh, 760px); width: calc(min(82vh, 760px) * 0.8); max-width: 100%; }
 
-        /* ===== کارت اصلی (گیم فریم) ===== */
-        .game-card {
-            position: relative;
-            z-index: 2;
-            width: 100%;
-            max-width: 900px;
-            background: rgba(255,255,255,0.7);
-            backdrop-filter: blur(18px) saturate(180%);
-            border: 1px solid rgba(255,255,255,0.5);
-            border-radius: var(--radius-xl);
-            box-shadow: var(--shadow-md), var(--shadow-glow);
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            animation: cardAppear 0.6s ease-out;
-        }
-        @keyframes cardAppear {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* فریم بازی */
-        .game-frame {
-            width: 100%;
-            aspect-ratio: 1 / 1;
-            max-height: 80vh;
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            border: 2px solid rgba(10,110,255,0.12);
-            background: #0f172a;
-            flex-shrink: 0;
-        }
-        iframe {
-            border: none;
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        /* ===== نوار وضعیت (Floating bar) ===== */
-        .status-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            padding: 12px 20px;
-            background: rgba(255,255,255,0.7);
-            backdrop-filter: blur(12px) saturate(180%);
-            border: 1px solid rgba(255,255,255,0.6);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
-            flex-wrap: wrap;
-        }
-        .status-bar .indicator {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex: 1;
-            min-width: 0;
-        }
-        .status-bar .dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #F59E0B;
-            box-shadow: 0 0 0 2px rgba(245,158,11,0.25);
-            animation: pulse 1.5s infinite;
-            flex-shrink: 0;
-        }
-        .status-bar.ready .dot {
-            background: #10B981;
-            box-shadow: 0 0 0 2px rgba(16,185,129,0.3);
-        }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(245,158,11,0.4); }
-            70% { box-shadow: 0 0 0 8px rgba(245,158,11,0); }
-            100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); }
-        }
-        .status-bar .status-text {
-            font-weight: 600;
-            color: var(--gray-800);
-            font-size: 14px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .status-bar .actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-shrink: 0;
-        }
-        .btn {
-            padding: 8px 18px;
-            border-radius: 999px;
-            font-weight: 700;
-            font-size: 14px;
-            border: none;
-            cursor: pointer;
-            transition: var(--transition);
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            white-space: nowrap;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #0A6EFF, #3B82F6);
-            color: white;
-            box-shadow: 0 4px 12px rgba(10,110,255,0.25);
-        }
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(10,110,255,0.35);
-        }
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-        .btn-link {
-            background: rgba(255,255,255,0.6);
-            border: 1px solid rgba(0,0,0,0.06);
-            color: var(--gray-800);
-            backdrop-filter: blur(6px);
-        }
-        .btn-link:hover {
-            background: rgba(10,110,255,0.08);
-            border-color: var(--medical-blue);
-            color: var(--medical-blue);
-        }
-
-        /* ===== دارک مود ===== */
-        .dark body {
-            background: linear-gradient(150deg, #0B1121 0%, #131A2E 50%, #1A2540 100%);
-        }
-        .dark .game-card {
-            background: rgba(24,30,50,0.75);
-            border-color: rgba(255,255,255,0.08);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.5), inset 0 0 30px rgba(255,255,255,0.03);
-        }
-        .dark .status-bar {
-            background: rgba(24,30,50,0.75);
-            border-color: rgba(255,255,255,0.08);
-        }
-        .dark .status-bar .status-text {
-            color: #EDF2F9;
-        }
-        .dark .btn-link {
-            background: rgba(255,255,255,0.08);
-            border-color: rgba(255,255,255,0.1);
-            color: #E2E8F0;
-        }
-    </style>
+    .status-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; padding: 16px 20px; border-top: 1px solid var(--border); }
+    .indicator { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; color: var(--ink-soft); }
+    .indicator .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); animation: blink 1.2s infinite; }
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+    .status-bar.ready .indicator { color: #16A34A; } .dark .status-bar.ready .indicator { color: #4ADE80; }
+    .status-bar.ready .indicator .dot { background: var(--online); animation: none; }
+    .actions { display: flex; align-items: center; gap: 10px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 20px; border-radius: var(--radius-md);
+      font-family: inherit; font-weight: 700; font-size: 14px; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--ink); box-shadow: var(--shadow-sm); transition: var(--transition); }
+    .btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .btn-link:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-primary { background: var(--user-grad); color: #fff; border-color: transparent; box-shadow: 0 10px 24px rgba(109,90,230,.32); }
+    .btn-primary:hover { filter: brightness(1.05); transform: translateY(-1px); box-shadow: 0 14px 30px rgba(109,90,230,.46); }
+    .btn-primary.done { background: linear-gradient(135deg,#059669,#10b981); box-shadow: 0 10px 24px rgba(16,185,129,.4); }
+    .btn:disabled { opacity: .5; cursor: default; box-shadow: none; transform: none; filter: none; }
+    @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
+  </style>
 </head>
 <body>
-    <div class="medical-bg"></div>
+  <header class="topbar">
+    <div class="topbar-in">
+      <div class="brand">
+        <span class="brand-mark"><img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediverseAI"></span>
+        <span class="brand-name">Mediverse<span>AI</span></span>
+      </div>
+      <div class="top-actions">
+        <a href="{% url 'health_processing' %}" class="top-link">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+          Back to status
+        </a>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">🌙</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <span class="eyebrow"><span class="dot"></span> While your report is generating</span>
+    <h1>Take a quick break</h1>
+    <p class="sub">Play a round while our AI finishes analyzing your health data. We'll let you know the moment your report is ready.</p>
 
     <div class="game-card">
-        <!-- بازی -->
-        <div class="game-frame">
-            <iframe src="{% static 'pacman/index.html' %}" title="Pacman Game"></iframe>
+      <div class="game-frame">
+        <iframe src="{% static 'pacman/index.html' %}" title="Mini game"></iframe>
+      </div>
+      <div id="statusBar" class="status-bar">
+        <div class="indicator">
+          <span class="dot" aria-hidden="true"></span>
+          <span id="statusText" class="status-text">Your report is being generated…</span>
         </div>
-
-        <!-- نوار وضعیت -->
-        <div id="statusBar" class="status-bar">
-            <div class="indicator">
-                <span class="dot" aria-hidden="true"></span>
-                <span id="statusText" class="status-text">گزارش در حال پردازش است…</span>
-            </div>
-            <div class="actions">
-                <button id="viewBtn" class="btn btn-primary" disabled>مشاهده گزارش</button>
-                <a href="{% url 'health_processing' %}" class="btn btn-link">برگشت به وضعیت</a>
-            </div>
+        <div class="actions">
+          <button id="viewBtn" class="btn btn-primary" disabled>
+            View report <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+          <a href="{% url 'health_processing' %}" class="btn btn-link">Back to status</a>
         </div>
+      </div>
     </div>
+  </div>
 
-    <script>
-        (function(){
-            const statusBar = document.getElementById('statusBar');
-            const statusText = document.getElementById('statusText');
-            const viewBtn = document.getElementById('viewBtn');
-            let detailUrl = null;
-            let stop = false;
+  <script>
+    /* theme — shared .dark class + 'theme' key */
+    (function () {
+      const root = document.documentElement, btn = document.getElementById('themeToggle');
+      const setIcon = () => { btn.textContent = root.classList.contains('dark') ? '☀️' : '🌙'; };
+      if (localStorage.getItem('theme') === 'dark') root.classList.add('dark');
+      setIcon();
+      btn.addEventListener('click', () => {
+        root.classList.toggle('dark');
+        localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+        setIcon();
+      });
+    })();
 
-            async function check(){
-                try{
-                    const url = new URL("{% url 'health_processing_status' %}", window.location.origin);
-                    url.searchParams.set('_', Date.now().toString());
-                    const res = await fetch(url, {
-                        headers: { 'X-Requested-With': 'fetch' },
-                        cache: 'no-store'
-                    });
-                    if (!res.ok) throw new Error('HTTP ' + res.status);
-                    const data = await res.json();
+    /* poll report status; enable "View report" when ready */
+    (function () {
+      const statusBar = document.getElementById('statusBar');
+      const statusText = document.getElementById('statusText');
+      const viewBtn = document.getElementById('viewBtn');
+      let detailUrl = null, stop = false;
 
-                    if (data.error) {
-                        statusText.textContent = 'خطا در تولید گزارش: ' + (data.error_msg || 'نامشخص');
-                        statusBar.classList.remove('ready');
-                        viewBtn.disabled = true;
-                        return;
-                    }
-
-                    if (data.ready){
-                        detailUrl = data.detail_url;
-                        statusText.textContent = '🎉 گزارش آماده است.';
-                        statusBar.classList.add('ready');
-                        viewBtn.disabled = false;
-                        // تغییر رنگ دکمه به سبز
-                        viewBtn.style.background = 'linear-gradient(135deg, #059669, #10b981)';
-                    } else {
-                        statusText.textContent = 'گزارش در حال پردازش است…';
-                        statusBar.classList.remove('ready');
-                        viewBtn.disabled = true;
-                        viewBtn.style.background = ''; // بازگشت به رنگ پیش‌فرض
-                    }
-                } catch(e){
-                    // در صورت خطا، سعی مجدد در نوبت بعدی
-                } finally {
-                    if (!stop) setTimeout(check, 5000);
-                }
-            }
-
-            viewBtn.addEventListener('click', function(){
-                if (detailUrl) window.location.assign(detailUrl);
-            });
-
-            // پشتیبانی از تم تاریک (اگر کاربر قبلاً انتخاب کرده باشد)
-            if (localStorage.getItem('theme') === 'dark') {
-                document.documentElement.classList.add('dark');
-            }
-
-            check();
-        })();
-    </script>
+      async function check() {
+        try {
+          const url = new URL("{% url 'health_processing_status' %}", window.location.origin);
+          url.searchParams.set('_', Date.now().toString());
+          const res = await fetch(url, { headers: { 'X-Requested-With': 'fetch' }, cache: 'no-store' });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const data = await res.json();
+          if (data.error) {
+            statusText.textContent = 'Report generation failed: ' + (data.error_msg || 'unknown error');
+            statusBar.classList.remove('ready'); viewBtn.disabled = true; viewBtn.classList.remove('done');
+            return;
+          }
+          if (data.ready) {
+            detailUrl = data.detail_url;
+            statusText.textContent = '🎉 Your report is ready.';
+            statusBar.classList.add('ready'); viewBtn.disabled = false; viewBtn.classList.add('done');
+            stop = true;
+          } else {
+            statusText.textContent = 'Your report is being generated…';
+            statusBar.classList.remove('ready'); viewBtn.disabled = true; viewBtn.classList.remove('done');
+          }
+        } catch (e) {
+          /* retry next tick */
+        } finally {
+          if (!stop) setTimeout(check, 5000);
+        }
+      }
+      viewBtn.addEventListener('click', () => { if (detailUrl) window.location.assign(detailUrl); });
+      check();
+    })();
+  </script>
 </body>
 </html>

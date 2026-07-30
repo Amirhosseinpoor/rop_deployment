@@ -1,217 +1,388 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr" class="h-full">
 <head>
-    <meta charset="UTF-8">
-    <title>Prediction History | MediversAI</title>
-    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prediction history | MediverseAI</title>
+  <link rel="icon" type="image/png" href="{% static 'icons/mediversai_logo_final-032.png' %}">
+  <style>
+    @font-face { font-family: Vazirmatn; src: url("{% static 'fonts/Vazirmatn-Regular.woff2' %}") format("woff2"); font-weight: 400; font-display: swap; }
+    @font-face { font-family: Vazirmatn; src: url("{% static 'fonts/Vazirmatn-Bold.woff2' %}") format("woff2"); font-weight: 700; font-display: swap; }
 
-        .fade-slide {
-            animation: fadeSlide 0.6s ease-out;
-        }
-
-        @keyframes fadeSlide {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-    </style>
-    <link rel="icon" type="image/png" href="{% static 'icons/mediversai_logo_final-032.png' %}">
-</head>
-<body class="bg-gray-50 min-h-screen">
-<!-- Header Bar -->
-<div class="w-full bg-white shadow-md border-b border-gray-200 px-6 py-3 flex justify-between items-center fixed top-0 left-0 z-50">
-    <!-- Logo -->
-    <div class="flex items-center space-x-2">
-        <img src="{% static 'mediversai_logo_final.png' %}" alt="Logo" class="h-8 opacity-90">
-    </div>
-
-    {% if user.is_authenticated %}
-        <div class="flex items-center space-x-6 text-sm">
-            <!-- AI Modules Dropdown -->
-            <div class="relative group">
-                <button class="flex items-center space-x-1 text-gray-700 font-medium focus:outline-none">
-                    <span>AI Modules</span>
-                    <svg class="w-4 h-4 text-gray-500 group-hover:rotate-180 transition duration-300"
-                         fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M19 9l-7 7-7-7"/>
-                    </svg>
-                </button>
-                <div class="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-md opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transform -translate-y-2 transition-all duration-200 z-50">
-                    <a href="{% url 'home' %}" class="block px-4 py-2 text-sm text-blue-600 hover:bg-gray-50">ROP AI</a>
-                    <a href="{% url 'double_home' %}" class="block px-4 py-2 text-sm text-purple-600 hover:bg-gray-50">KC
-                        AI</a>
-                    <form method="get" action="{% url 'export_history_csv' %}" class="border-t border-gray-200">
-                        <button type="submit"
-                                class="block w-full text-left text-sm text-green-600 px-4 py-2 hover:bg-gray-50">
-                            Download CSV
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- User Dropdown -->
-            <div class="relative group">
-                <button class="flex items-center space-x-1 text-gray-700 font-medium focus:outline-none">
-                    <span>{{ user.username }}</span>
-                    <svg class="w-4 h-4 text-gray-500 group-hover:rotate-180 transition duration-300"
-                         fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M19 9l-7 7-7-7"/>
-                    </svg>
-                </button>
-                <div class="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded-md shadow-md opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transform -translate-y-2 transition-all duration-200 z-50">
-                    <form method="post" action="{% url 'logout' %}">
-                        {% csrf_token %}
-                        <button type="submit"
-                                class="block w-full px-4 py-2 text-red-600 text-sm hover:bg-gray-50 text-center">
-                            Logout
-                        </button>
-
-                    </form>
-                </div>
-            </div>
-        </div>
-    {% endif %}
-</div>
-
-<!-- فاصله برای جلوگیری از هم‌پوشانی -->
-<div class="mt-20"></div>
-
-
-<!-- Main Container -->
-<div class="flex items-center justify-center w-full py-12 px-4">
-    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-5xl p-8 fade-slide">
-        <h2 class="text-3xl font-bold text-center text-gray-800 mb-1">Your Prediction History</h2>
-        <p class="text-center text-sm text-gray-500 mb-8">View all past AI detections</p>
-
-        <!-- ROP Section -->
-        <h3 class="text-xl font-semibold text-blue-600 mb-3">ROP Records</h3>
-        {% if single_results %}
-            <ul class="space-y-3 mb-8">
-                {% for s in single_results %}
-                    <li class="bg-gray-50 rounded-xl p-4 shadow-sm text-sm">
-                        <div class="flex items-center justify-between mb-2">
-                            <div class="space-x-2 text-xs">
-                                <a href="{{ s.image_url }}" target="_blank" class="text-blue-500 hover:underline">🔗
-                                    Image</a>
-                                {% if s.segmented_image_url %}
-                                    <a href="{{ s.segmented_image_url }}" target="_blank"
-                                       class="text-purple-500 hover:underline">🔗 Segmented Image</a>
-                                {% else %}
-                                    <span class="text-gray-400 italic">Segmented not available</span>
-                                {% endif %}
-                            </div>
-                            <span class="text-xs text-gray-400">{{ s.timestamp }}</span>
-                        </div>
-
-                        <div>
-                            <strong>Class:</strong> {{ s.predicted_class }} ({{ s.probability|floatformat:3 }}) |
-                            <strong>Stage:</strong> {{ s.stage_class }} ({{ s.stage_probability|floatformat:3 }})
-                        </div>
-
-                        {% if s.corrected_class or s.stage_corrected_class %}
-                            <div class="mt-2 text-xs px-3 py-2 rounded-md bg-yellow-50 border border-yellow-200 text-yellow-700 font-medium">
-                                Corrected: {{ s.corrected_class }}{% if s.stage_corrected_class %} |
-                                {{ s.stage_corrected_class }}{% endif %}
-                            </div>
-                        {% endif %}
-                        {% if s.review_comment %}
-                            <div class="mt-1 text-xs px-3 py-2 rounded-md bg-gray-50 border border-gray-200 text-gray-600 italic">
-                                {{ s.review_comment }}
-                            </div>
-                        {% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p class="text-sm text-gray-500 italic mb-6">No ROP records found.</p>
-        {% endif %}
-
-        <!-- KC Section -->
-        <h3 class="text-xl font-semibold text-purple-600 mb-3">KC Records</h3>
-        {% if double_results %}
-            <ul class="space-y-3">
-                {% for d in double_results %}
-                    <li class="bg-gray-50 rounded-xl p-4 shadow-sm text-sm">
-                        <div class="flex justify-between items-center mb-2 text-xs">
-                            <div class="space-x-2">
-                                {% if d.left_image_url %}
-                                    <a href="{{ d.left_image_url }}" target="_blank"
-                                       class="text-blue-500 hover:underline">🔗 Left Image</a>
-                                {% endif %}
-                                {% if d.right_image_url %}
-                                    <a href="{{ d.right_image_url }}" target="_blank"
-                                       class="text-purple-500 hover:underline">🔗 Right Image</a>
-                                {% endif %}
-                            </div>
-                            <span class="text-gray-400">{{ d.created_at }}</span>
-                        </div>
-
-                        <div>
-                            <strong>L:</strong> {{ d.left_label }} ({{ d.left_probability|floatformat:3 }}) |
-                            <strong>R:</strong> {{ d.right_label }} ({{ d.right_probability|floatformat:3 }}) |
-                            <strong>Z:</strong> {{ d.z_class_label }} ({{ d.z_class_probability|floatformat:3 }})
-                        </div>
-
-                        {% if d.corrected_left_label or d.corrected_right_label or d.corrected_z_label %}
-                            <div class="mt-2 text-xs px-3 py-2 rounded-md bg-yellow-50 border border-yellow-200 text-yellow-700 font-medium">
-                                Corrected:
-                                {% if d.corrected_left_label %} L: {{ d.corrected_left_label }}{% endif %}
-                                {% if d.corrected_right_label %} | R: {{ d.corrected_right_label }}{% endif %}
-                                {% if d.corrected_z_label %} | Z: {{ d.corrected_z_label }}{% endif %}
-                            </div>
-                        {% endif %}
-                        {% if d.review_comment %}
-                            <div class="mt-1 text-xs px-3 py-2 rounded-md bg-gray-50 border border-gray-200 text-gray-600 italic">
-                                {{ d.review_comment }}
-                            </div>
-                        {% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p class="text-sm text-gray-500 italic">No KC records found.</p>
-        {% endif %}
-    </div>
-</div>
-
-
-</body>
-
-<script>
-    const modulesBtn = document.getElementById('modulesBtn');
-    const modulesMenu = document.getElementById('modulesMenu');
-    const userBtn = document.getElementById('userBtn');
-    const userMenu = document.getElementById('userMenu');
-
-    // Utility function to toggle menus
-    function toggleMenu(button, menu) {
-        button.addEventListener('click', function (e) {
-            e.stopPropagation();
-            menu.classList.toggle('hidden');
-        });
+    :root {
+      --bg: #F7F7F5; --surface: #FFFFFF; --surface-2: #F3F2EF;
+      --surface-hover: rgba(23, 23, 28, 0.045);
+      --ink: #1C1C22; --ink-soft: #3B3B44; --muted: #6E6E79;
+      --border: rgba(23, 23, 28, 0.09); --border-strong: rgba(23, 23, 28, 0.15);
+      --accent: #6D5AE6; --accent-2: #8B6DF0; --accent-ink: #4B3CB5;
+      --accent-soft: rgba(109, 90, 230, 0.10); --accent-ring: rgba(109, 90, 230, 0.30);
+      --user-grad: linear-gradient(135deg, #6D5AE6 0%, #8B6DF0 100%);
+      --spark-grad: linear-gradient(140deg, #7C6BF0 0%, #9B7DF5 55%, #63C7F0 100%);
+      --danger: #E5484D; --online: #22C55E;
+      --amber: #C77800; --amber-soft: rgba(217, 137, 0, 0.10); --amber-ring: rgba(217, 137, 0, 0.32);
+      --shadow-sm: 0 1px 2px rgba(20, 20, 30, .06), 0 1px 3px rgba(20, 20, 30, .04);
+      --shadow-md: 0 10px 34px rgba(24, 24, 44, .10); --shadow-lg: 0 28px 70px rgba(24, 24, 44, .18);
+      --radius-xl: 26px; --radius-lg: 20px; --radius-md: 14px; --radius-sm: 10px;
+      --transition: .22s cubic-bezier(.4, 0, .2, 1);
+      --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Vazirmatn", sans-serif;
+    }
+    .dark {
+      --bg: #0E0E11; --surface: #1A1A1E; --surface-2: #212127;
+      --surface-hover: rgba(255, 255, 255, 0.06);
+      --ink: #ECECEF; --ink-soft: #C9C9D2; --muted: #8C8C99;
+      --border: rgba(255, 255, 255, 0.09); --border-strong: rgba(255, 255, 255, 0.16);
+      --accent: #8B6DF0; --accent-2: #A78BFA; --accent-ink: #C4B2FF;
+      --accent-soft: rgba(139, 109, 240, 0.16); --accent-ring: rgba(139, 109, 240, 0.40);
+      --amber: #F5B454; --amber-soft: rgba(245, 180, 84, 0.14); --amber-ring: rgba(245, 180, 84, 0.34);
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4); --shadow-md: 0 12px 40px rgba(0, 0, 0, .5); --shadow-lg: 0 28px 70px rgba(0, 0, 0, .62);
     }
 
-    toggleMenu(modulesBtn, modulesMenu);
-    toggleMenu(userBtn, userMenu);
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: var(--sans); color: var(--ink); min-height: 100vh;
+      background:
+        radial-gradient(900px 520px at 100% -8%, var(--accent-soft), transparent 60%),
+        radial-gradient(720px 460px at -6% 2%, rgba(99, 199, 240, .10), transparent 58%),
+        var(--bg);
+      background-attachment: fixed; -webkit-font-smoothing: antialiased;
+      transition: background .35s ease, color .35s ease;
+    }
+    a { text-decoration: none; color: inherit; }
+    ::selection { background: var(--accent-soft); }
 
-    document.addEventListener('click', function (e) {
-        if (!modulesMenu.contains(e.target) && !modulesBtn.contains(e.target)) {
-            modulesMenu.classList.add('hidden');
-        }
-        if (!userMenu.contains(e.target) && !userBtn.contains(e.target)) {
-            userMenu.classList.add('hidden');
-        }
+    /* ===== Top bar (from dilemma2) ===== */
+    .topbar { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(14px);
+      background: color-mix(in srgb, var(--bg) 80%, transparent); border-bottom: 1px solid var(--border); }
+    .topbar-in { max-width: 1140px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+    .brand-mark { width: 38px; height: 38px; border-radius: 11px; background: var(--surface); border: 1px solid var(--border);
+      display: grid; place-items: center; flex-shrink: 0; box-shadow: var(--shadow-sm); }
+    .brand-mark img { width: 26px; height: 26px; object-fit: contain; }
+    .brand-name { font-weight: 700; font-size: 17px; letter-spacing: -.3px; }
+    .brand-name span { color: var(--accent); }
+
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+    .theme-toggle { width: 40px; height: 40px; border-radius: var(--radius-md); background: transparent; border: 1px solid var(--border);
+      display: grid; place-items: center; font-size: 18px; cursor: pointer; transition: var(--transition); flex-shrink: 0; }
+    .theme-toggle:hover { background: var(--surface-hover); }
+
+    /* ===== Dropdowns (from dilemma2) ===== */
+    .dropdown { position: relative; }
+    .dd-trigger { display: flex; align-items: center; gap: 9px; height: 40px; padding: 0 13px; border-radius: var(--radius-md);
+      background: var(--surface); border: 1px solid var(--border); cursor: pointer; box-shadow: var(--shadow-sm);
+      color: var(--ink); font-family: inherit; font-size: 13.5px; font-weight: 600; transition: var(--transition); }
+    .dd-trigger:hover { border-color: var(--border-strong); }
+    .dd-trigger .lead-ic { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .dd-avatar { width: 26px; height: 26px; border-radius: 8px; background: var(--user-grad); color: #fff; display: grid; place-items: center;
+      font-size: 12px; font-weight: 700; flex-shrink: 0; text-transform: uppercase; }
+    .dd-name { font-size: 13.5px; font-weight: 600; max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dd-caret { width: 15px; height: 15px; stroke: var(--muted); fill: none; stroke-width: 2; transition: transform var(--transition); }
+    .dropdown.open .dd-caret { transform: rotate(180deg); }
+    .dd-menu { position: absolute; top: calc(100% + 8px); right: 0; min-width: 220px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: 8px; z-index: 60;
+      opacity: 0; visibility: hidden; transform: translateY(-6px); transition: var(--transition); }
+    .dropdown.open .dd-menu { opacity: 1; visibility: visible; transform: none; }
+    .dd-user { padding: 10px 12px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
+    .dd-user .lab { font-size: 11px; color: var(--muted); }
+    .dd-user .val { font-size: 14px; font-weight: 700; margin-top: 2px; }
+    .dd-menu form { margin: 0; }
+    .dd-item, .dd-menu form button { width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: none;
+      border-radius: var(--radius-md); background: transparent; color: var(--ink); font-family: inherit; font-size: 13.5px; font-weight: 600;
+      cursor: pointer; text-align: left; transition: var(--transition); }
+    .dd-item svg, .dd-menu form button svg { width: 16px; height: 16px; stroke: var(--muted); fill: none; stroke-width: 2; flex-shrink: 0; }
+    .dd-item:hover { background: var(--surface-hover); color: var(--accent); }
+    .dd-item:hover svg { stroke: var(--accent); }
+    .dd-item .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dd-sep { height: 1px; background: var(--border); margin: 6px 4px; }
+    .dd-logout { color: var(--danger) !important; }
+    .dd-logout svg { stroke: var(--danger) !important; }
+    .dd-logout:hover { background: rgba(229, 72, 77, .1); }
+
+    /* ===== Hero ===== */
+    .page-head { max-width: 1140px; margin: 46px auto 0; padding: 0 24px; text-align: center; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; color: var(--accent);
+      background: var(--accent-soft); border-radius: 999px; padding: 6px 14px; margin-bottom: 16px; animation: rise .6s ease both; }
+    .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--online); box-shadow: 0 0 0 3px rgba(34,197,94,.18); }
+    .page-head h1 { font-size: clamp(2rem, 4.5vw, 2.7rem); font-weight: 750; letter-spacing: -.03em; line-height: 1.1;
+      background: linear-gradient(120deg, var(--ink) 36%, var(--accent) 100%);
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: rise .6s .06s ease both; }
+    .page-head p { color: var(--muted); font-size: 1.05rem; line-height: 1.6; max-width: 540px; margin: 14px auto 0; animation: rise .6s .12s ease both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+    /* ===== Content ===== */
+    .content { max-width: 980px; margin: 40px auto 80px; padding: 0 24px; }
+    .section { margin-top: 44px; }
+    .section:first-of-type { margin-top: 0; }
+    .section-title { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; animation: rise .6s .16s ease both; }
+    .section-title .ico { width: 38px; height: 38px; border-radius: 11px; background: var(--accent-soft);
+      display: grid; place-items: center; flex-shrink: 0; }
+    .section-title .ico svg { width: 19px; height: 19px; stroke: var(--accent); fill: none; stroke-width: 2; }
+    .section-title h2 { font-size: 18px; font-weight: 700; letter-spacing: -.2px; }
+
+    .rec-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+    .rec { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 18px 20px; box-shadow: var(--shadow-sm);
+      transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+      animation: fadeSlideUp .5s ease backwards; }
+    .rec:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--border-strong); }
+    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+
+    .rec-top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+    .rec-links { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .link-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
+      border: 1px solid var(--border); border-radius: 999px; background: var(--surface-2);
+      font-size: 12px; font-weight: 600; color: var(--accent); transition: var(--transition); }
+    .link-chip svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .link-chip:hover { border-color: var(--accent); background: var(--accent-soft); }
+    .chip-muted { display: inline-flex; align-items: center; padding: 6px 12px; border: 1px dashed var(--border-strong);
+      border-radius: 999px; font-size: 12px; color: var(--muted); font-style: italic; }
+    .rec-time { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+    .metrics { display: flex; flex-wrap: wrap; gap: 8px; }
+    .metric { display: inline-flex; align-items: baseline; gap: 6px; padding: 7px 13px;
+      background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; }
+    .metric .k { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+    .metric .v { font-weight: 600; color: var(--ink); }
+    .metric .p { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+    .badge-corrected { margin-top: 14px; display: flex; align-items: flex-start; gap: 8px;
+      padding: 10px 14px; border-radius: var(--radius-sm); font-size: 12.5px; font-weight: 600;
+      background: var(--amber-soft); border: 1px solid var(--amber-ring); color: var(--amber); }
+    .badge-corrected svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; margin-top: 1px; }
+    .review { margin-top: 10px; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 12.5px;
+      font-style: italic; background: var(--surface-2); border: 1px solid var(--border); color: var(--ink-soft); }
+
+    .empty { display: flex; align-items: center; gap: 11px; padding: 22px 18px;
+      border: 1px dashed var(--border-strong); border-radius: var(--radius-lg);
+      color: var(--muted); font-size: 13.5px; background: var(--surface); }
+    .empty svg { width: 19px; height: 19px; stroke: var(--muted); fill: none; stroke-width: 2; flex-shrink: 0; }
+
+    @media (max-width: 560px) { .brand-name { font-size: 15px; } .dd-name { max-width: 80px; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-in">
+      <div class="brand">
+        <span class="brand-mark"><img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediverseAI"></span>
+        <span class="brand-name">Mediverse<span>AI</span></span>
+      </div>
+      <div class="top-actions">
+        {% if user.is_authenticated %}
+          <!-- Modules dropdown -->
+          <div class="dropdown" id="modulesDropdown">
+            <button type="button" class="dd-trigger" aria-haspopup="true" aria-expanded="false">
+              <svg class="lead-ic" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+              <span>Modules</span>
+              <svg class="dd-caret" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="dd-menu" role="menu">
+              <a href="{% url 'home' %}" class="dd-item" role="menuitem"><span class="dot" style="background:var(--accent)"></span> ROP AI</a>
+              <a href="{% url 'double_home' %}" class="dd-item" role="menuitem"><span class="dot" style="background:var(--accent-2)"></span> KC AI</a>
+              <div class="dd-sep"></div>
+              <form method="get" action="{% url 'export_history_csv' %}">
+                <button type="submit" role="menuitem">
+                  <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+                  Download CSV
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- User dropdown -->
+          <div class="dropdown" id="userDropdown">
+            <button type="button" class="dd-trigger" aria-haspopup="true" aria-expanded="false">
+              <span class="dd-avatar">{{ user.username|first|upper }}</span>
+              <span class="dd-name">{{ user.username }}</span>
+              <svg class="dd-caret" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="dd-menu" role="menu">
+              <div class="dd-user">
+                <div class="lab">Signed in as</div>
+                <div class="val">{{ user.username }}</div>
+              </div>
+              <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="dd-logout" role="menuitem">
+                  <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                  Sign out
+                </button>
+              </form>
+            </div>
+          </div>
+        {% endif %}
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">🌙</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="page-head">
+    <span class="eyebrow"><span class="dot"></span> AI detection archive</span>
+    <h1>Prediction history</h1>
+    <p>Review all your past AI detections</p>
+  </section>
+
+  <main class="content">
+    <!-- ROP Section -->
+    <section class="section">
+      <div class="section-title">
+        <span class="ico"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        <h2>ROP Records</h2>
+      </div>
+
+      {% if single_results %}
+        <ul class="rec-list">
+          {% for s in single_results %}
+            <li class="rec">
+              <div class="rec-top">
+                <div class="rec-links">
+                  <a href="{{ s.image_url }}" target="_blank" class="link-chip">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                    Image
+                  </a>
+                  {% if s.segmented_image_url %}
+                    <a href="{{ s.segmented_image_url }}" target="_blank" class="link-chip">
+                      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                      Segmented image
+                    </a>
+                  {% else %}
+                    <span class="chip-muted">Segmented not available</span>
+                  {% endif %}
+                </div>
+                <span class="rec-time">{{ s.timestamp }}</span>
+              </div>
+
+              <div class="metrics">
+                <span class="metric"><span class="k">Class</span><span class="v">{{ s.predicted_class }}</span><span class="p">({{ s.probability|floatformat:3 }})</span></span>
+                <span class="metric"><span class="k">Stage</span><span class="v">{{ s.stage_class }}</span><span class="p">({{ s.stage_probability|floatformat:3 }})</span></span>
+              </div>
+
+              {% if s.corrected_class or s.stage_corrected_class %}
+                <div class="badge-corrected">
+                  <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                  <span>Corrected: {{ s.corrected_class }}{% if s.stage_corrected_class %} | {{ s.stage_corrected_class }}{% endif %}</span>
+                </div>
+              {% endif %}
+              {% if s.review_comment %}
+                <div class="review">{{ s.review_comment }}</div>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="empty">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+          No records found yet.
+        </div>
+      {% endif %}
+    </section>
+
+    <!-- KC Section -->
+    <section class="section">
+      <div class="section-title">
+        <span class="ico"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        <h2>KC Records</h2>
+      </div>
+
+      {% if double_results %}
+        <ul class="rec-list">
+          {% for d in double_results %}
+            <li class="rec">
+              <div class="rec-top">
+                <div class="rec-links">
+                  {% if d.left_image_url %}
+                    <a href="{{ d.left_image_url }}" target="_blank" class="link-chip">
+                      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                      Left image
+                    </a>
+                  {% endif %}
+                  {% if d.right_image_url %}
+                    <a href="{{ d.right_image_url }}" target="_blank" class="link-chip">
+                      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                      Right image
+                    </a>
+                  {% endif %}
+                </div>
+                <span class="rec-time">{{ d.created_at }}</span>
+              </div>
+
+              <div class="metrics">
+                <span class="metric"><span class="k">Left</span><span class="v">{{ d.left_label }}</span><span class="p">({{ d.left_probability|floatformat:3 }})</span></span>
+                <span class="metric"><span class="k">Right</span><span class="v">{{ d.right_label }}</span><span class="p">({{ d.right_probability|floatformat:3 }})</span></span>
+                <span class="metric"><span class="k">Z</span><span class="v">{{ d.z_class_label }}</span><span class="p">({{ d.z_class_probability|floatformat:3 }})</span></span>
+              </div>
+
+              {% if d.corrected_left_label or d.corrected_right_label or d.corrected_z_label %}
+                <div class="badge-corrected">
+                  <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                  <span>Corrected:
+                    {% if d.corrected_left_label %} Left: {{ d.corrected_left_label }}{% endif %}
+                    {% if d.corrected_right_label %} | Right: {{ d.corrected_right_label }}{% endif %}
+                    {% if d.corrected_z_label %} | Z: {{ d.corrected_z_label }}{% endif %}
+                  </span>
+                </div>
+              {% endif %}
+              {% if d.review_comment %}
+                <div class="review">{{ d.review_comment }}</div>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="empty">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+          No records found yet.
+        </div>
+      {% endif %}
+    </section>
+  </main>
+
+  <script>
+    /* theme — shared .dark class + 'theme' key */
+    (function () {
+      const root = document.documentElement, btn = document.getElementById('themeToggle');
+      const setIcon = () => { btn.textContent = root.classList.contains('dark') ? '☀️' : '🌙'; };
+      if (localStorage.getItem('theme') === 'dark') root.classList.add('dark');
+      setIcon();
+      btn.addEventListener('click', () => {
+        root.classList.toggle('dark');
+        localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+        setIcon();
+      });
+    })();
+
+    /* stagger record entrance */
+    document.querySelectorAll('.rec-list').forEach(list => {
+      list.querySelectorAll('.rec').forEach((r, i) => { r.style.animationDelay = (i * 60) + 'ms'; });
     });
-</script>
 
+    /* dropdown menus — click to toggle, click-outside / Esc to close */
+    (function () {
+      const dds = Array.prototype.slice.call(document.querySelectorAll('.dropdown'));
+      const closeAll = (except) => dds.forEach(dd => {
+        if (dd !== except) {
+          dd.classList.remove('open');
+          const b = dd.querySelector('.dd-trigger');
+          if (b) b.setAttribute('aria-expanded', 'false');
+        }
+      });
+      dds.forEach(dd => {
+        const btn = dd.querySelector('.dd-trigger');
+        if (!btn) return;
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const willOpen = !dd.classList.contains('open');
+          closeAll(dd);
+          dd.classList.toggle('open', willOpen);
+          btn.setAttribute('aria-expanded', String(willOpen));
+        });
+      });
+      document.addEventListener('click', () => closeAll(null));
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAll(null); });
+    })();
+  </script>
+</body>
 </html>

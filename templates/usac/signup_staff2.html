@@ -1,370 +1,285 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="en" dir="ltr" class="h-full">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% if role == 'doctor' %}ثبت‌نام پزشک{% else %}ثبت‌نام کارمند{% endif %} | MediverseAI</title>
-    <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png">
-    <style>
-        /* ------------------------- */
-        /* فونت وزیر (آفلاین) */
-        /* ------------------------- */
-        @font-face {
-            font-family: "Vazir";
-            src: url("{% static 'fonts/Vazirmatn-Regular.woff2' %}") format("woff2");
-            font-weight: normal;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if role == 'doctor' %}Join as a doctor{% else %}Join as an employee{% endif %} | MediverseAI</title>
+  <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png">
+  <style>
+    @font-face { font-family: Vazirmatn; src: url("{% static 'fonts/Vazirmatn-Regular.woff2' %}") format("woff2"); font-weight: 400; font-display: swap; }
+    @font-face { font-family: Vazirmatn; src: url("{% static 'fonts/Vazirmatn-Bold.woff2' %}") format("woff2"); font-weight: 700; font-display: swap; }
 
-        @font-face {
-            font-family: "Vazir";
-            src: url("{% static 'fonts/Vazirmatn-Bold.woff2' %}") format("woff2");
-            font-weight: bold;
-        }
+    :root {
+      --bg: #F7F7F5; --surface: #FFFFFF; --surface-2: #F3F2EF;
+      --surface-hover: rgba(23, 23, 28, 0.045);
+      --ink: #1C1C22; --ink-soft: #3B3B44; --muted: #6E6E79;
+      --border: rgba(23, 23, 28, 0.09); --border-strong: rgba(23, 23, 28, 0.15);
+      --accent: #6D5AE6; --accent-2: #8B6DF0; --accent-ink: #4B3CB5;
+      --accent-soft: rgba(109, 90, 230, 0.10); --accent-ring: rgba(109, 90, 230, 0.30);
+      --user-grad: linear-gradient(135deg, #6D5AE6 0%, #8B6DF0 100%);
+      --spark-grad: linear-gradient(140deg, #7C6BF0 0%, #9B7DF5 55%, #63C7F0 100%);
+      --danger: #E5484D; --online: #22C55E;
+      --shadow-sm: 0 1px 2px rgba(20, 20, 30, .06), 0 1px 3px rgba(20, 20, 30, .04);
+      --shadow-md: 0 10px 34px rgba(24, 24, 44, .10); --shadow-lg: 0 28px 70px rgba(24, 24, 44, .18);
+      --radius-xl: 26px; --radius-lg: 20px; --radius-md: 14px; --radius-sm: 10px;
+      --transition: .22s cubic-bezier(.4, 0, .2, 1);
+      --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Vazirmatn", sans-serif;
+    }
+    .dark {
+      --bg: #0E0E11; --surface: #1A1A1E; --surface-2: #212127;
+      --surface-hover: rgba(255, 255, 255, 0.06);
+      --ink: #ECECEF; --ink-soft: #C9C9D2; --muted: #8C8C99;
+      --border: rgba(255, 255, 255, 0.09); --border-strong: rgba(255, 255, 255, 0.16);
+      --accent: #8B6DF0; --accent-2: #A78BFA; --accent-ink: #C4B2FF;
+      --accent-soft: rgba(139, 109, 240, 0.16); --accent-ring: rgba(139, 109, 240, 0.40);
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4); --shadow-md: 0 12px 40px rgba(0, 0, 0, .5); --shadow-lg: 0 28px 70px rgba(0, 0, 0, .62);
+    }
 
-        /* ------------------------- */
-        /* متغیرهای ریشه – تم پزشکی */
-        /* ------------------------- */
-        :root {
-            --medical-blue: #0A6EFF;
-            --medical-teal: #00A896;
-            --gray-100: #F8FAFD;
-            --gray-200: #E9EDF5;
-            --gray-600: #5B6B7C;
-            --gray-800: #1E293B;
-            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.04);
-            --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.08);
-            --shadow-glow: 0 0 24px rgba(10, 110, 255, 0.18);
-            --radius-xl: 24px;
-            --radius-lg: 16px;
-            --transition: 0.25s ease;
-        }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: var(--sans); color: var(--ink); min-height: 100vh;
+      display: flex; align-items: center; justify-content: center; padding: 40px 20px;
+      background: var(--bg); overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      transition: background .35s ease, color .35s ease;
+    }
+    a { text-decoration: none; color: inherit; }
+    ::selection { background: var(--accent-soft); }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    /* Animated gradient backdrop */
+    .bg-orbs { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(70px); opacity: .55; }
+    .orb.a { width: 560px; height: 560px; top: -180px; right: -120px;
+      background: radial-gradient(circle at 30% 30%, #8B6DF0, transparent 70%); animation: drift1 18s ease-in-out infinite; }
+    .orb.b { width: 520px; height: 520px; bottom: -200px; left: -140px;
+      background: radial-gradient(circle at 30% 30%, #63C7F0, transparent 70%); animation: drift2 22s ease-in-out infinite; }
+    .orb.c { width: 360px; height: 360px; top: 40%; left: 55%;
+      background: radial-gradient(circle at 30% 30%, #9B7DF5, transparent 70%); opacity: .35; animation: drift3 26s ease-in-out infinite; }
+    .dark .orb { opacity: .34; } .dark .orb.c { opacity: .22; }
+    @keyframes drift1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-50px, 60px) scale(1.08); } }
+    @keyframes drift2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(60px, -40px) scale(1.12); } }
+    @keyframes drift3 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-40px, -50px) scale(.92); } }
 
-        body {
-            font-family: "Vazir", sans-serif;
-            background: linear-gradient(150deg, #E3F0FD 0%, #F2F8FF 50%, #FFFFFF 100%);
-            background-attachment: fixed;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 30px;
-            position: relative;
-            overflow-x: hidden;
-        }
+    /* Theme toggle */
+    .theme-toggle { position: fixed; top: 22px; right: 22px; z-index: 50;
+      width: 44px; height: 44px; border-radius: var(--radius-md); display: grid; place-items: center;
+      background: var(--surface); border: 1px solid var(--border); color: var(--ink);
+      font-size: 19px; cursor: pointer; box-shadow: var(--shadow-sm); transition: var(--transition); }
+    .theme-toggle:hover { border-color: var(--accent); box-shadow: var(--shadow-md); transform: translateY(-1px); }
 
-        /* الگوی هگزاگونال پزشکی (آفلاین) */
-        .medical-bg {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5L52.5 17.5V42.5L30 55L7.5 42.5V17.5L30 5Z' fill='none' stroke='%230A6EFF' stroke-opacity='0.07' stroke-width='1'/%3E%3C/svg%3E");
-            background-size: 80px 80px;
-            opacity: 0.35;
-        }
+    /* Card */
+    .card { position: relative; z-index: 2; width: 100%; max-width: 560px;
+      background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(20px) saturate(1.3);
+      border: 1px solid var(--border); border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg); padding: 40px 38px 30px; animation: pop .6s cubic-bezier(.22,1,.36,1) both; }
+    @keyframes pop { from { opacity: 0; transform: translateY(20px) scale(.97); } to { opacity: 1; transform: none; } }
+    .r { opacity: 0; animation: rise .6s cubic-bezier(.22,1,.36,1) both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 
-        /* کارت اصلی */
-        .card {
-            position: relative;
-            z-index: 2;
-            width: 100%;
-            max-width: 650px;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(18px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.7);
-            border-radius: var(--radius-xl);
-            padding: 38px 40px 32px;
-            box-shadow: var(--shadow-md), var(--shadow-glow);
-            animation: cardAppear 0.6s ease-out;
-        }
+    .brand { text-align: center; margin-bottom: 26px; }
+    .brand-logo { width: 74px; height: 74px; border-radius: 22px; margin: 0 auto 16px; display: grid; place-items: center;
+      background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-md); position: relative; }
+    .brand-logo::after { content: ""; position: absolute; inset: -1px; border-radius: 22px; padding: 1px;
+      background: var(--spark-grad); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude; opacity: .55; }
+    .brand-logo img { width: 46px; height: 46px; object-fit: contain; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: var(--accent);
+      background: var(--accent-soft); border-radius: 999px; padding: 5px 13px; margin-bottom: 14px; }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--online); box-shadow: 0 0 0 3px rgba(34,197,94,.18); }
+    .brand h1 { font-size: 26px; font-weight: 750; letter-spacing: -.03em; line-height: 1.15;
+      background: linear-gradient(120deg, var(--ink) 38%, var(--accent) 100%);
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .brand p { font-size: 13.5px; color: var(--muted); margin-top: 8px; }
 
-        @keyframes cardAppear {
-            from {
-                opacity: 0;
-                transform: translateY(30px) scale(0.97);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
+    .error-box { display: flex; align-items: flex-start; gap: 9px; background: rgba(229, 72, 77, .10);
+      border: 1px solid rgba(229, 72, 77, .32); color: var(--danger); padding: 11px 14px; border-radius: var(--radius-sm);
+      margin-bottom: 4px; font-size: 13px; font-weight: 600; }
+    .error-box svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; margin-top: 1px; }
+    .error-box ul { margin: 0; padding-inline-start: 18px; }
+    .error-box li { list-style: none; }
+    .dark .error-box { color: #FF9A9E; }
 
-        /* هدر */
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
+    /* Form */
+    .form-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 4px; }
+    @media (min-width: 520px) { .form-grid { grid-template-columns: 1fr 1fr; } .form-grid .full { grid-column: 1 / -1; } }
 
-        .header img {
-            height: 52px;
-            margin-bottom: 8px;
-        }
+    .card label { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); margin-bottom: 8px; }
 
-        .header h1 {
-            font-size: 26px;
-            font-weight: bold;
-            color: var(--gray-800);
-        }
+    .card input:not([type=checkbox]):not([type=radio]),
+    .card textarea {
+      width: 100%; border: 1px solid var(--border-strong); background: var(--surface); color: var(--ink);
+      border-radius: var(--radius-md); padding: 14px 15px; font-family: inherit; font-size: 14px;
+      outline: none; transition: border-color .15s, box-shadow .15s;
+    }
+    .card input::placeholder, .card textarea::placeholder { color: var(--muted); opacity: .6; }
+    .card input:not([type=checkbox]):not([type=radio]):focus,
+    .card textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-ring); }
+    input[dir="ltr"], textarea[dir="ltr"] { text-align: left; }
+    input[dir="rtl"], textarea[dir="rtl"] { text-align: right; }
 
-        .header p {
-            font-size: 14px;
-            color: var(--gray-600);
-            margin-top: 6px;
-        }
+    /* Password toggle (JS-injected wrapper) */
+    .pw-field { position: relative; display: block; }
+    .pw-field > input { padding-inline-end: 46px; }
+    .pw-toggle {
+      position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      width: 34px; height: 34px; padding: 0; border: none; border-radius: 9px;
+      background: transparent; color: var(--muted);
+      display: grid; place-items: center; cursor: pointer; transition: var(--transition);
+    }
+    .pw-toggle:hover { background: var(--surface-hover); color: var(--accent); }
+    .pw-toggle:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--accent-ring); }
+    .pw-toggle:active { transform: translateY(-50%) scale(0.9); }
+    .pw-toggle svg { width: 20px; height: 20px; display: block; }
+    .pw-toggle .icon-eye-off { display: none; }
+    .pw-toggle.is-visible .icon-eye { display: none; }
+    .pw-toggle.is-visible .icon-eye-off { display: block; }
 
-        /* نقش نمایشگر */
-        .role-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            font-weight: bold;
-            background: rgba(10, 110, 255, 0.08);
-            color: var(--medical-blue);
-            padding: 6px 14px;
-            border-radius: 999px;
-            margin-top: 10px;
-            border: 1px solid rgba(10, 110, 255, 0.2);
-        }
+    /* Submit */
+    .btn { position: relative; display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%;
+      border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0 18px; height: 50px;
+      font-family: inherit; font-weight: 700; font-size: 15px; cursor: pointer; overflow: hidden;
+      background: var(--surface); color: var(--ink); box-shadow: var(--shadow-sm); transition: var(--transition); }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary { margin-top: 8px; background: var(--user-grad); color: #fff; border-color: transparent;
+      box-shadow: 0 10px 26px rgba(109, 90, 230, .34); }
+    .btn-primary:hover { color: #fff; filter: brightness(1.05); box-shadow: 0 16px 34px rgba(109, 90, 230, .5); transform: translateY(-1px); }
+    .btn-primary::before { content: ""; position: absolute; top: 0; left: -120%; width: 55%; height: 100%;
+      background: linear-gradient(100deg, transparent, rgba(255,255,255,.35), transparent); transform: skewX(-18deg); }
+    .btn-primary:hover::before { animation: shine .8s ease; }
+    @keyframes shine { from { left: -120%; } to { left: 160%; } }
 
-        .dark .role-badge {
-            background: rgba(79, 144, 255, 0.15);
-            color: #C7D2FE;
-            border-color: rgba(79, 144, 255, 0.3);
-        }
+    .footer { text-align: center; margin-top: 24px; font-size: 13.5px; color: var(--muted); }
+    .footer a { color: var(--accent); font-weight: 700; }
+    .footer a:hover { text-decoration: underline; }
 
-        /* فرم تک ستونی */
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 18px;
-            margin-top: 20px;
-        }
-
-        /* برچسب‌ها */
-        label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--gray-800);
-            margin-bottom: 6px;
-        }
-
-        /* اینپوت‌ها */
-        input {
-            width: 100%;
-            padding: 12px 14px;
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--gray-200);
-            background: rgba(248, 250, 253, 0.7);
-            backdrop-filter: blur(6px);
-            font-size: 14px;
-            color: var(--gray-800);
-            transition: var(--transition);
-            outline: none;
-        }
-
-        input:focus {
-            border-color: var(--medical-blue);
-            background: rgba(255, 255, 255, 0.9);
-            box-shadow: 0 0 0 4px rgba(10, 110, 255, 0.12);
-        }
-
-        /* کادر خطا */
-        .error-box {
-            background: #FFF0F0;
-            border: 1px solid #FFC9C9;
-            color: #C00020;
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 13px;
-            margin-top: 8px;
-        }
-
-        /* دکمه ثبت‌نام */
-        .btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: var(--radius-lg);
-            background: linear-gradient(135deg, #0A6EFF, #3B82F6);
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 8px 22px rgba(10, 110, 255, 0.28);
-            transition: var(--transition);
-            margin-top: 8px;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 28px rgba(10, 110, 255, 0.4);
-        }
-
-        /* فوتر */
-        .footer {
-            text-align: center;
-            margin-top: 24px;
-            font-size: 14px;
-            color: var(--gray-600);
-        }
-
-        .footer a {
-            color: var(--medical-blue);
-            font-weight: bold;
-            text-decoration: none;
-        }
-
-        /* تغییر تم */
-        .theme-toggle {
-            position: fixed;
-            left: 24px;
-            top: 24px;
-            width: 46px;
-            height: 46px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(0, 0, 0, 0.06);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            cursor: pointer;
-            box-shadow: var(--shadow-sm);
-            transition: var(--transition);
-            z-index: 100;
-        }
-
-        .theme-toggle:hover {
-            background: white;
-            box-shadow: var(--shadow-md);
-        }
-
-        /* حالت تاریک */
-        .dark body {
-            background: linear-gradient(150deg, #0B1121 0%, #131A2E 50%, #1A2540 100%);
-        }
-
-        .dark .medical-bg {
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5L52.5 17.5V42.5L30 55L7.5 42.5V17.5L30 5Z' fill='none' stroke='%234F90FF' stroke-opacity='0.12' stroke-width='1'/%3E%3C/svg%3E");
-            opacity: 0.25;
-        }
-
-        .dark .card {
-            background: rgba(24, 30, 50, 0.8);
-            border-color: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), inset 0 0 30px rgba(255, 255, 255, 0.03);
-        }
-
-        .dark .header h1,
-        .dark label {
-            color: #EDF2F9;
-        }
-
-        .dark .header p,
-        .dark .footer {
-            color: #B9C5DA;
-        }
-
-        .dark input {
-            background: rgba(30, 40, 65, 0.7);
-            border-color: #334155;
-            color: #F1F5F9;
-        }
-
-        .dark input:focus {
-            border-color: #4F90FF;
-            background: rgba(40, 50, 75, 0.9);
-        }
-
-        .dark .btn {
-            background: linear-gradient(135deg, #2A6EFF, #4F8CFF);
-        }
-
-        .dark .theme-toggle {
-            background: rgba(30, 40, 65, 0.8);
-            color: #E2E8F0;
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .dark .error-box {
-            background: rgba(153, 27, 27, 0.25);
-            border-color: #7f1d1d;
-            color: #fecaca;
-        }
-    </style>
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; } .orb { animation: none !important; } }
+  </style>
 </head>
 <body>
-<div class="medical-bg"></div>
+  <div class="bg-orbs"><span class="orb a"></span><span class="orb b"></span><span class="orb c"></span></div>
+  <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">🌙</button>
 
-<div class="theme-toggle" id="themeToggle">🌓</div>
-
-<div class="card">
-    <div class="header">
-        <img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediverseAI">
-        <h1>{% if role == 'doctor' %}ثبت‌نام پزشک{% else %}ثبت‌نام کارمند{% endif %}</h1>
-        <p>اطلاعات حساب کاربری خود را وارد کنید</p>
-
+  <main class="card">
+    <div class="brand">
+      <div class="brand-logo r" style="animation-delay:.05s"><img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediverseAI"></div>
+      <span class="eyebrow r" style="animation-delay:.12s"><span class="dot"></span> AI medical platform</span>
+      <h1 class="r" style="animation-delay:.16s">{% if role == 'doctor' %}Join as a doctor{% else %}Join as an employee{% endif %}</h1>
+      <p class="r" style="animation-delay:.2s">Sign up with your clinic invitation</p>
     </div>
 
     <form method="post" class="form-grid">
-        {% csrf_token %}
+      {% csrf_token %}
 
-        <div>
-            {{ form.username.label_tag }}
-            {{ form.username }}
-        </div>
-        <div>
-            {{ form.email.label_tag }}
-            {{ form.email }}
-        </div>
-        <div>
-            {{ form.phone.label_tag }}
-            {{ form.phone }}
-        </div>
-        <div>
-            {{ form.national_code.label_tag }}
-            {{ form.national_code }}
-        </div>
-        <div>
-            {{ form.password1.label_tag }}
-            {{ form.password1 }}
-        </div>
-        <div>
-            {{ form.password2.label_tag }}
-            {{ form.password2 }}
-        </div>
+      <div class="r" style="animation-delay:.24s">
+        {{ form.username.label_tag }}
+        {{ form.username }}
+      </div>
+      <div class="r" style="animation-delay:.28s">
+        {{ form.email.label_tag }}
+        {{ form.email }}
+      </div>
+      <div class="r" style="animation-delay:.32s">
+        {{ form.phone.label_tag }}
+        {{ form.phone }}
+      </div>
+      <div class="r" style="animation-delay:.36s">
+        {{ form.national_code.label_tag }}
+        {{ form.national_code }}
+      </div>
+      <div class="r" style="animation-delay:.4s">
+        {{ form.password1.label_tag }}
+        {{ form.password1 }}
+      </div>
+      <div class="r" style="animation-delay:.44s">
+        {{ form.password2.label_tag }}
+        {{ form.password2 }}
+      </div>
 
-        {% if form.errors %}
-            <div class="error-box">{{ form.errors }}</div>
-        {% endif %}
+      {% if form.errors %}
+        <div class="error-box full r" style="animation-delay:.48s">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <div>{{ form.errors }}</div>
+        </div>
+      {% endif %}
 
-        <button class="btn" type="submit">ثبت‌نام</button>
+      <button class="btn btn-primary full r" style="animation-delay:.52s" type="submit">Create account</button>
     </form>
 
-    <div class="footer">
-        قبلاً حساب دارید؟
-        <a href="{% url 'login' %}">ورود</a>
+    <div class="footer r" style="animation-delay:.56s">
+      Already have an account?
+      <a href="{% url 'login' %}">Sign in</a>
     </div>
-</div>
+  </main>
 
-<script>
-    const root = document.documentElement;
-    const toggle = document.getElementById("themeToggle");
-    if (localStorage.getItem("theme") === "dark") root.classList.add("dark");
-    toggle.onclick = () => {
-        root.classList.toggle("dark");
-        localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
-    };
-</script>
+  <script>
+    /* theme — shared .dark class + 'theme' key (same as the marketplace) */
+    (function () {
+      const root = document.documentElement;
+      const btn = document.getElementById('themeToggle');
+      const setIcon = () => { btn.textContent = root.classList.contains('dark') ? '☀️' : '🌙'; };
+      if (localStorage.getItem('theme') === 'dark') root.classList.add('dark');
+      setIcon();
+      btn.addEventListener('click', () => {
+        root.classList.toggle('dark');
+        localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+        setIcon();
+      });
+    })();
+
+    /* auto-direction: Persian → rtl, English → ltr + password show/hide */
+    (function () {
+      const RTL_CHAR = /[֑-߿יִ-﷽ﹰ-ﻼ]/;
+      const LTR_CHAR = /[A-Za-zÀ-ɏ]/;
+
+      function applyDirection(el) {
+        for (const ch of el.value) {
+          if (RTL_CHAR.test(ch)) { el.setAttribute("dir", "rtl"); return; }
+          if (LTR_CHAR.test(ch)) { el.setAttribute("dir", "ltr"); return; }
+        }
+        el.removeAttribute("dir");
+      }
+
+      document.querySelectorAll(
+        "input:not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]):not([type=hidden]), textarea"
+      ).forEach((el) => {
+        el.addEventListener("input", () => applyDirection(el));
+        applyDirection(el);
+      });
+
+      const EYE =
+        '<svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+      const EYE_OFF =
+        '<svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c6.5 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3.5 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="2" y1="2" x2="22" y2="22"/></svg>';
+
+      document.querySelectorAll('input[type=password]').forEach((input) => {
+        const field = document.createElement("span");
+        field.className = "pw-field";
+        input.parentNode.insertBefore(field, input);
+        field.appendChild(input);
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "pw-toggle";
+        btn.setAttribute("aria-label", "Show password");
+        btn.setAttribute("aria-pressed", "false");
+        btn.setAttribute("title", "Show password");
+        btn.innerHTML = EYE + EYE_OFF;
+        field.appendChild(btn);
+
+        btn.addEventListener("click", () => {
+          const reveal = input.type === "password";
+          input.type = reveal ? "text" : "password";
+          btn.classList.toggle("is-visible", reveal);
+          btn.setAttribute("aria-pressed", String(reveal));
+          const label = reveal ? "Hide password" : "Show password";
+          btn.setAttribute("aria-label", label);
+          btn.setAttribute("title", label);
+          input.focus({ preventScroll: true });
+        });
+      });
+    })();
+  </script>
 </body>
 </html>

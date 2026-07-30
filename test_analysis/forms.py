@@ -38,7 +38,8 @@ class SearchableSelect(TextInput):
 
 def apply_form_widget_classes(form):
     """
-    A helper function to iterate over form fields and apply consistent CSS classes.
+    A helper function to iterate over form fields and apply consistent CSS classes
+    and text direction attributes (dir="auto" for Persian RTL / English LTR support).
     """
     for field_name, field in form.fields.items():
         css_class = 'form-input'  # Default class
@@ -50,6 +51,8 @@ def apply_form_widget_classes(form):
 
         # Add the class to the widget's attributes
         field.widget.attrs['class'] = css_class
+        if not isinstance(field.widget, (forms.CheckboxInput, forms.HiddenInput)):
+            field.widget.attrs.setdefault('dir', 'auto')
 
 
 class HealthProfileForm(forms.ModelForm):
@@ -170,15 +173,9 @@ class EmployeeProfileForm(forms.ModelForm):
             # Vital signs (employee provides)
             'exam_date', 'exam_weight', 'exam_height', 'bmi',
             'exam_systolic_bp', 'exam_diastolic_bp', 'exam_pulse_rate',
-            # Lab & paraclinical (employee provides)
-            'lab_total_cholesterol', 'lab_glucose',
-            'spirometry_fvc', 'spirometry_fev1', 'spirometry_fev1_fvc_ratio',
-            'spirometry_fef_25_75', 'spirometry_pef',
-            'spirometry_interpretation',
-            'ecg_findings',
-            'chest_xray_findings',
-            'other_paraclinical_notes',
-            'lab_test_files',
+            # Medical tests are uploaded as multiple files via the raw
+            # `medical_test_files` input (handled in the view), so there is no
+            # ModelForm field for them here.
         ]
         widgets = {
             'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
@@ -186,25 +183,51 @@ class EmployeeProfileForm(forms.ModelForm):
             'exam_date': forms.DateInput(attrs={'type': 'date'}),
         }
 
+    # Low-color example placeholders shown inside empty fields.
+    _PLACEHOLDERS = {
+        'father_name': 'e.g. Mohammad', 'national_id': 'e.g. 0012345678',
+        'age': 'e.g. 34', 'children_count': 'e.g. 2',
+        'military_service_rank': 'e.g. Sergeant',
+        'medical_exemption_reason': 'e.g. reason for exemption',
+        'work_address': 'e.g. No. 5, Industrial Zone, Tehran',
+        'work_phone': 'e.g. +98 21 1234 5678',
+        'current_job_title': 'e.g. Welder',
+        'current_job_duties': 'e.g. Arc welding of steel frames',
+        'disease_history_details': 'e.g. Asthma since 2015',
+        'allergy_details': 'e.g. Penicillin',
+        'hospitalization_reason': 'e.g. Appendectomy, 2019',
+        'surgery_details': 'e.g. Knee arthroscopy, 2020',
+        'family_disease_details': 'e.g. Father — diabetes',
+        'medication_details': 'e.g. Metformin 500mg daily',
+        'smoking_details': 'e.g. 10 cigarettes/day for 8 years',
+        'hobbies': 'e.g. Cycling, reading',
+        'accident_details': 'e.g. Hand injury, 2021',
+        'cigs_per_day': 'e.g. 10',
+        'exam_weight': 'e.g. 78', 'exam_height': 'e.g. 175',
+        'bmi': 'Auto-calculated',
+        'exam_systolic_bp': 'e.g. 120', 'exam_diastolic_bp': 'e.g. 80',
+        'exam_pulse_rate': 'e.g. 72',
+    }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        from test_analysis.constants import PROVINCE_CHOICES, NEIGHBORHOOD_CHOICES
 
-        # Set searchable widgets
-        self.fields['living_province'].widget = SearchableSelect(
-            choices=PROVINCE_CHOICES,
-            attrs={'class': 'form-input', 'placeholder': 'جستجوی استان...'}
-        )
-        self.fields['neighborhood'].widget = SearchableSelect(
-            choices=NEIGHBORHOOD_CHOICES,
-            attrs={'class': 'form-input', 'placeholder': 'جستجوی محله...'}
-        )
-        # Insurance: plain text (will be changed later)
-        self.fields['insurance'].widget = SearchableSelect(
-            choices=INSURANCE_CHOICES,
-            attrs={'class': 'form-input', 'placeholder': 'جستجوی بیمه...'}
-        )
+        # Plain dropdowns (like Gender) instead of searchable text inputs.
+        def _opts(choices, ph):
+            return [('', ph)] + [c for c in choices if c and c[0] != '']
+        self.fields['living_province'].widget = forms.Select(choices=_opts(PROVINCE_CHOICES, 'Select province…'))
+        self.fields['neighborhood'].widget = forms.Select(choices=_opts(NEIGHBORHOOD_CHOICES, 'Select neighborhood…'))
+        self.fields['insurance'].widget = forms.Select(choices=_opts(INSURANCE_CHOICES, 'Select insurance…'))
+
         apply_form_widget_classes(self)
+
+        # BMI is auto-calculated from height & weight on the client (read-only).
+        self.fields['bmi'].widget.attrs['readonly'] = True
+
+        # Low-color example placeholders.
+        for name, ph in self._PLACEHOLDERS.items():
+            if name in self.fields:
+                self.fields[name].widget.attrs.setdefault('placeholder', ph)
 
 
 class DoctorNotesForm(forms.ModelForm):

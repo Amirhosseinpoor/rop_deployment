@@ -25,6 +25,10 @@ class PredictionResult(models.Model):
     review_comment = models.TextField(blank=True, null=True)
     classification_status = models.IntegerField(default=1)
 
+    # Doctor/manager case notes about the uploaded images. Employees view but can't edit.
+    doctor_assessment = models.TextField(blank=True, null=True)
+    doctor_recommendation = models.TextField(blank=True, null=True)
+
     # Inference time
     inference_time = models.FloatField(help_text="Inference duration in seconds")
 

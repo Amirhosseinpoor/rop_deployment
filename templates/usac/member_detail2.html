@@ -1,537 +1,453 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="en" dir="ltr" class="h-full">
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>پرونده کاربر | MediverseAI</title>
-    <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png"/>
-    <style>
-        /* ===== فونت وزیر (آفلاین) ===== */
-        @font-face {
-            font-family: Vazirmatn;
-            src: url("{% static 'fonts/Vazirmatn-Regular.woff2' %}") format("woff2");
-        }
-        @font-face {
-            font-family: Vazirmatn;
-            src: url("{% static 'fonts/Vazirmatn-Bold.woff2' %}") format("woff2");
-            font-weight: bold;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ member.get_full_name|default:member.username }} · Member record | MediverseAI</title>
+  <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png">
+  <style>
+    @font-face { font-family: Vazirmatn; src: url("{% static 'fonts/Vazirmatn-Regular.woff2' %}") format("woff2"); font-weight: 400; font-display: swap; }
+    @font-face { font-family: Vazirmatn; src: url("{% static 'fonts/Vazirmatn-Bold.woff2' %}") format("woff2"); font-weight: 700; font-display: swap; }
 
-        /* ===== متغیرهای ریشه ===== */
-        :root {
-            --medical-blue: #0A6EFF;
-            --medical-teal: #00A896;
-            --gray-100: #F8FAFD;
-            --gray-200: #E9EDF5;
-            --gray-600: #5B6B7C;
-            --gray-800: #1E293B;
-            --white-soft: #FFFFFF;
-            --shadow-sm: 0 4px 12px rgba(0,0,0,0.04);
-            --shadow-md: 0 12px 32px rgba(0,0,0,0.08);
-            --shadow-glow: 0 0 24px rgba(10,110,255,0.18);
-            --radius-xl: 24px;
-            --radius-lg: 16px;
-            --radius-md: 12px;
-            --transition: 0.25s ease;
-        }
+    :root {
+      --bg: #F7F7F5; --surface: #FFFFFF; --surface-2: #F3F2EF;
+      --surface-hover: rgba(23, 23, 28, 0.045);
+      --ink: #1C1C22; --ink-soft: #3B3B44; --muted: #6E6E79;
+      --border: rgba(23, 23, 28, 0.09); --border-strong: rgba(23, 23, 28, 0.15);
+      --accent: #6D5AE6; --accent-2: #8B6DF0; --accent-ink: #4B3CB5;
+      --accent-soft: rgba(109, 90, 230, 0.10); --accent-ring: rgba(109, 90, 230, 0.30);
+      --user-grad: linear-gradient(135deg, #6D5AE6 0%, #8B6DF0 100%);
+      --spark-grad: linear-gradient(140deg, #7C6BF0 0%, #9B7DF5 55%, #63C7F0 100%);
+      --danger: #E5484D; --online: #22C55E; --warn: #F59E0B;
+      --shadow-sm: 0 1px 2px rgba(20, 20, 30, .06), 0 1px 3px rgba(20, 20, 30, .04);
+      --shadow-md: 0 10px 34px rgba(24, 24, 44, .10); --shadow-lg: 0 28px 70px rgba(24, 24, 44, .18);
+      --radius-xl: 26px; --radius-lg: 20px; --radius-md: 14px; --radius-sm: 10px;
+      --transition: .22s cubic-bezier(.4, 0, .2, 1);
+      --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Vazirmatn", sans-serif;
+    }
+    .dark {
+      --bg: #0E0E11; --surface: #1A1A1E; --surface-2: #212127;
+      --surface-hover: rgba(255, 255, 255, 0.06);
+      --ink: #ECECEF; --ink-soft: #C9C9D2; --muted: #8C8C99;
+      --border: rgba(255, 255, 255, 0.09); --border-strong: rgba(255, 255, 255, 0.16);
+      --accent: #8B6DF0; --accent-2: #A78BFA; --accent-ink: #C4B2FF;
+      --accent-soft: rgba(139, 109, 240, 0.16); --accent-ring: rgba(139, 109, 240, 0.40);
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4); --shadow-md: 0 12px 40px rgba(0, 0, 0, .5); --shadow-lg: 0 28px 70px rgba(0, 0, 0, .62);
+    }
 
-        * { margin:0; padding:0; box-sizing:border-box; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: var(--sans); color: var(--ink); min-height: 100vh;
+      background:
+        radial-gradient(900px 520px at 100% -8%, var(--accent-soft), transparent 60%),
+        radial-gradient(720px 460px at -6% 2%, rgba(99, 199, 240, .10), transparent 58%),
+        var(--bg);
+      background-attachment: fixed; -webkit-font-smoothing: antialiased;
+      transition: background .35s ease, color .35s ease;
+    }
+    a { text-decoration: none; color: inherit; }
+    ::selection { background: var(--accent-soft); }
 
-        body {
-            font-family: Vazirmatn, Tahoma, sans-serif;
-            background: linear-gradient(150deg, #E3F0FD 0%, #F2F8FF 50%, #FFFFFF 100%);
-            background-attachment: fixed;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow-x: hidden;
-        }
+    /* Top bar */
+    .topbar { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(14px);
+      background: color-mix(in srgb, var(--bg) 80%, transparent); border-bottom: 1px solid var(--border); }
+    .topbar-in { max-width: 1180px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+    .brand-mark { width: 38px; height: 38px; border-radius: 11px; background: var(--surface); border: 1px solid var(--border);
+      display: grid; place-items: center; flex-shrink: 0; box-shadow: var(--shadow-sm); }
+    .brand-mark img { width: 26px; height: 26px; object-fit: contain; }
+    .brand-name { font-weight: 700; font-size: 16.5px; letter-spacing: -.3px; }
+    .brand-name span { color: var(--accent); }
+    .brand-sub { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+    .top-link { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 15px; border-radius: var(--radius-md);
+      background: var(--surface); border: 1px solid var(--border); color: var(--ink); font-size: 14px; font-weight: 600;
+      box-shadow: var(--shadow-sm); transition: var(--transition); }
+    .top-link svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .top-link:hover { border-color: var(--accent); color: var(--accent); }
+    @media (max-width: 640px) { .top-link .lbl { display: none; } .top-link { padding: 0 11px; } }
+    .theme-toggle { width: 40px; height: 40px; border-radius: var(--radius-md); background: transparent; border: 1px solid var(--border);
+      display: grid; place-items: center; font-size: 18px; cursor: pointer; transition: var(--transition); flex-shrink: 0; }
+    .theme-toggle:hover { background: var(--surface-hover); }
 
-        /* پس‌زمینه هگزاگونال */
-        .medical-bg {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5L52.5 17.5V42.5L30 55L7.5 42.5V17.5L30 5Z' fill='none' stroke='%230A6EFF' stroke-opacity='0.07' stroke-width='1'/%3E%3C/svg%3E");
-            background-size: 80px 80px;
-            opacity: 0.35;
-            animation: bgShift 30s linear infinite;
-        }
-        @keyframes bgShift {
-            0% { background-position: 0 0; }
-            100% { background-position: 80px 80px; }
-        }
+    /* Layout */
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 24px 80px; }
+    .hero { margin-bottom: 24px; animation: rise .5s ease both; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: var(--accent);
+      background: var(--accent-soft); border-radius: 999px; padding: 5px 13px; margin-bottom: 12px; }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--online); box-shadow: 0 0 0 3px rgba(34,197,94,.18); }
+    .hero h1 { font-size: clamp(1.7rem, 3.4vw, 2.3rem); font-weight: 750; letter-spacing: -.03em; line-height: 1.12;
+      background: linear-gradient(120deg, var(--ink) 42%, var(--accent) 100%);
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero p { color: var(--muted); font-size: 15px; margin-top: 8px; }
+    @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 
-        /* ========== TOP BAR ========== */
-        .topbar {
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            background: rgba(255,255,255,0.75);
-            backdrop-filter: blur(18px) saturate(180%);
-            border-bottom: 1px solid rgba(10,110,255,0.12);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.05);
-            padding: 12px 32px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .topbar-brand {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-        .topbar-brand img {
-            height: 36px;
-        }
-        .topbar-brand h1 {
-            font-size: 22px;
-            font-weight: bold;
-            color: var(--gray-800);
-        }
-        .topbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 18px;
-        }
-        .back-btn {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
-            background: rgba(255,255,255,0.6);
-            border: 1px solid rgba(0,0,0,0.06);
-            border-radius: 999px;
-            color: var(--gray-800);
-            font-size: 14px;
-            text-decoration: none;
-            transition: var(--transition);
-            backdrop-filter: blur(6px);
-        }
-        .back-btn:hover {
-            background: rgba(10,110,255,0.08);
-            border-color: var(--medical-blue);
-            color: var(--medical-blue);
-        }
-        .theme-toggle {
-            width: 46px;
-            height: 46px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.75);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(0,0,0,0.06);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            cursor: pointer;
-            box-shadow: var(--shadow-sm);
-            transition: var(--transition);
-            flex-shrink: 0;
-        }
-        .theme-toggle:hover {
-            background: white;
-            box-shadow: var(--shadow-md);
-        }
+    /* Identity card */
+    .id-card { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+    .id-avatar { width: 62px; height: 62px; border-radius: 18px; background: var(--user-grad); color: #fff; display: grid; place-items: center;
+      font-size: 26px; font-weight: 750; flex-shrink: 0; text-transform: uppercase; box-shadow: var(--shadow-md); }
+    .id-main { min-width: 0; }
+    .id-name { font-size: 20px; font-weight: 750; letter-spacing: -.02em; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .id-sub { font-size: 13.5px; color: var(--muted); margin-top: 4px; }
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-top: 20px; }
+    .info-item { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px 14px; }
+    .info-item .k { font-size: 11.5px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+    .info-item .k svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .info-item .v { font-size: 14px; font-weight: 600; margin-top: 5px; word-break: break-word; }
 
-        /* ========== MAIN CONTAINER ========== */
-        .main-container {
-            position: relative;
-            z-index: 2;
-            max-width: 1200px;
-            width: 95%;
-            margin: 30px auto 40px;
-            flex: 1;
-        }
+    /* KPI tiles */
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 22px; }
+    .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 20px;
+      box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 15px; animation: fadeUp .5s ease backwards; transition: var(--transition); }
+    .kpi:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .kpi-ico { width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center; flex-shrink: 0; background: var(--accent-soft); color: var(--accent); }
+    .kpi-ico svg { width: 23px; height: 23px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .kpi-ico.g { background: rgba(34,197,94,.12); color: #16A34A; } .dark .kpi-ico.g { color: #4ADE80; }
+    .kpi-ico.w { background: rgba(245,158,11,.12); color: #D97706; } .dark .kpi-ico.w { color: #FBBF24; }
+    .kpi-ico.b { background: rgba(37,99,235,.12); color: #2563EB; } .dark .kpi-ico.b { color: #93C5FD; }
+    .kpi-val { font-size: 26px; font-weight: 750; letter-spacing: -.02em; line-height: 1; }
+    .kpi-val.sm { font-size: 17px; }
+    .kpi-lab { font-size: 12.5px; color: var(--muted); margin-top: 5px; }
 
-        /* ========== کارت عمومی ========== */
-        .card {
-            background: rgba(255,255,255,0.7);
-            backdrop-filter: blur(18px) saturate(180%);
-            border: 1px solid rgba(255,255,255,0.5);
-            border-radius: var(--radius-xl);
-            padding: 24px;
-            box-shadow: var(--shadow-md), var(--shadow-glow);
-            animation: cardAppear 0.6s ease-out;
-            margin-bottom: 24px;
-        }
-        @keyframes cardAppear {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .card-title {
-            font-size: 20px;
-            font-weight: bold;
-            color: var(--gray-800);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .card-title svg {
-            width: 24px;
-            height: 24px;
-            stroke: var(--medical-blue);
-            fill: none;
-            stroke-width: 2;
-        }
+    /* Cards */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 22px;
+      box-shadow: var(--shadow-sm); margin-bottom: 20px; animation: fadeUp .5s ease backwards; }
+    .card-head { display: flex; align-items: center; gap: 11px; margin-bottom: 16px; flex-wrap: wrap; }
+    .card-head .ico { width: 32px; height: 32px; border-radius: 9px; background: var(--user-grad); color: #fff; display: grid; place-items: center; flex-shrink: 0; }
+    .card-head .ico svg { width: 17px; height: 17px; stroke: #fff; fill: none; stroke-width: 2; }
+    .card-head h2 { font-size: 15.5px; font-weight: 700; letter-spacing: -.2px; }
+    .card-head .count { font-size: 12px; font-weight: 600; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 3px 10px; }
+    .card-head .grow { margin-left: auto; }
 
-        /* ========== جدول‌ها ========== */
-        .table-wrapper {
-            overflow-x: auto;
-            border-radius: var(--radius-md);
-            border: 1px solid rgba(0,0,0,0.05);
-            background: rgba(255,255,255,0.5);
-            backdrop-filter: blur(6px);
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-        th {
-            background: rgba(10,110,255,0.06);
-            color: var(--gray-800);
-            font-weight: 600;
-            text-align: right;
-            padding: 12px 16px;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-        }
-        td {
-            padding: 12px 16px;
-            border-bottom: 1px solid rgba(0,0,0,0.03);
-            color: var(--gray-600);
-        }
-        tr:hover td {
-            background: rgba(10,110,255,0.03);
-        }
+    .search-input { height: 38px; width: 220px; max-width: 50vw; border: 1px solid var(--border-strong); background: var(--surface); color: var(--ink);
+      border-radius: var(--radius-md); padding: 0 13px 0 36px; font-family: inherit; font-size: 13.5px; outline: none; transition: var(--transition);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%236E6E79' stroke-width='2' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: left 12px center; }
+    .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-ring); }
+    .search-input::placeholder { color: var(--muted); }
 
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 12px;
-            padding: 4px 10px;
-            border-radius: 999px;
-            font-weight: 500;
-            white-space: nowrap;
-        }
-        .status-active { background: #ECFDF5; color: #065F46; }
-        .status-pending { background: #FEF3C7; color: #92400E; }
-        .status-done { background: #E0F2FE; color: #0C4A6E; }
-        .status-red { background: #FEE2E2; color: #991B1B; }
+    /* Profile summary row inside a card */
+    .flat-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .flat-row .meta { font-size: 13.5px; color: var(--muted); }
 
-        .btn-primary {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
-            background: linear-gradient(135deg, #0A6EFF, #3B82F6);
-            color: white;
-            border: none;
-            border-radius: 999px;
-            font-weight: bold;
-            cursor: pointer;
-            text-decoration: none;
-            font-size: 14px;
-            transition: var(--transition);
-            box-shadow: 0 4px 12px rgba(10,110,255,0.25);
-        }
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(10,110,255,0.35);
-        }
+    .btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 42px; padding: 0 20px; border: none;
+      border-radius: var(--radius-md); background: var(--user-grad); color: #fff; font-family: inherit; font-weight: 700; font-size: 14px;
+      cursor: pointer; box-shadow: 0 10px 24px rgba(109,90,230,.32); transition: var(--transition); white-space: nowrap; }
+    .btn-primary svg { width: 17px; height: 17px; stroke: #fff; fill: none; stroke-width: 2; }
+    .btn-primary:hover { filter: brightness(1.06); box-shadow: 0 14px 30px rgba(109,90,230,.46); transform: translateY(-1px); }
 
-        .search-input {
-            padding: 8px 14px;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--gray-200);
-            background: rgba(255,255,255,0.6);
-            font-size: 14px;
-            width: 200px;
-            transition: var(--transition);
-            color: var(--gray-800);
-        }
-        .search-input:focus {
-            outline: none;
-            border-color: var(--medical-blue);
-            box-shadow: 0 0 0 3px rgba(10,110,255,0.15);
-        }
+    /* Tables */
+    .tbl-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-md); }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    thead th { text-align: left; font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+      color: var(--muted); padding: 12px 15px; background: var(--surface-2); border-bottom: 1px solid var(--border); white-space: nowrap; }
+    tbody td { padding: 13px 15px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr { transition: background .15s; }
+    tbody tr:hover { background: var(--surface-hover); }
+    .u-cell { display: flex; align-items: center; gap: 10px; }
+    .u-avatar { width: 32px; height: 32px; border-radius: 9px; background: var(--user-grad); color: #fff; display: grid; place-items: center;
+      font-size: 13px; font-weight: 700; flex-shrink: 0; text-transform: uppercase; }
+    .u-name { font-weight: 600; }
+    .mono { font-family: ui-monospace, "SF Mono", monospace; font-size: 12.5px; color: var(--ink-soft); }
+    .strong { font-weight: 700; color: var(--ink); }
 
-        /* دارک مود */
-        .dark body {
-            background: linear-gradient(150deg, #0B1121 0%, #131A2E 50%, #1A2540 100%);
-        }
-        .dark .topbar,
-        .dark .card,
-        .dark .table-wrapper,
-        .dark .search-input {
-            background: rgba(24,30,50,0.75);
-            backdrop-filter: blur(18px) saturate(180%);
-            border-color: rgba(255,255,255,0.08);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.4), inset 0 0 30px rgba(255,255,255,0.03);
-        }
-        .dark .card-title,
-        .dark th,
-        .dark .search-input {
-            color: #EDF2F9;
-        }
-        .dark td,
-        .dark .search-input::placeholder {
-            color: #B9C5DA;
-        }
-        .dark .btn-primary {
-            background: linear-gradient(135deg, #2A6EFF, #4F8CFF);
-        }
-        .dark .theme-toggle {
-            background: rgba(30,40,65,0.8);
-            color: #E2E8F0;
-            border-color: rgba(255,255,255,0.1);
-        }
-        .dark .back-btn {
-            background: rgba(255,255,255,0.08);
-            border-color: rgba(255,255,255,0.1);
-            color: #E2E8F0;
-        }
-        .dark .status-active { background: rgba(16,185,129,0.15); color: #6EE7B7; }
-        .dark .status-pending { background: rgba(245,158,11,0.15); color: #FCD34D; }
-        .dark .status-done { background: rgba(14,165,233,0.15); color: #7DD3FC; }
-        .dark .status-red { background: rgba(239,68,68,0.15); color: #FCA5A5; }
-    </style>
+    .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; padding: 4px 10px; border-radius: 999px; border: 1px solid; white-space: nowrap; }
+    .badge .d { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .badge.ok { color: #16A34A; background: rgba(34,197,94,.1); border-color: rgba(34,197,94,.3); } .dark .badge.ok { color: #4ADE80; }
+    .badge.pend { color: #D97706; background: rgba(245,158,11,.1); border-color: rgba(245,158,11,.3); } .dark .badge.pend { color: #FBBF24; }
+    .badge.red { color: var(--danger); background: rgba(229,72,77,.1); border-color: rgba(229,72,77,.3); } .dark .badge.red { color: #FF9A9E; }
+    .badge.neutral { color: var(--muted); background: var(--surface-2); border-color: var(--border); }
+    .badge.role { color: var(--accent); background: var(--accent-soft); border-color: var(--accent-ring); }
+    .badge.blue { color: #2563EB; background: rgba(37,99,235,.1); border-color: rgba(37,99,235,.3); } .dark .badge.blue { color: #93C5FD; }
+    .badge.violet { color: #7C3AED; background: rgba(124,58,237,.1); border-color: rgba(124,58,237,.3); } .dark .badge.violet { color: #C4B5FD; }
+
+    .row-link { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 13px; border-radius: 9px;
+      background: var(--surface); border: 1px solid var(--border); color: var(--ink); font-size: 12.5px; font-weight: 600; transition: var(--transition); }
+    .row-link svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .row-link:hover { border-color: var(--accent); color: var(--accent); }
+    .row-link.solid { background: var(--user-grad); border-color: transparent; color: #fff; box-shadow: 0 6px 14px rgba(109,90,230,.28); }
+    .row-link.solid:hover { filter: brightness(1.06); box-shadow: 0 10px 20px rgba(109,90,230,.42); color: #fff; }
+    .link-group { display: inline-flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+
+    .empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 14px; }
+    .empty svg { width: 34px; height: 34px; stroke: var(--muted); fill: none; stroke-width: 1.6; opacity: .6; margin-bottom: 10px; }
+
+    footer { text-align: center; padding: 24px; color: var(--muted); font-size: 12.5px; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
+  </style>
 </head>
 <body>
-<div class="medical-bg"></div>
-
-<!-- ========== TOP BAR ========== -->
-<header class="topbar">
-    <div class="topbar-brand">
-        <img src="{% static 'mediversai_logo_final.png' %}" alt="MediverseAI">
-        <h1>پرونده {{ member.username }}</h1>
-    </div>
-    <div class="topbar-actions">
-        <a href="{% url 'manager_dashboard' %}" class="back-btn">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
-            بازگشت
-        </a>
-        <div class="theme-toggle" id="themeToggle">🌓</div>
-    </div>
-</header>
-
-<div class="main-container">
-    <!-- عنوان و ایمیل -->
-    <div class="card" style="padding: 16px 24px;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div>
-                <div style="font-size:18px; font-weight:bold; color:var(--gray-800);">{{ member.username }}</div>
-                <div style="font-size:14px; color:var(--gray-600);">{{ member.email }} · {{ member.profile.role }} · {{ member.profile.national_code }}</div>
-            </div>
+  <header class="topbar">
+    <div class="topbar-in">
+      <div class="brand">
+        <span class="brand-mark"><img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediverseAI"></span>
+        <div>
+          <div class="brand-name">Mediverse<span>AI</span></div>
+          <div class="brand-sub">Member record</div>
         </div>
+      </div>
+      <div class="top-actions">
+        <a href="{% url 'manager_dashboard' %}" class="top-link">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          <span class="lbl">Back to dashboard</span>
+        </a>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">🌙</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <!-- Hero -->
+    <div class="hero">
+      <span class="eyebrow"><span class="dot"></span> {{ member.profile.get_role_display }} record</span>
+      <h1>{{ member.get_full_name|default:member.username }}</h1>
+      <p>Full profile, assessments and screening history for this team member.</p>
+    </div>
+
+    <!-- Identity card -->
+    <div class="card" style="animation-delay:.04s">
+      <div class="id-card">
+        <span class="id-avatar">{{ member.username|first|upper }}</span>
+        <div class="id-main">
+          <div class="id-name">
+            {{ member.get_full_name|default:member.username }}
+            <span class="badge role"><span class="d"></span> {{ member.profile.get_role_display }}</span>
+          </div>
+          <div class="id-sub">@{{ member.username }}</div>
+        </div>
+      </div>
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="k"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg> Email</div>
+          <div class="v">{{ member.email|default:"—" }}</div>
+        </div>
+        <div class="info-item">
+          <div class="k"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h4M7 12h10M7 16h10"/></svg> National code</div>
+          <div class="v mono">{{ member.profile.national_code|default:"—" }}</div>
+        </div>
+        <div class="info-item">
+          <div class="k"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Phone</div>
+          <div class="v mono">{{ member.profile.phone|default:"—" }}</div>
+        </div>
+        <div class="info-item">
+          <div class="k"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg> Role</div>
+          <div class="v">{{ member.profile.get_role_display }}</div>
+        </div>
+      </div>
     </div>
 
     {% if member.profile.role == 'doctor' %}
-        <!-- Doctor Stats & Examined Employees -->
-        <section class="card">
-            <div class="card-title">
-                <svg viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                آمار پزشک
-            </div>
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap:16px; margin-bottom:24px;">
-                <div class="card" style="text-align:center; padding:16px;">
-                    <div style="font-size:14px; color:var(--gray-600);">کل معاینه‌شده</div>
-                    <div style="font-size:28px; font-weight:800; color:var(--medical-blue);">{{ doctor_stats.total_examined }}</div>
-                </div>
-                <div class="card" style="text-align:center; padding:16px;">
-                    <div style="font-size:14px; color:var(--gray-600);">تکمیل‌شده</div>
-                    <div style="font-size:28px; font-weight:800; color:#059669;">{{ doctor_stats.completed }}</div>
-                </div>
-                <div class="card" style="text-align:center; padding:16px;">
-                    <div style="font-size:14px; color:var(--gray-600);">در انتظار معاینه</div>
-                    <div style="font-size:28px; font-weight:800; color:#d97706;">{{ doctor_stats.pending }}</div>
-                </div>
-            </div>
+    <!-- ============ DOCTOR ============ -->
+    <div class="kpis">
+      <div class="kpi" style="animation-delay:.06s">
+        <div class="kpi-ico b"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <div><div class="kpi-val">{{ doctor_stats.total_examined }}</div><div class="kpi-lab">Total examined</div></div>
+      </div>
+      <div class="kpi" style="animation-delay:.1s">
+        <div class="kpi-ico g"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+        <div><div class="kpi-val">{{ doctor_stats.completed }}</div><div class="kpi-lab">Completed</div></div>
+      </div>
+      <div class="kpi" style="animation-delay:.14s">
+        <div class="kpi-ico w"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div><div class="kpi-val">{{ doctor_stats.pending }}</div><div class="kpi-lab">Pending exam</div></div>
+      </div>
+    </div>
 
-            <div class="card-title">
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="3"/><path d="M12 12c-5 0-7 3-7 7h14c0-4-2-7-7-7z"/></svg>
-                کارمندان معاینه‌شده
-            </div>
-            {% if examined_employees %}
-                <div class="table-wrapper">
-                    <table>
-                        <thead><tr><th>کارمند</th><th>کد ملی</th><th>شغل</th><th>نتیجه نهایی</th><th>جزئیات</th></tr></thead>
-                        <tbody>
-                        {% for emp in examined_employees %}
-                            {% with hp=emp.health_profile %}
-                                <tr>
-                                    <td>{{ emp.get_full_name|default:emp.username }}</td>
-                                    <td>{{ emp.profile.national_code|default:"-" }}</td>
-                                    <td>{{ hp.current_job_title|default:"-" }}</td>
-                                    <td>
-                                        {% if hp %}
-                                            {% if hp.opinion_fit %}<span class="status-badge status-active">بلامانع</span>
-                                            {% elif hp.opinion_fit_with_conditions %}<span class="status-badge status-pending">مشروط</span>
-                                            {% elif hp.opinion_unfit %}<span class="status-badge status-red">عدم صلاحیت</span>
-                                            {% else %}<span class="status-badge status-pending">در انتظار</span>
-                                            {% endif %}
-                                        {% else %}<span style="color:var(--gray-600);">-</span>
-                                        {% endif %}
-                                    </td>
-                                    <td><a href="{% url 'member_detail' emp.id %}" class="btn-primary" style="padding:4px 12px; font-size:13px;">مشاهده</a></td>
-                                </tr>
-                            {% endwith %}
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% else %}
-                <p style="color:var(--gray-600);">هنوز کارمندی را معاینه نکرده است.</p>
-            {% endif %}
-        </section>
+    <div class="card" style="animation-delay:.16s">
+      <div class="card-head">
+        <span class="ico"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></span>
+        <h2>Examined employees</h2><span class="count">{{ examined_employees|length }}</span>
+        <span class="grow"></span>
+        {% if examined_employees %}<input type="search" id="searchExamined" class="search-input" placeholder="Search employees…">{% endif %}
+      </div>
+      {% if examined_employees %}
+      <div class="tbl-wrap">
+        <table id="examinedTable">
+          <thead><tr><th>Employee</th><th>National code</th><th>Job title</th><th>Final opinion</th><th></th></tr></thead>
+          <tbody>
+            {% for emp in examined_employees %}
+              {% with hp=emp.health_profile %}
+              <tr>
+                <td><div class="u-cell"><span class="u-avatar">{{ emp.username|first|upper }}</span><span class="u-name">{{ emp.get_full_name|default:emp.username }}</span></div></td>
+                <td class="mono">{{ emp.profile.national_code|default:"—" }}</td>
+                <td style="color:var(--muted);">{{ hp.current_job_title|default:"—" }}</td>
+                <td>
+                  {% if hp %}
+                    {% if hp.opinion_fit %}<span class="badge ok"><span class="d"></span> Fit</span>
+                    {% elif hp.opinion_fit_with_conditions %}<span class="badge pend"><span class="d"></span> Conditional</span>
+                    {% elif hp.opinion_unfit %}<span class="badge red"><span class="d"></span> Unfit</span>
+                    {% else %}<span class="badge neutral">Pending</span>{% endif %}
+                  {% else %}<span class="badge neutral">—</span>{% endif %}
+                </td>
+                <td style="text-align:right;"><a href="{% url 'member_detail' emp.id %}" class="row-link">View <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></td>
+              </tr>
+              {% endwith %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        <div>This doctor hasn't examined any employees yet.</div>
+      </div>
+      {% endif %}
+    </div>
 
     {% else %}
-        <!-- Employee: Health Profile Card -->
-        <section class="card">
-            {% if health_profile %}
-                <div class="card-title">
-                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-                    پرونده سلامت فعال
-                </div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <div style="color:var(--gray-600);">تاریخ بروزرسانی: {{ health_profile.updated_at|default:health_profile.created_at|date:"Y-m-d" }}</div>
-                    </div>
-                    <a href="{% url 'profile_detail_user' user_id=member.id %}" class="btn-primary">
-                        مشاهده جزئیات
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 18l6-6-6-6"/></svg>
-                    </a>
-                </div>
-            {% else %}
-                <div class="card-title">
-                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-                    پرونده سلامت
-                </div>
-                <p style="color:var(--gray-600);">پرونده‌ای ثبت نشده است.</p>
-            {% endif %}
-        </section>
+    <!-- ============ EMPLOYEE ============ -->
+    <div class="kpis">
+      <div class="kpi" style="animation-delay:.06s">
+        <div class="kpi-ico b"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></div>
+        <div><div class="kpi-val">{{ single_results|length|default:0 }}</div><div class="kpi-lab">ROP scans</div></div>
+      </div>
+      <div class="kpi" style="animation-delay:.1s">
+        <div class="kpi-ico"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></div>
+        <div><div class="kpi-val">{{ double_results|length|default:0 }}</div><div class="kpi-lab">KC scans</div></div>
+      </div>
+      <div class="kpi" style="animation-delay:.14s">
+        <div class="kpi-ico g"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+        <div><div class="kpi-val sm">{% if single_results %}{{ single_results.0.timestamp|date:"Y-m-d" }}{% else %}—{% endif %}</div><div class="kpi-lab">Latest ROP</div></div>
+      </div>
+      <div class="kpi" style="animation-delay:.18s">
+        <div class="kpi-ico w"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+        <div><div class="kpi-val sm">{% if double_results %}{{ double_results.0.created_at|date:"Y-m-d" }}{% else %}—{% endif %}</div><div class="kpi-lab">Latest KC</div></div>
+      </div>
+    </div>
 
-        <!-- Quick stats -->
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap:16px; margin-bottom:20px;">
-            <div class="card" style="text-align:center; padding:16px;">
-                <div style="font-size:12px; color:var(--gray-600);">کل ROP</div>
-                <div style="font-size:24px; font-weight:800;">{{ single_results|length|default:0 }}</div>
-            </div>
-            <div class="card" style="text-align:center; padding:16px;">
-                <div style="font-size:12px; color:var(--gray-600);">کل KC</div>
-                <div style="font-size:24px; font-weight:800;">{{ double_results|length|default:0 }}</div>
-            </div>
-            <div class="card" style="text-align:center; padding:16px;">
-                <div style="font-size:12px; color:var(--gray-600);">آخرین ROP</div>
-                <div style="font-size:14px; font-weight:600;">{% if single_results %}{{ single_results.0.timestamp|date:"Y-m-d" }}{% else %}—{% endif %}</div>
-            </div>
-            <div class="card" style="text-align:center; padding:16px;">
-                <div style="font-size:12px; color:var(--gray-600);">آخرین KC</div>
-                <div style="font-size:14px; font-weight:600;">{% if double_results %}{{ double_results.0.created_at|date:"Y-m-d" }}{% else %}—{% endif %}</div>
-            </div>
-        </div>
+    <!-- Health profile -->
+    <div class="card" style="animation-delay:.2s">
+      <div class="card-head">
+        <span class="ico"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
+        <h2>Health profile</h2>
+        {% if health_profile %}<span class="badge ok"><span class="d"></span> Active</span>{% else %}<span class="badge neutral">Not started</span>{% endif %}
+      </div>
+      {% if health_profile %}
+      <div class="flat-row">
+        <div class="meta">Last updated · {{ health_profile.updated_at|default:health_profile.created_at|date:"Y-m-d" }}</div>
+        <a href="{% url 'profile_detail_user' user_id=member.id %}" class="btn-primary">
+          View full record
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </a>
+      </div>
+      {% else %}
+      <div class="empty" style="padding:28px 20px;">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        <div>No health profile has been recorded yet.</div>
+      </div>
+      {% endif %}
+    </div>
 
-        <!-- ROP Table -->
-        <div class="card">
-            <div class="card-title" style="justify-content:space-between;">
-                <span>نتایج ROP</span>
-                <input type="search" id="searchRop" class="search-input" placeholder="جستجو...">
-            </div>
-            <div class="table-wrapper">
-                <table id="ropTable">
-                    <thead><tr><th>تاریخ</th><th>فایل</th><th>کلاس</th><th>احتمال</th><th>مرحله</th><th>احتمال</th><th>زون</th><th>احتمال</th><th>نتیجه</th><th>زمان</th><th>تصاویر</th></tr></thead>
-                    <tbody>
-                    {% for s in single_results %}
-                        <tr>
-                            <td>{{ s.timestamp|date:"Y-m-d H:i" }}</td>
-                            <td>{{ s.file_name }}</td>
-                            <td>{{ s.predicted_class }}</td>
-                            <td>{{ s.probability|floatformat:3 }}</td>
-                            <td>{{ s.stage_class }}</td>
-                            <td>{{ s.stage_probability|floatformat:3 }}</td>
-                            <td>{{ s.zone_class }}</td>
-                            <td>{{ s.zone_probability|floatformat:3 }}</td>
-                            <td><strong>{{ s.final_decision|default:"—" }}</strong></td>
-                            <td>{{ s.execution_time }} ms</td>
-                            <td>
-                                {% if s.image_url %}<a href="{{ s.image_url }}" target="_blank" class="btn-primary" style="padding:2px 8px; font-size:12px;">اصل</a>{% endif %}
-                                {% if s.segmented_image_url %}<a href="{{ s.segmented_image_url }}" target="_blank" class="btn-primary" style="padding:2px 8px; font-size:12px;">ماسک</a>{% endif %}
-                            </td>
-                        </tr>
-                    {% empty %}
-                        <tr><td colspan="11" style="text-align:center; color:var(--gray-600);">رکوردی موجود نیست.</td></tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <!-- ROP results -->
+    <div class="card" style="animation-delay:.24s">
+      <div class="card-head">
+        <span class="ico"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        <h2>ROP results</h2><span class="count">{{ single_results|length }}</span>
+        <span class="grow"></span>
+        {% if single_results %}<input type="search" id="searchRop" class="search-input" placeholder="Search ROP…">{% endif %}
+      </div>
+      <div class="tbl-wrap">
+        <table id="ropTable">
+          <thead>
+            <tr><th>Date</th><th>File</th><th>Class</th><th>Prob.</th><th>Stage</th><th>Prob.</th><th>Zone</th><th>Prob.</th><th>Result</th><th>Time</th><th>Images</th></tr>
+          </thead>
+          <tbody>
+            {% for s in single_results %}
+            <tr>
+              <td style="color:var(--muted); white-space:nowrap;">{{ s.timestamp|date:"Y-m-d H:i" }}</td>
+              <td class="mono">{{ s.file_name }}</td>
+              <td>{{ s.predicted_class }}</td>
+              <td class="mono">{{ s.probability|floatformat:3 }}</td>
+              <td>{{ s.stage_class }}</td>
+              <td class="mono">{{ s.stage_probability|floatformat:3 }}</td>
+              <td>{{ s.zone_class }}</td>
+              <td class="mono">{{ s.zone_probability|floatformat:3 }}</td>
+              <td><span class="strong">{{ s.final_decision|default:"—" }}</span></td>
+              <td class="mono">{{ s.execution_time }} ms</td>
+              <td>
+                <span class="link-group">
+                  {% if s.image_url %}<a href="{{ s.image_url }}" target="_blank" class="row-link">Original</a>{% endif %}
+                  {% if s.segmented_image_url %}<a href="{{ s.segmented_image_url }}" target="_blank" class="row-link solid">Mask</a>{% endif %}
+                </span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="11"><div class="empty" style="padding:32px 20px;"><svg viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><div>No ROP records available.</div></div></td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-        <!-- KC Table -->
-        <div class="card">
-            <div class="card-title" style="justify-content:space-between;">
-                <span>نتایج KC</span>
-                <input type="search" id="searchKc" class="search-input" placeholder="جستجو...">
-            </div>
-            <div class="table-wrapper">
-                <table id="kcTable">
-                    <thead><tr><th>برچسب‌ها</th><th>احتمال‌ها</th><th>تاریخ</th></tr></thead>
-                    <tbody>
-                    {% for d in double_results %}
-                        <tr>
-                            <td>
-                                <span class="status-badge status-done" style="margin-right:4px;">L: {{ d.left_label }}</span>
-                                <span class="status-badge" style="background:#F3E8FF; color:#6B21A8; margin-right:4px;">R: {{ d.right_label }}</span>
-                                <span class="status-badge status-pending">Z: {{ d.z_class_label }}</span>
-                            </td>
-                            <td>L: {{ d.left_probability|floatformat:3 }} · R: {{ d.right_probability|floatformat:3 }} · Z: {{ d.z_class_probability|floatformat:3 }}</td>
-                            <td>{{ d.created_at|date:"Y-m-d H:i" }}</td>
-                        </tr>
-                    {% empty %}
-                        <tr><td colspan="3" style="text-align:center; color:var(--gray-600);">رکوردی موجود نیست.</td></tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <!-- KC results -->
+    <div class="card" style="animation-delay:.28s">
+      <div class="card-head">
+        <span class="ico"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>
+        <h2>KC results</h2><span class="count">{{ double_results|length }}</span>
+        <span class="grow"></span>
+        {% if double_results %}<input type="search" id="searchKc" class="search-input" placeholder="Search KC…">{% endif %}
+      </div>
+      <div class="tbl-wrap">
+        <table id="kcTable">
+          <thead><tr><th>Labels</th><th>Probabilities</th><th>Date</th></tr></thead>
+          <tbody>
+            {% for d in double_results %}
+            <tr>
+              <td>
+                <span class="link-group" style="justify-content:flex-start;">
+                  <span class="badge blue">L · {{ d.left_label }}</span>
+                  <span class="badge violet">R · {{ d.right_label }}</span>
+                  <span class="badge pend">Z · {{ d.z_class_label }}</span>
+                </span>
+              </td>
+              <td class="mono">L {{ d.left_probability|floatformat:3 }} · R {{ d.right_probability|floatformat:3 }} · Z {{ d.z_class_probability|floatformat:3 }}</td>
+              <td style="color:var(--muted); white-space:nowrap;">{{ d.created_at|date:"Y-m-d H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3"><div class="empty" style="padding:32px 20px;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><div>No KC records available.</div></div></td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
     {% endif %}
-</div>
+  </div>
 
-<footer style="text-align:center; padding:20px; color:var(--gray-600); position:relative; z-index:2;">
-    © MediverseAI
-</footer>
+  <footer>© MediverseAI</footer>
 
-<script>
-    // Theme toggle
-    const root = document.documentElement;
-    const toggle = document.getElementById('themeToggle');
-    function setIcon() { toggle.textContent = root.classList.contains('dark') ? '☀️' : '🌓'; }
-    if (localStorage.getItem('theme') === 'dark') root.classList.add('dark');
-    setIcon();
-    toggle.onclick = () => {
+  <script>
+    /* theme — shared .dark class + 'theme' key */
+    (function () {
+      const root = document.documentElement, btn = document.getElementById('themeToggle');
+      const setIcon = () => { btn.textContent = root.classList.contains('dark') ? '☀️' : '🌙'; };
+      if (localStorage.getItem('theme') === 'dark') root.classList.add('dark');
+      setIcon();
+      btn.addEventListener('click', () => {
         root.classList.toggle('dark');
         localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
         setIcon();
-    };
+      });
+    })();
 
-    // Table search filters
-    function attachFilter(inputId, tableId) {
-        const input = document.getElementById(inputId);
-        const table = document.getElementById(tableId);
-        if (!input || !table) return;
-        input.addEventListener('input', () => {
-            const q = input.value.trim().toLowerCase();
-            table.querySelectorAll('tbody tr').forEach(row => {
-                row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
-            });
+    /* table search */
+    function wireSearch(inputId, tableId) {
+      const input = document.getElementById(inputId), table = document.getElementById(tableId);
+      if (!input || !table) return;
+      input.addEventListener('input', () => {
+        const q = input.value.toLowerCase();
+        table.querySelectorAll('tbody tr').forEach(tr => {
+          if (tr.querySelector('td[colspan]')) return;
+          tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
         });
+      });
     }
-    attachFilter('searchRop', 'ropTable');
-    attachFilter('searchKc', 'kcTable');
-</script>
+    wireSearch('searchExamined', 'examinedTable');
+    wireSearch('searchRop', 'ropTable');
+    wireSearch('searchKc', 'kcTable');
+  </script>
 </body>
 </html>

@@ -1,358 +1,242 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="en" dir="ltr" class="h-full">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>انتخاب نقش | MediverseAI</title>
-    <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png">
-    <style>
-        /* ------------------------- */
-        /* فونت وزیر (آفلاین) */
-        /* ------------------------- */
-        @font-face {
-            font-family: "Vazir";
-            src: url("{% static 'fonts/Vazirmatn-Regular.woff2' %}") format("woff2");
-            font-weight: normal;
-        }
-        @font-face {
-            font-family: "Vazir";
-            src: url("{% static 'fonts/Vazirmatn-Bold.woff2' %}") format("woff2");
-            font-weight: bold;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Choose your role | MediverseAI</title>
+  <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png">
+  <style>
+    @font-face { font-family: Vazirmatn; src: url("{% static 'fonts/Vazirmatn-Regular.woff2' %}") format("woff2"); font-weight: 400; font-display: swap; }
+    @font-face { font-family: Vazirmatn; src: url("{% static 'fonts/Vazirmatn-Bold.woff2' %}") format("woff2"); font-weight: 700; font-display: swap; }
 
-        /* ------------------------- */
-        /* متغیرهای ریشه */
-        /* ------------------------- */
-        :root {
-            --medical-blue: #0A6EFF;
-            --medical-teal: #00A896;
-            --gray-100: #F8FAFD;
-            --gray-200: #E9EDF5;
-            --gray-600: #5B6B7C;
-            --gray-800: #1E293B;
-            --shadow-sm: 0 4px 12px rgba(0,0,0,0.04);
-            --shadow-md: 0 12px 32px rgba(0,0,0,0.08);
-            --shadow-glow: 0 0 24px rgba(10,110,255,0.18);
-            --radius-xl: 24px;
-            --radius-lg: 16px;
-            --transition: 0.25s ease;
-        }
+    :root {
+      --bg: #F7F7F5; --surface: #FFFFFF; --surface-2: #F3F2EF;
+      --surface-hover: rgba(23, 23, 28, 0.045);
+      --ink: #1C1C22; --ink-soft: #3B3B44; --muted: #6E6E79;
+      --border: rgba(23, 23, 28, 0.09); --border-strong: rgba(23, 23, 28, 0.15);
+      --accent: #6D5AE6; --accent-2: #8B6DF0; --accent-ink: #4B3CB5;
+      --accent-soft: rgba(109, 90, 230, 0.10); --accent-ring: rgba(109, 90, 230, 0.30);
+      --user-grad: linear-gradient(135deg, #6D5AE6 0%, #8B6DF0 100%);
+      --spark-grad: linear-gradient(140deg, #7C6BF0 0%, #9B7DF5 55%, #63C7F0 100%);
+      --danger: #E5484D; --online: #22C55E;
+      --shadow-sm: 0 1px 2px rgba(20, 20, 30, .06), 0 1px 3px rgba(20, 20, 30, .04);
+      --shadow-md: 0 10px 34px rgba(24, 24, 44, .10); --shadow-lg: 0 28px 70px rgba(24, 24, 44, .18);
+      --radius-xl: 26px; --radius-lg: 20px; --radius-md: 14px; --radius-sm: 10px;
+      --transition: .22s cubic-bezier(.4, 0, .2, 1);
+      --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Vazirmatn", sans-serif;
+    }
+    .dark {
+      --bg: #0E0E11; --surface: #1A1A1E; --surface-2: #212127;
+      --surface-hover: rgba(255, 255, 255, 0.06);
+      --ink: #ECECEF; --ink-soft: #C9C9D2; --muted: #8C8C99;
+      --border: rgba(255, 255, 255, 0.09); --border-strong: rgba(255, 255, 255, 0.16);
+      --accent: #8B6DF0; --accent-2: #A78BFA; --accent-ink: #C4B2FF;
+      --accent-soft: rgba(139, 109, 240, 0.16); --accent-ring: rgba(139, 109, 240, 0.40);
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4); --shadow-md: 0 12px 40px rgba(0, 0, 0, .5); --shadow-lg: 0 28px 70px rgba(0, 0, 0, .62);
+    }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: "Vazir", sans-serif;
-            background: linear-gradient(150deg, #E3F0FD 0%, #F2F8FF 50%, #FFFFFF 100%);
-            background-attachment: fixed;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 30px;
-            position: relative;
-            overflow-x: hidden;
-        }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: var(--sans); color: var(--ink); min-height: 100vh;
+      display: flex; align-items: center; justify-content: center; padding: 40px 20px;
+      background: var(--bg); overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      transition: background .35s ease, color .35s ease;
+    }
+    a { text-decoration: none; color: inherit; }
+    ::selection { background: var(--accent-soft); }
 
-        /* پس‌زمینه هگزاگونال (همانند صفحه ورود) */
-        .medical-bg {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5L52.5 17.5V42.5L30 55L7.5 42.5V17.5L30 5Z' fill='none' stroke='%230A6EFF' stroke-opacity='0.07' stroke-width='1'/%3E%3C/svg%3E");
-            background-size: 80px 80px;
-            opacity: 0.35;
-        }
+    /* Animated gradient backdrop */
+    .bg-orbs { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(70px); opacity: .55; }
+    .orb.a { width: 560px; height: 560px; top: -180px; right: -120px;
+      background: radial-gradient(circle at 30% 30%, #8B6DF0, transparent 70%); animation: drift1 18s ease-in-out infinite; }
+    .orb.b { width: 520px; height: 520px; bottom: -200px; left: -140px;
+      background: radial-gradient(circle at 30% 30%, #63C7F0, transparent 70%); animation: drift2 22s ease-in-out infinite; }
+    .orb.c { width: 360px; height: 360px; top: 40%; left: 55%;
+      background: radial-gradient(circle at 30% 30%, #9B7DF5, transparent 70%); opacity: .35; animation: drift3 26s ease-in-out infinite; }
+    .dark .orb { opacity: .34; } .dark .orb.c { opacity: .22; }
+    @keyframes drift1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-50px, 60px) scale(1.08); } }
+    @keyframes drift2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(60px, -40px) scale(1.12); } }
+    @keyframes drift3 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-40px, -50px) scale(.92); } }
 
-        /* کارت اصلی */
-        .card {
-            position: relative;
-            z-index: 2;
-            width: 100%;
-            max-width: 780px;
-            background: rgba(255,255,255,0.85);
-            backdrop-filter: blur(18px) saturate(180%);
-            border: 1px solid rgba(255,255,255,0.7);
-            border-radius: var(--radius-xl);
-            padding: 38px 40px 32px;
-            box-shadow: var(--shadow-md), var(--shadow-glow);
-            animation: cardAppear 0.6s ease-out;
-        }
-        @keyframes cardAppear {
-            from { opacity: 0; transform: translateY(30px) scale(0.97); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
+    /* Theme toggle */
+    .theme-toggle { position: fixed; top: 22px; right: 22px; z-index: 50;
+      width: 44px; height: 44px; border-radius: var(--radius-md); display: grid; place-items: center;
+      background: var(--surface); border: 1px solid var(--border); color: var(--ink);
+      font-size: 19px; cursor: pointer; box-shadow: var(--shadow-sm); transition: var(--transition); }
+    .theme-toggle:hover { border-color: var(--accent); box-shadow: var(--shadow-md); transform: translateY(-1px); }
 
-        /* لوگو و عنوان */
-        .logo-area {
-            text-align: center;
-            margin-bottom: 18px;
-        }
-        .logo {
-            height: 52px;
-            margin-bottom: 6px;
-        }
-        .title {
-            font-size: 26px;
-            font-weight: bold;
-            color: var(--gray-800);
-        }
-        .subtitle {
-            color: var(--gray-600);
-            font-size: 14px;
-            margin-top: 6px;
-        }
+    /* Card */
+    .auth-card { position: relative; z-index: 2; width: 100%; max-width: 640px;
+      background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(20px) saturate(1.3);
+      border: 1px solid var(--border); border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg); padding: 40px 38px 32px; animation: pop .6s cubic-bezier(.22,1,.36,1) both; }
+    @keyframes pop { from { opacity: 0; transform: translateY(20px) scale(.97); } to { opacity: 1; transform: none; } }
+    .r { opacity: 0; animation: rise .6s cubic-bezier(.22,1,.36,1) both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 
-        /* شبکه نقش‌ها */
-        .grid {
-            margin-top: 28px;
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-        @media(min-width:540px) {
-            .grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
+    .brand { text-align: center; margin-bottom: 26px; }
+    .brand-logo { width: 74px; height: 74px; border-radius: 22px; margin: 0 auto 16px; display: grid; place-items: center;
+      background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-md); position: relative; }
+    .brand-logo::after { content: ""; position: absolute; inset: -1px; border-radius: 22px; padding: 1px;
+      background: var(--spark-grad); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude; opacity: .55; }
+    .brand-logo img { width: 46px; height: 46px; object-fit: contain; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: var(--accent);
+      background: var(--accent-soft); border-radius: 999px; padding: 5px 13px; margin-bottom: 14px; }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--online); box-shadow: 0 0 0 3px rgba(34,197,94,.18); }
+    .brand h1 { font-size: 27px; font-weight: 750; letter-spacing: -.03em; line-height: 1.15;
+      background: linear-gradient(120deg, var(--ink) 38%, var(--accent) 100%);
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .brand p { font-size: 13.5px; color: var(--muted); margin-top: 8px; }
 
-        .role-option {
-            cursor: pointer;
-            display: block;
-            border: 2px solid var(--gray-200);
-            border-radius: var(--radius-lg);
-            padding: 28px 14px 22px;
-            background: rgba(255,255,255,0.65);
-            backdrop-filter: blur(8px);
-            transition: var(--transition);
-            box-shadow: var(--shadow-sm);
-            text-align: center;
-        }
-        .role-option:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-        }
-        .role-option.active {
-            border-color: var(--medical-blue);
-            background: rgba(10,110,255,0.07);
-            box-shadow: 0 0 0 3px rgba(10,110,255,0.15), 0 10px 30px rgba(10,110,255,0.2);
-        }
-        .role-option input[type="radio"] {
-            display: none;
-        }
+    .error-box { display: flex; align-items: center; gap: 9px; background: rgba(229, 72, 77, .10);
+      border: 1px solid rgba(229, 72, 77, .32); color: var(--danger); padding: 11px 14px; border-radius: var(--radius-sm);
+      margin-bottom: 18px; font-size: 13px; font-weight: 600; }
+    .error-box svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
+    .dark .error-box { color: #FF9A9E; }
 
-        /* آیکون‌ها (اموجی‌های اصلی) */
-        .role-icon {
-            font-size: 38px;
-            margin-bottom: 10px;
-            display: block;
-        }
+    /* Role grid */
+    .grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    @media (min-width: 560px) { .grid { grid-template-columns: repeat(3, 1fr); } }
 
-        .role-title {
-            font-weight: bold;
-            color: var(--gray-800);
-            margin-bottom: 6px;
-            font-size: 16px;
-        }
-        .role-desc {
-            font-size: 12px;
-            color: var(--gray-600);
-            line-height: 1.5;
-        }
+    .role-option { position: relative; cursor: pointer; display: block; text-align: center;
+      border: 1.5px solid var(--border-strong); border-radius: var(--radius-md);
+      padding: 26px 16px 22px; background: var(--surface);
+      box-shadow: var(--shadow-sm); transition: var(--transition); }
+    .role-option:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .role-option.active { border-color: var(--accent); background: var(--accent-soft);
+      box-shadow: 0 0 0 4px var(--accent-ring); }
+    .role-option input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
 
-        /* دکمه ادامه */
-        .submit-btn {
-            width: 100%;
-            margin-top: 30px;
-            padding: 15px;
-            border: none;
-            border-radius: var(--radius-lg);
-            background: linear-gradient(135deg, #0A6EFF, #3B82F6);
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 8px 22px rgba(10,110,255,0.28);
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .submit-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 28px rgba(10,110,255,0.4);
-        }
+    .role-check { position: absolute; right: 12px; top: 12px; width: 20px; height: 20px;
+      border-radius: 50%; border: 1.5px solid var(--border-strong); background: var(--surface);
+      display: grid; place-items: center; transition: var(--transition); }
+    .role-check svg { width: 12px; height: 12px; stroke: #fff; fill: none; stroke-width: 3; opacity: 0; transition: opacity .18s; }
+    .role-option.active .role-check { background: var(--accent); border-color: var(--accent); }
+    .role-option.active .role-check svg { opacity: 1; }
 
-        /* خطای فرم */
-        .form-errors {
-            margin-top: 14px;
-            background: #FFF0F0;
-            border: 1px solid #FFC9C9;
-            color: #C00020;
-            padding: 10px 14px;
-            border-radius: 12px;
-            font-size: 13px;
-            text-align: center;
-        }
+    .role-icon { width: 54px; height: 54px; margin: 0 auto 14px; border-radius: 15px;
+      display: grid; place-items: center; background: var(--accent-soft); transition: var(--transition); }
+    .role-icon svg { width: 27px; height: 27px; stroke: var(--accent); fill: none; stroke-width: 1.8; }
+    .role-option:hover .role-icon { transform: translateY(-2px); }
+    .role-option.active .role-icon { background: var(--user-grad); box-shadow: 0 8px 20px rgba(109, 90, 230, .38); }
+    .role-option.active .role-icon svg { stroke: #fff; }
 
-        /* فوتر */
-        .footer {
-            text-align: center;
-            margin-top: 24px;
-            font-size: 14px;
-            color: var(--gray-600);
-        }
-        .footer a {
-            color: var(--medical-blue);
-            font-weight: bold;
-            text-decoration: none;
-        }
+    .role-title { font-weight: 700; color: var(--ink); margin-bottom: 6px; font-size: 15.5px; letter-spacing: -.01em; }
+    .role-desc { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
 
-        /* تغییر تم */
-        .theme-toggle {
-            position: fixed;
-            left: 24px;
-            top: 24px;
-            width: 46px;
-            height: 46px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.8);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(0,0,0,0.06);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            cursor: pointer;
-            box-shadow: var(--shadow-sm);
-            transition: var(--transition);
-            z-index: 100;
-        }
-        .theme-toggle:hover {
-            background: white;
-            box-shadow: var(--shadow-md);
-        }
+    .btn { position: relative; display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%;
+      border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0 18px; height: 50px;
+      font-family: inherit; font-weight: 700; font-size: 15px; cursor: pointer; overflow: hidden;
+      background: var(--surface); color: var(--ink); box-shadow: var(--shadow-sm); transition: var(--transition); }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary { margin-top: 24px; background: var(--user-grad); color: #fff; border-color: transparent;
+      box-shadow: 0 10px 26px rgba(109, 90, 230, .34); }
+    .btn-primary:hover { color: #fff; filter: brightness(1.05); box-shadow: 0 16px 34px rgba(109, 90, 230, .5); transform: translateY(-1px); }
+    .btn-primary::before { content: ""; position: absolute; top: 0; left: -120%; width: 55%; height: 100%;
+      background: linear-gradient(100deg, transparent, rgba(255,255,255,.35), transparent); transform: skewX(-18deg); }
+    .btn-primary:hover::before { animation: shine .8s ease; }
+    @keyframes shine { from { left: -120%; } to { left: 160%; } }
 
-        /* ------------------------- */
-        /* حالت تاریک */
-        /* ------------------------- */
-        .dark body {
-            background: linear-gradient(150deg, #0B1121 0%, #131A2E 50%, #1A2540 100%);
-        }
-        .dark .medical-bg {
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5L52.5 17.5V42.5L30 55L7.5 42.5V17.5L30 5Z' fill='none' stroke='%234F90FF' stroke-opacity='0.12' stroke-width='1'/%3E%3C/svg%3E");
-            opacity: 0.25;
-        }
-        .dark .card {
-            background: rgba(24,30,50,0.8);
-            border-color: rgba(255,255,255,0.08);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.45), inset 0 0 30px rgba(255,255,255,0.03);
-        }
-        .dark .title,
-        .dark .role-title,
-        .dark .footer {
-            color: #EDF2F9;
-        }
-        .dark .subtitle,
-        .dark .role-desc {
-            color: #B9C5DA;
-        }
-        .dark .role-option {
-            background: rgba(255,255,255,0.08);
-            border-color: #2D3A50;
-        }
-        .dark .role-option.active {
-            background: rgba(10,110,255,0.18);
-            border-color: #4F90FF;
-        }
-        .dark .submit-btn {
-            background: linear-gradient(135deg, #2A6EFF, #4F8CFF);
-        }
-        .dark .theme-toggle {
-            background: rgba(30,40,65,0.8);
-            color: #E2E8F0;
-            border-color: rgba(255,255,255,0.1);
-        }
-    </style>
+    .signup-link { text-align: center; margin-top: 24px; font-size: 13.5px; color: var(--muted); }
+    .signup-link a { color: var(--accent); font-weight: 700; }
+    .signup-link a:hover { text-decoration: underline; }
+
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; } .orb { animation: none !important; } }
+  </style>
 </head>
 <body>
-    <div class="medical-bg"></div>
+  <div class="bg-orbs"><span class="orb a"></span><span class="orb b"></span><span class="orb c"></span></div>
+  <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">🌙</button>
 
-    <div class="theme-toggle" id="themeToggle">🌓</div>
-
-    <div class="card">
-        <div class="logo-area">
-            <img src="{% static 'icons/mediversai_logo_final-03.png' %}" class="logo" alt="MediverseAI">
-            <div class="title">انتخاب نقش</div>
-            <div class="subtitle">موقعیت خود را برای ادامه ثبت‌نام مشخص کنید</div>
-        </div>
-
-        <form method="post">
-            {% csrf_token %}
-
-            <div class="grid">
-                <!-- مدیر -->
-                <label class="role-option">
-                    <input type="radio" name="role" value="manager">
-                    <span class="role-icon">👤</span>
-                    <div class="role-title">مدیر</div>
-                    <div class="role-desc">ثبت شرکت و مدیریت کلینیک</div>
-                </label>
-
-                <!-- پزشک -->
-                <label class="role-option">
-                    <input type="radio" name="role" value="doctor">
-                    <span class="role-icon">🩺</span>
-                    <div class="role-title">پزشک</div>
-                    <div class="role-desc">ورود با دعوت‌نامه مطب</div>
-                </label>
-
-                <!-- کارمند -->
-                <label class="role-option">
-                    <input type="radio" name="role" value="employee">
-                    <span class="role-icon">💼</span>
-                    <div class="role-title">کارمند</div>
-                    <div class="role-desc">ثبت‌نام با دعوت‌نامه</div>
-                </label>
-            </div>
-
-            {% if form.non_field_errors %}
-            <div class="form-errors">{{ form.non_field_errors }}</div>
-            {% endif %}
-
-            <button class="submit-btn" type="submit">ادامه به ثبت‌نام</button>
-        </form>
-
-        <div class="footer">
-            قبلاً ثبت‌نام کرده‌اید؟
-            <a href="{% url 'login' %}">ورود</a>
-        </div>
+  <main class="auth-card">
+    <div class="brand">
+      <div class="brand-logo r" style="animation-delay:.05s"><img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediverseAI"></div>
+      <span class="eyebrow r" style="animation-delay:.12s"><span class="dot"></span> Get started</span>
+      <h1 class="r" style="animation-delay:.16s">Choose your role</h1>
+      <p class="r" style="animation-delay:.2s">Select how you'll use MediverseAI</p>
     </div>
 
-    <script>
-        // تم تاریک/روشن
-        const root = document.documentElement;
-        const toggleBtn = document.getElementById("themeToggle");
-        toggleBtn.onclick = () => {
-            root.classList.toggle("dark");
-            localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
-        };
-        if (localStorage.getItem("theme") === "dark") {
-            root.classList.add("dark");
-        }
+    <form method="post">
+      {% csrf_token %}
 
-        // انتخاب نقش با کلیک روی کارت
-        document.querySelectorAll('.role-option').forEach(card => {
-            card.addEventListener('click', () => {
-                document.querySelectorAll('.role-option').forEach(c => c.classList.remove('active'));
-                card.classList.add('active');
-                card.querySelector('input').checked = true;
-            });
-        });
-    </script>
+      {% if form.non_field_errors %}
+      <div class="error-box r" style="animation-delay:.22s">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {{ form.non_field_errors }}
+      </div>
+      {% endif %}
+
+      <div class="grid">
+        <!-- Manager -->
+        <label class="role-option r" style="animation-delay:.26s">
+          <input type="radio" name="role" value="manager">
+          <span class="role-check"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+          <span class="role-icon">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V8l9-5 9 5v13"/><path d="M9 21v-6h6v6"/><line x1="3" y1="21" x2="21" y2="21"/></svg>
+          </span>
+          <div class="role-title">Manager</div>
+          <div class="role-desc">Register a company and manage your clinic</div>
+        </label>
+
+        <!-- Doctor -->
+        <label class="role-option r" style="animation-delay:.32s">
+          <input type="radio" name="role" value="doctor">
+          <span class="role-check"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+          <span class="role-icon">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v6a6 6 0 0 0 12 0V3"/><line x1="4" y1="3" x2="8" y2="3"/><line x1="16" y1="3" x2="20" y2="3"/><path d="M12 15v3a4 4 0 0 0 8 0v-2"/><circle cx="20" cy="14" r="2"/></svg>
+          </span>
+          <div class="role-title">Doctor</div>
+          <div class="role-desc">Join with a clinic invitation</div>
+        </label>
+
+        <!-- Employee -->
+        <label class="role-option r" style="animation-delay:.38s">
+          <input type="radio" name="role" value="employee">
+          <span class="role-check"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+          <span class="role-icon">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </span>
+          <div class="role-title">Employee</div>
+          <div class="role-desc">Sign up with an invitation</div>
+        </label>
+      </div>
+
+      <button class="btn btn-primary r" style="animation-delay:.44s" type="submit">Continue</button>
+    </form>
+
+    <div class="signup-link r" style="animation-delay:.5s">
+      Already have an account? <a href="{% url 'login' %}">Sign in</a>
+    </div>
+  </main>
+
+  <script>
+    /* theme — shared .dark class + 'theme' key (same as the marketplace) */
+    (function () {
+      const root = document.documentElement, btn = document.getElementById('themeToggle');
+      const setIcon = () => { btn.textContent = root.classList.contains('dark') ? '☀️' : '🌙'; };
+      if (localStorage.getItem('theme') === 'dark') root.classList.add('dark');
+      setIcon();
+      btn.addEventListener('click', () => {
+        root.classList.toggle('dark');
+        localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+        setIcon();
+      });
+    })();
+
+    /* select a role by clicking its card */
+    document.querySelectorAll('.role-option').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.role-option').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        card.querySelector('input').checked = true;
+      });
+    });
+  </script>
 </body>
 </html>

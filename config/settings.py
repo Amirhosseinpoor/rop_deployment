@@ -137,7 +137,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Tehran'
 
 USE_I18N = True
 
@@ -167,6 +167,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://www.arasai.ir",
 ]
 LOGIN_REDIRECT_URL = 'role_based_redirect'
+# Send @login_required redirects to our styled custom login (not allauth's default).
+LOGIN_URL = 'login'
 
 LOGOUT_REDIRECT_URL = 'login'
 import os
@@ -234,3 +236,48 @@ CELERY_TASK_IGNORE_RESULT = True
 CELERY_ACKS_LATE = True
 CELERY_TASK_TIME_LIMIT = 60 * 10                       # 10 دقیقه سقف
 CELERY_TASK_SOFT_TIME_LIMIT = 60 * 9
+
+# --------------------------------------------------------------------------- #
+# Logging — surface the ROP assistant's activity (questions, answers, web
+# queries, search results, retrieval hits, timings) cleanly in the terminal.
+# --------------------------------------------------------------------------- #
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "rop": {
+            "format": "%(asctime)s | %(levelname)-7s | %(name)s | %(message)s",
+            "datefmt": "%H:%M:%S",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "rop",
+        },
+    },
+    "loggers": {
+        # ROP chat assistant (single_rop.chat_service) — verbose by design.
+        "rop.chat": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        # KC (keratoconus) chat assistant (double_rop.chat_service).
+        "kc.chat": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        # Marketplace RAG/LLM helpers reused by the assistant.
+        "doctors_marketplace.services": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "WARNING",
+    },
+}

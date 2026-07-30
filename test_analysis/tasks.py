@@ -41,3 +41,29 @@ def generate_health_report(self, profile_id: int, selected_model: str):
             p.report_error = str(e)
             p.save(update_fields=['report_ready','report_error'])
         raise
+
+
+@shared_task(bind=True, autoretry_for=(Exception,), retry_kwargs={'max_retries': 1, 'countdown': 15})
+def analyze_eye_image_task(self, eye_image_id: int):
+    """Run the eye segmentation + anemia classification pipeline in the background."""
+    from .models import EyeImage
+    from .services.eye_pipeline import analyze_eye_image
+
+    eye_image = EyeImage.objects.filter(id=eye_image_id).first()
+    if not eye_image:
+        return {"ok": False, "reason": "eye_image not found"}
+    analyze_eye_image(eye_image)  # best-effort, never raises — persists its own status
+    return {"ok": True}
+
+
+@shared_task(bind=True, autoretry_for=(Exception,), retry_kwargs={'max_retries': 1, 'countdown': 15})
+def extract_medical_test_task(self, medical_test_id: int):
+    """Run the LLM medical-test extraction pipeline in the background."""
+    from .models import MedicalTest
+    from .services.medical_test_extraction import extract_medical_test
+
+    mt = MedicalTest.objects.filter(id=medical_test_id).first()
+    if not mt:
+        return {"ok": False, "reason": "medical_test not found"}
+    extract_medical_test(mt)  # best-effort, never raises — persists its own status
+    return {"ok": True}

@@ -6,6 +6,9 @@
     <title>KC Detection | MediversAI</title>
     <link rel="icon" type="image/png" href="{% static 'icons/mediversai_logo_final-032.png' %}">
     <style>
+        @font-face { font-family: Vazirmatn; src: url("{% static 'fonts/Vazirmatn-Regular.woff2' %}") format("woff2"); font-weight: 400; font-display: swap; }
+        @font-face { font-family: Vazirmatn; src: url("{% static 'fonts/Vazirmatn-Bold.woff2' %}") format("woff2"); font-weight: 700; font-display: swap; }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
@@ -621,43 +624,844 @@
         }
     </style>
 
+    <!-- ============================================================= -->
+    <!--  UI polish layer — visual-only overrides, no markup changes.  -->
+    <!--  Restyles existing elements via their existing classes/IDs.   -->
+    <!-- ============================================================= -->
+    <style>
+        :root {
+            --brand-500: #3b82f6;
+            --brand-600: #2563eb;
+            --brand-700: #1d4ed8;
+            --accent-600: #4f46e5;
+            --violet-600: #7c3aed;
+            --ink: #0f172a;
+            --shadow-card: 0 1px 2px rgba(16, 24, 40, .05), 0 18px 40px -24px rgba(16, 24, 40, .30);
+            --shadow-soft: 0 1px 2px rgba(16, 24, 40, .04), 0 30px 60px -30px rgba(16, 24, 40, .28);
+        }
+
+        /* ---- Page canvas ---- */
+        body.min-h-screen {
+            background:
+                radial-gradient(1100px 560px at 12% -10%, rgba(79, 70, 229, .10), transparent 60%),
+                radial-gradient(1000px 520px at 100% 0%, rgba(37, 99, 235, .10), transparent 55%),
+                linear-gradient(180deg, #f5f8fc 0%, #eef2f8 100%);
+            background-attachment: fixed;
+            color: var(--ink);
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+        }
+
+        /* ---- Sticky glass header ---- */
+        header.fixed {
+            background: rgba(255, 255, 255, .82) !important;
+            -webkit-backdrop-filter: saturate(180%) blur(12px);
+            backdrop-filter: saturate(180%) blur(12px);
+            border-bottom: 1px solid rgba(15, 23, 42, .07) !important;
+            box-shadow: 0 1px 0 rgba(15, 23, 42, .04), 0 10px 30px -22px rgba(15, 23, 42, .55) !important;
+        }
+
+        header.fixed h1 {
+            letter-spacing: -.015em;
+            background: linear-gradient(90deg, #1e3a8a, var(--accent-600));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        header a {
+            transition: color .18s ease;
+        }
+
+        header a:hover {
+            color: var(--accent-600) !important;
+            text-decoration: none !important;
+        }
+
+        /* ---- Main card ---- */
+        main.shadow-xl {
+            background: #fff !important;
+            border: 1px solid rgba(15, 23, 42, .06);
+            border-radius: 24px;
+            box-shadow: var(--shadow-soft) !important;
+            position: relative;
+        }
+
+        main.shadow-xl::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            border-radius: 24px 24px 0 0;
+            background: linear-gradient(90deg, var(--brand-600), var(--accent-600), var(--violet-600));
+        }
+
+        main h2, main h3 {
+            letter-spacing: -.01em;
+        }
+
+        /* ---- Cards (metrics, feedback) ---- */
+        main .rounded-xl.shadow-sm,
+        main .rounded-2xl.shadow-sm {
+            border: 1px solid rgba(15, 23, 42, .07);
+            box-shadow: var(--shadow-card);
+            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+        }
+
+        main .bg-white.rounded-xl.shadow-sm {
+            background: linear-gradient(180deg, #ffffff, #fbfcff) !important;
+        }
+
+        main .bg-white.rounded-xl.shadow-sm:hover {
+            transform: translateY(-3px);
+            border-color: rgba(79, 70, 229, .28);
+            box-shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 24px 48px -22px rgba(16, 24, 40, .40);
+        }
+
+        /* ---- Upload dropzones (left / right eye) ---- */
+        #left-label,
+        #right-label {
+            border: 2px dashed rgba(37, 99, 235, .45) !important;
+            background: linear-gradient(180deg, #f8faff, #eef3ff) !important;
+            border-radius: 20px !important;
+            transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
+        }
+
+        #left-label:hover,
+        #right-label:hover {
+            border-color: var(--accent-600) !important;
+            background: linear-gradient(180deg, #eef3ff, #e6edff) !important;
+            box-shadow: 0 18px 40px -24px rgba(37, 99, 235, .65);
+        }
+
+        #left-upload-content svg,
+        #right-upload-content svg {
+            width: 46px;
+            height: 46px;
+            padding: 11px;
+            border-radius: 9999px;
+            color: #4338ca !important;
+            background: linear-gradient(180deg, #dbeafe, #c7d2fe);
+            box-shadow: 0 8px 18px -10px rgba(67, 56, 202, .7);
+        }
+
+        /* ---- Result eye images ---- */
+        main .h-64.rounded.shadow-md {
+            border-radius: 16px !important;
+            border: 1px solid rgba(15, 23, 42, .08);
+            box-shadow: var(--shadow-card) !important;
+        }
+
+        /* ---- Primary / success buttons ---- */
+        .bg-blue-600 {
+            background: linear-gradient(180deg, var(--brand-500) 0%, var(--brand-600) 100%) !important;
+            box-shadow: 0 10px 22px -10px rgba(37, 99, 235, .65), inset 0 1px 0 rgba(255, 255, 255, .25);
+            transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+        }
+
+        .bg-blue-600:hover,
+        .hover\:bg-blue-700:hover {
+            background: linear-gradient(180deg, var(--brand-600) 0%, var(--brand-700) 100%) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 14px 28px -10px rgba(37, 99, 235, .75);
+        }
+
+        .bg-green-600 {
+            background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%) !important;
+            box-shadow: 0 10px 22px -10px rgba(22, 163, 74, .6), inset 0 1px 0 rgba(255, 255, 255, .25);
+            transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+        }
+
+        .bg-green-600:hover,
+        .hover\:bg-green-700:hover {
+            background: linear-gradient(180deg, #16a34a 0%, #15803d 100%) !important;
+            transform: translateY(-1px);
+        }
+
+        /* ---- Form controls ---- */
+        main select,
+        main textarea {
+            transition: border-color .15s ease, box-shadow .15s ease;
+        }
+
+        main select:focus,
+        main textarea:focus {
+            border-color: var(--brand-500);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, .18);
+            outline: none;
+        }
+    </style>
+
+    <!-- ============================================================= -->
+    <!--  UI polish layer v2 — premium, aligned to /market/ & profile.  -->
+    <!--  Medical-blue + teal, glass cards, hex canvas, modern buttons. -->
+    <!--  Visual-only overrides; no markup / JS / logic changes.        -->
+    <!-- ============================================================= -->
+    <style>
+        :root {
+            --v2-blue: #0A6EFF;
+            --v2-blue-hover: #0857d6;
+            --v2-blue-soft: rgba(10, 110, 255, .08);
+            --v2-teal: #00A896;
+            --v2-teal-600: #0d9488;
+            --v2-teal-700: #0f766e;
+            --v2-ink: #1E293B;
+            --v2-ink-strong: #0f172a;
+            --v2-muted: #5B6B7C;
+            --v2-line: #E9EDF5;
+            --v2-card: 0 8px 20px rgba(0, 0, 0, .05);
+            --v2-card-hover: 0 12px 28px rgba(10, 110, 255, .15);
+        }
+
+        body {
+            font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Vazirmatn", sans-serif;
+        }
+
+        button, input, select, textarea {
+            font-family: inherit;
+        }
+
+        /* ---- Page canvas: medical gradient + hex pattern ---- */
+        body.min-h-screen {
+            background: linear-gradient(150deg, #E3F0FD 0%, #F2F8FF 50%, #FFFFFF 100%) !important;
+            background-attachment: fixed;
+            color: var(--v2-ink);
+        }
+
+        body.min-h-screen::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5L52.5 17.5V42.5L30 55L7.5 42.5V17.5L30 5Z' fill='none' stroke='%230A6EFF' stroke-opacity='0.07' stroke-width='1'/%3E%3C/svg%3E");
+            background-size: 80px 80px;
+            opacity: .35;
+        }
+
+        /* ---- Header / topbar ---- */
+        header.fixed {
+            background: rgba(255, 255, 255, .92) !important;
+            border-bottom: 1px solid rgba(10, 110, 255, .12) !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .05) !important;
+            -webkit-backdrop-filter: saturate(160%) blur(8px);
+            backdrop-filter: saturate(160%) blur(8px);
+        }
+
+        header.fixed h1 {
+            font-weight: 700;
+            letter-spacing: -.01em;
+            background: none !important;
+            -webkit-background-clip: border-box !important;
+            background-clip: border-box !important;
+            -webkit-text-fill-color: var(--v2-ink-strong);
+            color: var(--v2-ink-strong) !important;
+        }
+
+        /* ---- Header nav ---- */
+        header .flex.items-center.space-x-6 > :not([hidden]) ~ :not([hidden]) {
+            margin-left: 1.25rem;
+        }
+
+        header .flex.items-center.space-x-6 a {
+            display: inline;
+            padding: 0;
+            border: none !important;
+            background: none !important;
+            box-shadow: none !important;
+            border-radius: 0;
+            font-weight: 500;
+            font-size: .875rem;
+            color: #374151 !important;
+            transition: color .15s ease;
+        }
+
+        header .flex.items-center.space-x-6 a:hover,
+        header .flex.items-center.space-x-6 a:last-of-type:hover {
+            background: none !important;
+            box-shadow: none !important;
+            transform: none !important;
+            color: var(--v2-blue) !important;
+            text-decoration: none;
+        }
+
+        header .flex.items-center.space-x-6 a:last-of-type {
+            background: none !important;
+            box-shadow: none !important;
+            color: #374151 !important;
+        }
+
+        /* Dilemma = "back" pill button (matches marketplace .back-btn) */
+        header .flex.items-center.space-x-6 a:first-of-type {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            border: 1px solid rgba(0, 0, 0, .06) !important;
+            background: rgba(255, 255, 255, .6) !important;
+            color: var(--v2-ink) !important;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 1px 2px rgba(16, 24, 40, .05) !important;
+            transition: background .2s ease, border-color .2s ease, color .2s ease;
+        }
+
+        header .flex.items-center.space-x-6 a:first-of-type::before {
+            content: '\2190';
+            font-size: 15px;
+            line-height: 1;
+            font-weight: 700;
+        }
+
+        header .flex.items-center.space-x-6 a:first-of-type:hover {
+            background: var(--v2-blue-soft) !important;
+            border-color: var(--v2-blue) !important;
+            color: var(--v2-blue) !important;
+        }
+
+        header .relative.group > button {
+            display: inline-flex;
+            align-items: center;
+            gap: .25rem;
+            padding: 0;
+            border: none !important;
+            background: none !important;
+            box-shadow: none !important;
+            font-weight: 500;
+            font-size: .875rem;
+            color: #374151;
+        }
+
+        header .relative.group > button:hover {
+            border: none !important;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+
+        header .relative.group > button::before {
+            content: none !important;
+            display: none !important;
+        }
+
+        header .relative.group > button > * {
+            margin-left: .25rem !important;
+        }
+
+        header .relative.group > button span {
+            color: #374151 !important;
+        }
+
+        header .relative.group .absolute {
+            border: 1px solid var(--v2-line) !important;
+            border-radius: .75rem !important;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, .08) !important;
+            overflow: hidden;
+            padding: 0;
+        }
+
+        header .relative.group .absolute button {
+            border-radius: 0;
+            font-weight: 500;
+        }
+
+        /* ---- Main card ---- */
+        main.shadow-xl {
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, .96) !important;
+            border: 1px solid rgba(255, 255, 255, .6) !important;
+            border-radius: 24px;
+            box-shadow: 0 12px 40px rgba(10, 110, 255, .08), 0 8px 24px rgba(0, 0, 0, .05) !important;
+        }
+
+        main.shadow-xl::before {
+            content: none !important;
+            display: none !important;
+        }
+
+        main h2 {
+            font-weight: 700;
+            letter-spacing: -.01em;
+            color: var(--v2-ink-strong);
+        }
+
+        main h3 {
+            letter-spacing: normal;
+        }
+
+        main .text-blue-600,
+        main .text-blue-500,
+        main .text-blue-700 {
+            color: var(--v2-blue) !important;
+        }
+
+        /* ---- Diagnostic readout cards (glass + hover lift + accent) ---- */
+        main .bg-white.border.rounded-xl.p-6 {
+            text-align: left;
+            background: rgba(255, 255, 255, .92) !important;
+            border: 1px solid var(--v2-line) !important;
+            border-radius: 16px !important;
+            box-shadow: var(--v2-card) !important;
+            padding: 1.35rem 1.4rem 1.45rem !important;
+            position: relative;
+            overflow: hidden;
+            transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+        }
+
+        main .bg-white.border.rounded-xl.p-6::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 4px;
+            background: linear-gradient(180deg, var(--v2-blue), var(--v2-teal));
+        }
+
+        main .bg-white.border.rounded-xl.p-6:hover {
+            transform: translateY(-6px);
+            border-color: var(--v2-blue) !important;
+            box-shadow: var(--v2-card-hover) !important;
+        }
+
+        main .bg-white.border.rounded-xl.p-6 h3 {
+            font-size: .8rem !important;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin-bottom: .55rem !important;
+        }
+
+        main .bg-white.border.rounded-xl.p-6 p:first-of-type {
+            color: var(--v2-ink-strong) !important;
+            font-size: 1.1rem !important;
+            line-height: 1.35 !important;
+            font-weight: 700;
+            margin-bottom: .55rem;
+        }
+
+        main .bg-white.border.rounded-xl.p-6 p:first-of-type .font-medium {
+            display: block;
+            font-size: .68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            color: var(--v2-muted);
+            margin-bottom: .15rem;
+        }
+
+        main .bg-white.border.rounded-xl.p-6 p:last-of-type {
+            display: inline-flex;
+            align-items: center;
+            gap: .3rem;
+            font-size: .72rem !important;
+            font-weight: 600;
+            color: var(--v2-blue) !important;
+            background: var(--v2-blue-soft);
+            border: 1px solid rgba(10, 110, 255, .16);
+            padding: .24rem .62rem;
+            border-radius: 999px;
+        }
+
+        main .bg-white.border.rounded-xl.p-6 p:last-of-type .font-medium {
+            font-size: .62rem;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: var(--v2-muted);
+        }
+
+        /* ---- Result eye images ---- */
+        main .h-64.rounded.shadow-md {
+            border-radius: 16px !important;
+            border: 1px solid var(--v2-line);
+            box-shadow: var(--v2-card) !important;
+        }
+
+        /* ---- Feedback surface ---- */
+        main .bg-gray-50.border.rounded-xl,
+        main .bg-gray-100.border.rounded-xl {
+            background: rgba(255, 255, 255, .7) !important;
+            border: 1px solid var(--v2-line) !important;
+            border-radius: 18px !important;
+            box-shadow: var(--v2-card) !important;
+        }
+
+        main label.block {
+            color: var(--v2-muted) !important;
+            font-weight: 600;
+            letter-spacing: 0;
+        }
+
+        /* ---- Form controls ---- */
+        main select,
+        main textarea {
+            border: 1px solid var(--v2-line) !important;
+            border-radius: 12px !important;
+            background: #fff;
+            color: var(--v2-ink);
+            padding: .6rem .85rem !important;
+            transition: border-color .2s ease, box-shadow .2s ease;
+        }
+
+        main select:focus,
+        main textarea:focus {
+            border-color: var(--v2-blue) !important;
+            box-shadow: 0 0 0 3px rgba(10, 110, 255, .15) !important;
+            outline: none;
+        }
+
+        /* ---- Upload dropzones (left / right eye) ---- */
+        #left-label,
+        #right-label {
+            border: 2px dashed rgba(10, 110, 255, .35) !important;
+            background: rgba(255, 255, 255, .6) !important;
+            border-radius: 18px !important;
+            box-shadow: none !important;
+            transition: border-color .2s ease, background .2s ease;
+        }
+
+        #left-label:hover,
+        #right-label:hover {
+            border-color: var(--v2-blue) !important;
+            background: var(--v2-blue-soft) !important;
+            box-shadow: none !important;
+        }
+
+        #left-upload-content svg,
+        #right-upload-content svg {
+            color: var(--v2-blue) !important;
+            background: rgba(10, 110, 255, .1) !important;
+            box-shadow: none !important;
+        }
+
+        /* ---- Buttons: modern, glowing, hover-lift (the app pattern) ---- */
+        main button[type="submit"] {
+            padding: .85rem 2rem !important;
+            border-radius: 999px;
+            font-weight: 700;
+            letter-spacing: .01em;
+            font-size: .95rem;
+        }
+
+        .bg-blue-600 {
+            background: var(--v2-blue) !important;
+            box-shadow: 0 8px 20px rgba(10, 110, 255, .3) !important;
+            transition: transform .2s ease, box-shadow .2s ease, background .2s ease !important;
+        }
+
+        .bg-blue-600:hover,
+        .hover\:bg-blue-700:hover {
+            background: var(--v2-blue-hover) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 12px 28px rgba(10, 110, 255, .42) !important;
+        }
+
+        .bg-green-600 {
+            background: var(--v2-teal-600) !important;
+            box-shadow: 0 8px 20px rgba(13, 148, 136, .3) !important;
+            transition: transform .2s ease, box-shadow .2s ease, background .2s ease !important;
+        }
+
+        .bg-green-600:hover,
+        .hover\:bg-green-700:hover {
+            background: var(--v2-teal-700) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 12px 28px rgba(13, 148, 136, .42) !important;
+        }
+
+        /* ---- Accessibility ---- */
+        a:focus-visible,
+        button:focus-visible,
+        select:focus-visible,
+        input:focus-visible,
+        textarea:focus-visible {
+            outline: 2px solid var(--v2-blue);
+            outline-offset: 2px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: .001ms !important;
+                transition-duration: .001ms !important;
+            }
+        }
+    </style>
+
+    <!-- ============================================================= -->
+    <!--  MediverseAI theme layer — wins over everything above.        -->
+    <!--  Declares the design tokens, remaps this page's legacy color   -->
+    <!--  vars onto them, and re-themes surfaces for light + dark.      -->
+    <!-- ============================================================= -->
+    <style id="mv-theme">
+        :root {
+            --bg: #F7F7F5; --surface: #FFFFFF; --surface-2: #F3F2EF;
+            --surface-hover: rgba(23, 23, 28, 0.045);
+            --ink: #1C1C22; --ink-soft: #3B3B44; --muted: #6E6E79;
+            --border: rgba(23, 23, 28, 0.09); --border-strong: rgba(23, 23, 28, 0.15);
+            --accent: #6D5AE6; --accent-2: #8B6DF0; --accent-ink: #4B3CB5;
+            --accent-soft: rgba(109, 90, 230, 0.10); --accent-ring: rgba(109, 90, 230, 0.30);
+            --user-grad: linear-gradient(135deg, #6D5AE6 0%, #8B6DF0 100%);
+            --spark-grad: linear-gradient(140deg, #7C6BF0 0%, #9B7DF5 55%, #63C7F0 100%);
+            --danger: #E5484D; --online: #22C55E;
+            --shadow-sm: 0 1px 2px rgba(20, 20, 30, .06), 0 1px 3px rgba(20, 20, 30, .04);
+            --shadow-md: 0 10px 34px rgba(24, 24, 44, .10); --shadow-lg: 0 28px 70px rgba(24, 24, 44, .18);
+            --radius-xl: 26px; --radius-lg: 20px; --radius-md: 14px; --radius-sm: 10px;
+            --transition: .22s cubic-bezier(.4, 0, .2, 1);
+            --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Vazirmatn", sans-serif;
+
+            /* ---- remap this page's legacy color variables onto the tokens ---- */
+            --white: var(--surface);
+            --gray-50: var(--surface-2); --gray-100: var(--surface-2); --gray-200: var(--border);
+            --gray-300: var(--border-strong); --gray-400: var(--muted); --gray-500: var(--muted);
+            --gray-600: var(--muted); --gray-700: var(--ink-soft); --gray-800: var(--ink); --gray-900: var(--ink);
+            --blue-50: var(--accent-soft); --blue-100: var(--accent-soft); --blue-200: var(--accent-ring);
+            --blue-300: var(--accent-2); --blue-400: var(--accent-2); --blue-500: var(--accent);
+            --blue-600: var(--accent); --blue-700: var(--accent-ink);
+            --indigo-500: var(--accent); --purple-500: var(--accent-2); --purple-600: var(--accent);
+            --red-600: var(--danger); --green-600: var(--online); --green-700: #16a34a;
+
+            /* second polish layer */
+            --brand-500: var(--accent); --brand-600: var(--accent); --brand-700: var(--accent-ink);
+            --accent-600: var(--accent); --violet-600: var(--accent-2);
+            --shadow-card: var(--shadow-sm); --shadow-soft: var(--shadow-md);
+
+            /* v2 polish layer */
+            --v2-blue: var(--accent); --v2-blue-hover: var(--accent-ink); --v2-blue-soft: var(--accent-soft);
+            --v2-teal: var(--online); --v2-teal-600: var(--online); --v2-teal-700: #16a34a;
+            --v2-ink: var(--ink); --v2-ink-strong: var(--ink); --v2-muted: var(--muted);
+            --v2-line: var(--border);
+            --v2-card: var(--shadow-sm); --v2-card-hover: var(--shadow-md);
+        }
+        .dark {
+            --bg: #0E0E11; --surface: #1A1A1E; --surface-2: #212127;
+            --surface-hover: rgba(255, 255, 255, 0.06);
+            --ink: #ECECEF; --ink-soft: #C9C9D2; --muted: #8C8C99;
+            --border: rgba(255, 255, 255, 0.09); --border-strong: rgba(255, 255, 255, 0.16);
+            --accent: #8B6DF0; --accent-2: #A78BFA; --accent-ink: #C4B2FF;
+            --accent-soft: rgba(139, 109, 240, 0.16); --accent-ring: rgba(139, 109, 240, 0.40);
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4); --shadow-md: 0 12px 40px rgba(0, 0, 0, .5); --shadow-lg: 0 28px 70px rgba(0, 0, 0, .62);
+        }
+
+        /* ---- Page canvas ---- */
+        body, body.min-h-screen {
+            font-family: var(--sans);
+            background:
+                radial-gradient(900px 520px at 100% -8%, var(--accent-soft), transparent 60%),
+                radial-gradient(720px 460px at -6% 2%, rgba(99, 199, 240, .10), transparent 58%),
+                var(--bg) !important;
+            background-attachment: fixed !important;
+            color: var(--ink) !important;
+            transition: background .35s ease, color .35s ease;
+        }
+        body.min-h-screen::before { opacity: .18 !important; }
+        .dark body.min-h-screen::before { opacity: .10 !important; }
+        ::selection { background: var(--accent-soft); }
+
+        /* ---- Generic surfaces / utilities ---- */
+        .main-container-bg, .bg-white { background: var(--surface) !important; }
+        .bg-gray-100, .bg-gray-50 { background: transparent !important; }
+        .text-gray-800, .text-gray-900 { color: var(--ink) !important; }
+        .text-gray-700, .text-gray-600, .text-gray-500 { color: var(--muted) !important; }
+        .border, .border-gray-200, .border-gray-300 { border-color: var(--border) !important; }
+        .shadow-sm { box-shadow: var(--shadow-sm) !important; }
+        .shadow-md, .shadow-xl { box-shadow: var(--shadow-md) !important; }
+
+        /* ---- Main card ---- */
+        main.shadow-xl {
+            background: var(--surface) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: var(--radius-xl) !important;
+            box-shadow: var(--shadow-lg) !important;
+        }
+        main.shadow-xl::before { content: none !important; display: none !important; }
+        main h2, main h3 { color: var(--ink); }
+
+        /* ---- Diagnostic / metric / feedback cards ---- */
+        main .bg-white.border.rounded-xl.p-6,
+        main .bg-white.rounded-xl.shadow-sm,
+        main .rounded-xl.shadow-sm,
+        main .rounded-2xl.shadow-sm {
+            background: var(--surface) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: var(--radius-lg) !important;
+            box-shadow: var(--shadow-sm) !important;
+        }
+        main .bg-white.border.rounded-xl.p-6::before {
+            background: linear-gradient(180deg, var(--accent), var(--accent-2)) !important;
+        }
+        main .bg-white.border.rounded-xl.p-6:hover {
+            border-color: var(--accent) !important;
+            box-shadow: var(--shadow-md) !important;
+        }
+        main .bg-white.border.rounded-xl.p-6 p:first-of-type { color: var(--ink) !important; }
+        main .bg-white.border.rounded-xl.p-6 p:last-of-type {
+            color: var(--accent) !important; background: var(--accent-soft) !important;
+            border-color: var(--accent-ring) !important;
+        }
+        main .bg-gray-50.border.rounded-xl,
+        main .bg-gray-100.border.rounded-xl {
+            background: var(--surface-2) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: var(--radius-lg) !important;
+            box-shadow: var(--shadow-sm) !important;
+        }
+        main label.block { color: var(--muted) !important; }
+        main .text-blue-600, main .text-blue-500, main .text-blue-700,
+        main .text-purple-600 { color: var(--accent) !important; }
+
+        /* ---- Result eye images ---- */
+        main .h-64.rounded.shadow-md {
+            border: 1px solid var(--border) !important;
+            box-shadow: var(--shadow-md) !important;
+        }
+
+        /* ---- Form controls ---- */
+        main select, main textarea {
+            background: var(--surface) !important; color: var(--ink) !important;
+            border: 1px solid var(--border) !important; border-radius: var(--radius-md) !important;
+        }
+        main select:focus, main textarea:focus {
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 0 4px var(--accent-ring) !important; outline: none;
+        }
+
+        /* ---- Upload dropzones ---- */
+        #left-label, #right-label {
+            border: 2px dashed var(--accent-ring) !important;
+            background: var(--accent-soft) !important;
+            border-radius: var(--radius-lg) !important;
+        }
+        #left-label:hover, #right-label:hover {
+            border-color: var(--accent) !important;
+            background: var(--accent-soft) !important;
+            box-shadow: 0 0 0 4px var(--accent-ring) !important;
+        }
+        #left-upload-content svg, #right-upload-content svg {
+            color: var(--accent) !important; background: var(--accent-soft) !important; box-shadow: none !important;
+        }
+
+        /* ---- Primary / success buttons ---- */
+        .bg-blue-600, main button[type="submit"].bg-blue-600 {
+            background: var(--user-grad) !important; color: #fff !important;
+            box-shadow: 0 10px 26px rgba(109, 90, 230, .34) !important;
+        }
+        .bg-blue-600:hover, .hover\:bg-blue-700:hover {
+            filter: brightness(1.05);
+            box-shadow: 0 16px 34px rgba(109, 90, 230, .5) !important;
+            transform: translateY(-2px) !important;
+        }
+        .bg-green-600 {
+            background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%) !important; color: #fff !important;
+            box-shadow: 0 10px 22px -10px rgba(22, 163, 74, .6) !important;
+        }
+        .bg-green-600:hover, .hover\:bg-green-700:hover {
+            background: linear-gradient(180deg, #16a34a 0%, #15803d 100%) !important;
+            transform: translateY(-2px) !important;
+        }
+        a:focus-visible, button:focus-visible, select:focus-visible,
+        input:focus-visible, textarea:focus-visible {
+            outline: 2px solid var(--accent); outline-offset: 2px;
+        }
+
+        /* ---- Chat widget → accent family ---- */
+        .rop-chat { --rc-accent: var(--accent) !important; --rc-accent-2: var(--accent-2) !important;
+            --rc-user: var(--user-grad) !important; }
+
+        /* ============ Sticky topbar (marketplace style) ============ */
+        .topbar { position: fixed; top: 0; left: 0; right: 0; width: 100%; z-index: 50; backdrop-filter: blur(14px);
+            background: color-mix(in srgb, var(--bg) 80%, transparent); border-bottom: 1px solid var(--border); }
+        .topbar-in { max-width: 1140px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        .topbar .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+        .brand-mark { width: 38px; height: 38px; border-radius: 11px; background: var(--surface); border: 1px solid var(--border);
+            display: grid; place-items: center; flex-shrink: 0; box-shadow: var(--shadow-sm); }
+        .brand-mark img { width: 26px; height: 26px; object-fit: contain; }
+        .brand-name { font-weight: 700; font-size: 17px; letter-spacing: -.3px; color: var(--ink); }
+        .brand-name span { color: var(--accent); }
+        .top-actions { display: flex; align-items: center; gap: 10px; }
+        .top-link { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 15px; border-radius: var(--radius-md);
+            background: var(--surface); border: 1px solid var(--border); color: var(--ink); font-size: 14px; font-weight: 600;
+            box-shadow: var(--shadow-sm); transition: var(--transition); }
+        .top-link svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; }
+        .top-link:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+        .theme-toggle { width: 40px; height: 40px; border-radius: var(--radius-md); background: transparent; border: 1px solid var(--border);
+            color: var(--ink); display: grid; place-items: center; font-size: 18px; cursor: pointer; transition: var(--transition); flex-shrink: 0; }
+        .theme-toggle:hover { background: var(--surface-hover); }
+        .dropdown { position: relative; }
+        .dd-trigger { display: flex; align-items: center; gap: 9px; height: 40px; padding: 0 12px; border-radius: var(--radius-md);
+            background: var(--surface); border: 1px solid var(--border); cursor: pointer; box-shadow: var(--shadow-sm); transition: var(--transition); }
+        .dd-trigger:hover { border-color: var(--border-strong); }
+        .dd-avatar { width: 26px; height: 26px; border-radius: 8px; background: var(--user-grad); color: #fff; display: grid; place-items: center;
+            font-size: 12px; font-weight: 700; flex-shrink: 0; text-transform: uppercase; }
+        .dd-name { font-size: 13.5px; font-weight: 600; color: var(--ink); max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .dd-caret { width: 15px; height: 15px; stroke: var(--muted); fill: none; stroke-width: 2; transition: transform var(--transition); }
+        .dropdown.open .dd-caret { transform: rotate(180deg); }
+        .dd-menu { position: absolute; top: calc(100% + 8px); right: 0; min-width: 220px; background: var(--surface);
+            border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: 8px; z-index: 60;
+            opacity: 0; visibility: hidden; transform: translateY(-6px); transition: var(--transition); }
+        .dropdown.open .dd-menu { opacity: 1; visibility: visible; transform: none; }
+        .dd-user { padding: 10px 12px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
+        .dd-user .lab { font-size: 11px; color: var(--muted); }
+        .dd-user .val { font-size: 14px; font-weight: 700; margin-top: 2px; color: var(--ink); }
+        .dd-menu form { margin: 0; }
+        .dd-logout { width: 100%; display: flex; align-items: center; gap: 9px; padding: 10px 12px; border: none; border-radius: var(--radius-md);
+            background: transparent; color: var(--danger); font-family: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; text-align: left; transition: var(--transition); }
+        .dd-logout svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+        .dd-logout:hover { background: rgba(229, 72, 77, .1); }
+    </style>
+
 </head>
 <body class="bg-gray-100 min-h-screen py-12 px-4 flex flex-col items-center fade-slide">
 
 <!-- Header -->
-<header class="w-full bg-white shadow-md border-b border-gray-200 px-6 py-3 flex justify-between items-center fixed top-0 left-0 z-50">
-    <!-- Logo & Title -->
-    <div class="flex items-center space-x-3">
-        <img src="{% static 'mediversai_logo_final.png' %}" class="h-8 opacity-90" alt="MediversAI">
-        <h1 class="text-lg font-semibold text-gray-800">KC Detection</h1>
-    </div>
-
-    <!-- Navigation + User -->
-    {% if user.is_authenticated %}
-        <div class="flex items-center space-x-6 text-sm">
-            <a href="{% url 'history' %}" class="text-gray-700 hover:underline">History</a>
-            <a href="{% url 'home' %}" class="text-gray-700 hover:underline">ROP AI</a>
-
-            <!-- Hover Dropdown -->
-            <div class="relative group">
-                <button class="flex items-center space-x-1 text-gray-700 font-medium focus:outline-none">
-                    <span>{{ user.username }}</span>
-                    <svg class="w-4 h-4 text-gray-500 group-hover:rotate-180 transition duration-300"
-                         fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M19 9l-7 7-7-7"/>
-                    </svg>
-                </button>
-                <div class="absolute right-0 mt-2 w-28 bg-white border border-gray-200 rounded-md shadow-md opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transform -translate-y-2 transition-all duration-200 z-50">
-                    <form method="post" action="{% url 'logout' %}" class="text-left">
-                        {% csrf_token %}
-                        <button type="submit" class="block w-full px-4 py-2 text-red-600 text-sm hover:bg-gray-50">
-                            Logout
-                        </button>
-                    </form>
-                </div>
-            </div>
+<header class="topbar">
+    <div class="topbar-in">
+        <div class="brand">
+            <span class="brand-mark"><img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediverseAI"></span>
+            <span class="brand-name">KC Detection</span>
         </div>
-    {% endif %}
+        <div class="top-actions">
+            {% if user.is_authenticated %}
+                {% if not is_reviewer %}
+                <a href="{% url 'dilemma' %}" class="top-link">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/><circle cx="12" cy="12" r="10"/></svg>
+                    Dilemma
+                </a>
+                <a href="{% url 'history' %}" class="top-link">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    History
+                </a>
+                <a href="{% url 'home' %}" class="top-link">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    ROP AI
+                </a>
+                {% endif %}
+                <div class="dropdown" id="userDropdown">
+                    <div class="dd-trigger">
+                        <span class="dd-avatar">{{ user.username|first|upper }}</span>
+                        <span class="dd-name">{{ user.username }}</span>
+                        <svg class="dd-caret" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                    </div>
+                    <div class="dd-menu">
+                        <div class="dd-user">
+                            <div class="lab">Signed in as</div>
+                            <div class="val">{{ user.username }}</div>
+                        </div>
+                        <form method="post" action="{% url 'logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="dd-logout">
+                                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                                Sign out
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">🌙</button>
+        </div>
+    </div>
 </header>
 
 <!-- Add margin-top to main content to avoid being overlapped by fixed header -->
@@ -744,10 +1548,13 @@
                 </div>
             </div>
 
+            {% if is_reviewer %}
             <div class="bg-gray-50 border border-gray-200 rounded-xl p-6 shadow-sm space-y-4 mt-8">
+                <h3 class="text-lg font-semibold text-gray-700 text-center">Expert Feedback</h3>
                 <form method="post">
                     {% csrf_token %}
                     <input type="hidden" name="feedback_mode" value="true">
+                    {% if viewed_user %}<input type="hidden" name="employee_id" value="{{ viewed_user.id }}">{% endif %}
                     <div class="grid md:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Correct Left Eye</label>
@@ -799,9 +1606,798 @@
                     </div>
                 </form>
             </div>
+            {% endif %}
+
+            <!-- ===== Doctor's notes (doctor writes, employee reads) ===== -->
+            <div id="kc-notes-card"
+                 class="bg-gray-50 border border-gray-200 rounded-xl p-6 shadow-sm space-y-4 mt-8"
+                 style="text-align:left;">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-700">Doctor's notes</h3>
+                    {% if can_edit_notes %}
+                    <span id="kc-notes-status" class="text-xs text-gray-500"></span>
+                    {% endif %}
+                </div>
+
+                {% if can_edit_notes %}
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Clinical assessment</label>
+                        <textarea id="kc-notes-assessment" rows="4"
+                                  class="w-full px-3 py-2 text-sm border rounded-md focus:ring-indigo-500 resize-none"
+                                  placeholder="Clinical assessment…">{{ result.doctor_assessment }}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Recommendation &amp; plan</label>
+                        <textarea id="kc-notes-recommendation" rows="4"
+                                  class="w-full px-3 py-2 text-sm border rounded-md focus:ring-indigo-500 resize-none"
+                                  placeholder="Recommendation & follow-up plan…">{{ result.doctor_recommendation }}</textarea>
+                    </div>
+                    <div class="text-center">
+                        <button type="button" id="kc-notes-save"
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-full text-sm shadow-md">
+                            Save notes
+                        </button>
+                    </div>
+                </div>
+                <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const EMP_ID = "{{ viewed_user.id|default:'' }}";
+                    const assessEl = document.getElementById('kc-notes-assessment');
+                    const recEl = document.getElementById('kc-notes-recommendation');
+                    const statusEl = document.getElementById('kc-notes-status');
+                    const saveBtn = document.getElementById('kc-notes-save');
+
+                    function setStatus(msg, ok) {
+                        if (!statusEl) return;
+                        statusEl.textContent = msg;
+                        statusEl.style.color = ok ? 'var(--online,#22C55E)' : 'var(--danger,#E5484D)';
+                    }
+
+                    if (saveBtn) saveBtn.addEventListener('click', async () => {
+                        setStatus('Saving…', true);
+                        saveBtn.disabled = true;
+                        try {
+                            const fd = new FormData();
+                            fd.append('employee_id', EMP_ID);
+                            fd.append('doctor_assessment', assessEl.value);
+                            fd.append('doctor_recommendation', recEl.value);
+                            const res = await fetch("{% url 'kc_notes' %}", { method: 'POST', body: fd });
+                            const data = await res.json().catch(() => ({}));
+                            if (!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
+                            setStatus('Saved ✓', true);
+                        } catch (err) {
+                            console.error('save notes failed', err);
+                            setStatus('Could not save. ' + (err.message || ''), false);
+                        } finally {
+                            saveBtn.disabled = false;
+                        }
+                    });
+                });
+                </script>
+                {% else %}
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-xs font-medium text-gray-600 mb-1">Clinical assessment</p>
+                        {% if result.doctor_assessment %}
+                        <p class="text-sm text-gray-700" style="white-space:pre-wrap;">{{ result.doctor_assessment }}</p>
+                        {% else %}
+                        <p class="text-sm text-gray-500">No notes from your doctor yet.</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-gray-600 mb-1">Recommendation &amp; plan</p>
+                        {% if result.doctor_recommendation %}
+                        <p class="text-sm text-gray-700" style="white-space:pre-wrap;">{{ result.doctor_recommendation }}</p>
+                        {% else %}
+                        <p class="text-sm text-gray-500">No notes from your doctor yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- ===== Keratoconus Assistant (chat) ===== -->
+        <style>
+        /* ============ ROP Assistant — modern chat UI (namespaced .rc-) ======= */
+        .rop-chat{
+            --rc-accent:#0A6EFF; --rc-accent-2:#00A896;
+            --rc-bg:#ffffff; --rc-panel:#f7f9fc; --rc-elev:#ffffff;
+            --rc-border:#e6ebf3; --rc-text:#1e293b; --rc-muted:#64748b;
+            --rc-user:linear-gradient(135deg,#0A6EFF,#3B82F6);
+            --rc-radius:20px; --rc-shadow:0 18px 50px rgba(16,42,90,.10);
+            margin-top:2rem;
+        }
+        .dark .rop-chat{
+            --rc-bg:#0f1626; --rc-panel:#131c2e; --rc-elev:#1a2438;
+            --rc-border:#273248; --rc-text:#e8eefb; --rc-muted:#93a1bd;
+            --rc-shadow:0 18px 50px rgba(0,0,0,.45);
+        }
+        .rc-panel{
+            width:100%; background:var(--rc-panel);
+            border:1px solid var(--rc-border); border-radius:var(--rc-radius);
+            box-shadow:var(--rc-shadow); overflow:hidden;
+            display:flex; flex-direction:column;
+            font-family:"Poppins","Vazir",system-ui,sans-serif; color:var(--rc-text);
+        }
+        /* Header */
+        .rc-header{
+            display:flex; align-items:center; justify-content:space-between; gap:12px;
+            padding:16px 20px; border-bottom:1px solid var(--rc-border);
+            background:var(--rc-elev);
+        }
+        .rc-brand{ display:flex; align-items:center; gap:12px; }
+        .rc-mark{
+            width:40px; height:40px; border-radius:12px; flex:0 0 auto; padding:5px;
+            display:flex; align-items:center; justify-content:center; overflow:hidden;
+            background:var(--rc-elev); border:1px solid var(--rc-border);
+            box-shadow:0 6px 16px rgba(10,110,255,.12);
+        }
+        .rc-mark img{ width:100%; height:100%; object-fit:contain; }
+        .rc-mark.rc-live{ animation:rc-breathe 1.6s ease-in-out infinite; }
+        @keyframes rc-breathe{ 0%,100%{box-shadow:0 6px 16px rgba(10,110,255,.15)} 50%{box-shadow:0 6px 26px rgba(0,168,150,.4)} }
+        .rc-brand-title{ font-weight:600; font-size:15px; line-height:1.1; }
+        .rc-brand-sub{ font-size:12px; color:var(--rc-muted); margin-top:2px; }
+        /* Header hint pill (assistant is autonomous — no manual web toggle) */
+        .rc-hint{ display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:999px;
+            border:1px solid var(--rc-border); background:var(--rc-bg); color:var(--rc-muted);
+            font-size:11.5px; font-weight:500; }
+        .rc-hint svg{ width:13px; height:13px; }
+        /* Messages */
+        .rc-messages{ height:30rem; overflow-y:auto; padding:22px; display:flex; flex-direction:column; gap:20px; background:var(--rc-bg); }
+        .rc-messages::-webkit-scrollbar{ width:8px; }
+        .rc-messages::-webkit-scrollbar-thumb{ background:var(--rc-border); border-radius:8px; }
+        .rc-msg{ display:flex; gap:12px; animation:rc-in .35s ease both; }
+        @keyframes rc-in{ from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none} }
+        .rc-msg-user{ justify-content:flex-end; }
+        .rc-ava{ width:34px; height:34px; border-radius:10px; flex:0 0 auto; padding:4px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:var(--rc-elev); border:1px solid var(--rc-border); }
+        .rc-ava img{ width:100%; height:100%; object-fit:contain; }
+        .rc-ava.rc-live{ animation:rc-breathe 1.6s ease-in-out infinite; }
+        .rc-user-bubble{ background:var(--rc-user); color:#fff; padding:11px 15px; border-radius:16px 16px 4px 16px; max-width:78%; font-size:14.5px; line-height:1.6; box-shadow:0 6px 18px rgba(10,110,255,.28); }
+        .rc-ai{ max-width:100%; min-width:0; flex:1; }
+        .rc-bubble{ font-size:14.5px; line-height:1.75; color:var(--rc-text); }
+        .rc-bubble p{ margin:0 0 10px; } .rc-bubble p:last-child{ margin-bottom:0; }
+        .rc-bubble h1,.rc-bubble h2,.rc-bubble h3{ font-size:15.5px; font-weight:600; margin:14px 0 8px; }
+        .rc-bubble ul,.rc-bubble ol{ margin:0 0 10px; padding-inline-start:20px; }
+        .rc-bubble li{ margin:3px 0; }
+        .rc-bubble a{ color:var(--rc-accent); text-decoration:none; }
+        .rc-bubble a:hover{ text-decoration:underline; }
+        .rc-cursor{ display:inline-block; width:7px; height:15px; background:var(--rc-accent); margin-left:2px; border-radius:2px; animation:rc-blink 1s steps(2) infinite; vertical-align:-2px; }
+        @keyframes rc-blink{ 0%,50%{opacity:1} 51%,100%{opacity:0} }
+        /* Status / stages */
+        .rc-status{ display:inline-flex; align-items:center; gap:10px; padding:8px 14px; border-radius:999px; background:var(--rc-elev); border:1px solid var(--rc-border); color:var(--rc-muted); font-size:13px; }
+        .rc-status-ic{ width:18px; height:18px; display:flex; align-items:center; justify-content:center; color:var(--rc-accent); }
+        .rc-status-ic svg{ width:18px; height:18px; }
+        .rc-spin{ animation:rc-spin 1s linear infinite; } @keyframes rc-spin{ to{transform:rotate(360deg)} }
+        .rc-pulse{ animation:rc-pulse 1.2s ease-in-out infinite; } @keyframes rc-pulse{ 0%,100%{transform:scale(1);opacity:.8} 50%{transform:scale(1.18);opacity:1} }
+        .rc-status-tx{ position:relative; background:linear-gradient(90deg,var(--rc-muted) 30%,var(--rc-accent) 50%,var(--rc-muted) 70%); background-size:200% auto; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; animation:rc-shimmer 1.8s linear infinite; font-weight:500; }
+        @keyframes rc-shimmer{ to{background-position:-200% center} }
+        /* inline citation chips — website name (link) or document title */
+        .rc-cite{ display:inline-flex; align-items:center; gap:3px; padding:1px 7px; margin:0 2px; font-size:11.5px; font-weight:500; line-height:1.5; border-radius:7px; background:rgba(10,110,255,.1); color:var(--rc-accent); text-decoration:none; transition:.15s; cursor:pointer; white-space:nowrap; }
+        .rc-cite svg{ width:11px; height:11px; flex:0 0 auto; }
+        .rc-cite:hover{ background:var(--rc-accent); color:#fff; text-decoration:none; }
+        .rc-cite-doc{ background:rgba(0,168,150,.14); color:#0f766e; cursor:default; }
+        .dark .rc-cite-doc{ color:#34d0c0; }
+        .rc-cite-doc:hover{ background:rgba(0,168,150,.14); color:#0f766e; }
+        .dark .rc-cite-doc:hover{ color:#34d0c0; }
+        /* sources block */
+        .rc-sources{ margin-top:14px; }
+        .rc-sources-h{ font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--rc-muted); font-weight:600; margin-bottom:8px; }
+        .rc-source-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:8px; }
+        .rc-source{ display:flex; gap:9px; align-items:flex-start; padding:9px 11px; border:1px solid var(--rc-border); border-radius:12px; background:var(--rc-elev); text-decoration:none; color:var(--rc-text); transition:.15s; min-width:0; }
+        .rc-source:hover{ border-color:var(--rc-accent); transform:translateY(-1px); box-shadow:0 6px 16px rgba(10,110,255,.12); }
+        .rc-source-num{ width:18px; height:18px; flex:0 0 auto; border-radius:6px; background:rgba(10,110,255,.12); color:var(--rc-accent); font-size:10.5px; font-weight:600; display:flex; align-items:center; justify-content:center; }
+        .rc-source-doc .rc-source-num{ background:rgba(0,168,150,.15); color:#0f766e; }
+        .rc-source-body{ min-width:0; flex:1; }
+        .rc-source-title{ font-size:12.5px; font-weight:500; line-height:1.35; overflow:hidden;
+            display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; word-break:break-word; }
+        .rc-source-meta{ font-size:11px; color:var(--rc-muted); display:flex; align-items:center; gap:4px; margin-top:3px; min-width:0; }
+        .rc-source-meta svg{ width:11px; height:11px; flex:0 0 auto; }
+        .rc-source-meta span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        /* composer */
+        .rc-composer{ display:flex; align-items:flex-end; gap:10px; padding:14px 16px; border-top:1px solid var(--rc-border); background:var(--rc-elev); }
+        .rc-input{ flex:1; resize:none; border:1px solid var(--rc-border); background:var(--rc-bg); color:var(--rc-text); border-radius:14px; padding:12px 14px; font:inherit; font-size:14.5px; line-height:1.5; max-height:140px; outline:none; transition:.15s; }
+        .rc-input:focus{ border-color:var(--rc-accent); box-shadow:0 0 0 4px rgba(10,110,255,.12); }
+        .rc-input::placeholder{ color:var(--rc-muted); }
+        .rc-enter-hint{ flex:0 0 auto; align-self:center; font-size:11.5px; color:var(--rc-muted); white-space:nowrap; }
+        .rc-enter-hint kbd{ font:inherit; font-size:11px; padding:2px 6px; border-radius:6px; border:1px solid var(--rc-border); background:var(--rc-bg); color:var(--rc-text); }
+        /* attach + mic buttons */
+        .rc-iconbtn{ width:42px; height:42px; flex:0 0 auto; align-self:flex-end; border:1px solid var(--rc-border);
+            border-radius:12px; background:var(--rc-bg); color:var(--rc-muted); display:flex; align-items:center;
+            justify-content:center; cursor:pointer; transition:.15s; }
+        .rc-iconbtn:hover{ border-color:var(--rc-accent); color:var(--rc-accent); }
+        .rc-iconbtn svg{ width:19px; height:19px; }
+        .rc-iconbtn.rc-busy{ opacity:.55; pointer-events:none; }
+        .rc-mic.is-recording{ border-color:#e11d48; background:#e11d48; color:#fff; animation:rc-rec 1.2s ease-in-out infinite; }
+        @keyframes rc-rec{ 0%,100%{box-shadow:0 0 0 0 rgba(225,29,72,.5)} 50%{box-shadow:0 0 0 7px rgba(225,29,72,0)} }
+        /* system notices (uploads, errors) */
+        .rc-sys{ align-self:center; max-width:90%; text-align:center; font-size:12.5px; color:var(--rc-muted);
+            background:var(--rc-elev); border:1px solid var(--rc-border); border-radius:12px; padding:8px 14px; }
+        .rc-sys.rc-sys-err{ color:#c01048; border-color:#f5b5c6; background:rgba(225,29,72,.06); }
+        /* attached-document chips (above composer) */
+        .rc-attachments{ display:flex; flex-wrap:wrap; gap:8px; padding:0 16px; }
+        .rc-attachments:not(:empty){ padding:12px 16px 0; }
+        .rc-attach-chip{ display:inline-flex; align-items:center; gap:8px; max-width:260px; padding:6px 8px 6px 10px;
+            border:1px solid var(--rc-border); border-radius:11px; background:var(--rc-elev); font-size:12.5px; }
+        .rc-attach-ic{ width:26px; height:26px; flex:0 0 auto; border-radius:7px; display:flex; align-items:center; justify-content:center;
+            background:rgba(0,168,150,.14); color:#0f766e; }
+        .dark .rc-attach-ic{ color:#34d0c0; }
+        .rc-attach-ic svg{ width:14px; height:14px; }
+        .rc-attach-name{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--rc-text); }
+        .rc-attach-x{ flex:0 0 auto; width:20px; height:20px; border:none; border-radius:6px; background:transparent;
+            color:var(--rc-muted); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:15px; line-height:1; }
+        .rc-attach-x:hover{ background:rgba(225,29,72,.12); color:#e11d48; }
+        .rc-attach-chip.rc-busy{ opacity:.6; }
+        @media(max-width:640px){ .rc-enter-hint{ display:none; } }
+        @media(max-width:640px){ .rc-messages{height:26rem;padding:16px} .rc-user-bubble{max-width:88%} }
+                .rop-chat{ text-align:left; }
+    </style>
+        <div class="rop-chat">
+          <div class="rc-panel">
+            <div class="rc-header">
+              <div class="rc-brand">
+                <span class="rc-mark" id="rc-mark" aria-hidden="true">
+                  <img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediverseAI">
+                </span>
+                <div>
+                  {% if chat_mode == 'doctor' %}
+                  <div class="rc-brand-title">Research Assistant</div>
+                  <div class="rc-brand-sub">Guidelines, web, PubMed &amp; medications</div>
+                  {% else %}
+                  <div class="rc-brand-title">Keratoconus Assistant</div>
+                  <div class="rc-brand-sub">Grounded in your documents and the web</div>
+                  {% endif %}
+                </div>
+              </div>
+              <span class="rc-hint" title="The assistant searches the web on its own when a question needs it">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18z"/></svg>
+                Auto web search
+              </span>
+            </div>
+
+            <div id="chat-messages" class="rc-messages"></div>
+
+            <div id="rc-attachments" class="rc-attachments"></div>
+
+            <form id="chat-form" class="rc-composer" autocomplete="off">
+              <input type="file" id="rc-file" accept=".pdf,.docx,.doc,.txt,.md" hidden>
+              <button type="button" id="rc-attach" class="rc-iconbtn"
+                      title="Add a document (PDF, DOCX, TXT)" aria-label="Add a document">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                </svg>
+              </button>
+              <textarea id="chat-input" class="rc-input" rows="1" dir="auto"
+                        placeholder="{% if chat_mode == 'doctor' %}Research this case — ask for guidelines, evidence, PubMed, or drug info…{% else %}Ask about the diagnosis, treatment, or ROP…{% endif %}"></textarea>
+              <button type="button" id="rc-mic" class="rc-iconbtn rc-mic"
+                      title="Speak — Persian or English (auto-detected)" aria-label="Voice input">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5"/>
+                </svg>
+              </button>
+              <span class="rc-enter-hint"><kbd>Enter</kbd> to send</span>
+            </form>
+          </div>
+        </div>
+        <!-- KC screening result as text context for the assistant -->
+        <div id="prediction-context" style="display:none"
+             data-context="Left eye: {{ result.predictions.left_eye.label }} ({{ result.predictions.left_eye.probability }}); Right eye: {{ result.predictions.right_eye.label }} ({{ result.predictions.right_eye.probability }}); Z classification: {{ result.predictions.z_class.label }} ({{ result.predictions.z_class.probability }})"></div>
+        <script>
+    /* ---------- Chat widget ---------- */
+    document.addEventListener('DOMContentLoaded', () => {
+        const chatInput = document.getElementById('chat-input');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatForm = document.getElementById('chat-form');
+        const brandMark = document.getElementById('rc-mark');
+        const contextDiv = document.getElementById('prediction-context');
+        if (!chatInput || !chatMessages || !chatForm) return;
+
+        const diagText = contextDiv ? (contextDiv.dataset.context || '') : '';
+        const CHAT_MODE = "{{ chat_mode|default:'employee' }}";
+        const VIEWED_USER_ID = "{{ viewed_user.id|default:'' }}";
+        let chatHistory = [];
+        let busy = false;
+
+        /* ---- icon set (avatar + per-stage status icons) ---- */
+        const LOGO = "{% static 'icons/mediversai_logo_final-03.png' %}";
+        const AI_AVATAR = `<img src="${LOGO}" alt="ROP Assistant">`;
+        /* Safe markdown: the streaming buffer is partial markdown, and the page's
+           custom parser can throw on half-formed tokens — never let that bubble up. */
+        function md(t){ try { return marked.parse(t || ''); } catch (e) { return '<p>' + esc(t || '') + '</p>'; } }
+        const STAGE_ICON = {
+            thinking:  {cls:'rc-pulse', svg:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></svg>`},
+            searching: {cls:'rc-pulse', svg:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>`},
+        };
+        const GLOBE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18z"/></svg>`;
+        const DOCICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>`;
+
+        /* ---- helpers ---- */
+        function esc(s){ return (s||'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+        function scrollDown(){ chatMessages.scrollTop = chatMessages.scrollHeight; }
+
+        function addUser(text){
+            const row = document.createElement('div');
+            row.className = 'rc-msg rc-msg-user';
+            row.innerHTML = `<div class="rc-user-bubble">${esc(text)}</div>`;
+            chatMessages.appendChild(row); scrollDown();
+        }
+
+        function addAssistant(){
+            const row = document.createElement('div');
+            row.className = 'rc-msg rc-msg-ai';
+            row.innerHTML =
+                `<div class="rc-ava rc-live">${AI_AVATAR}</div>` +
+                `<div class="rc-ai">` +
+                  `<div class="rc-status"><span class="rc-status-ic rc-pulse">${STAGE_ICON.thinking.svg}</span><span class="rc-status-tx">Thinking</span></div>` +
+                  `<div class="rc-bubble" style="display:none"></div>` +
+                `</div>`;
+            chatMessages.appendChild(row); scrollDown();
+            return {
+                row,
+                ava: row.querySelector('.rc-ava'),
+                status: row.querySelector('.rc-status'),
+                statusIc: row.querySelector('.rc-status-ic'),
+                statusTx: row.querySelector('.rc-status-tx'),
+                bubble: row.querySelector('.rc-bubble'),
+            };
+        }
+
+        function setStage(ui, stage, label){
+            const ic = STAGE_ICON[stage] || STAGE_ICON.thinking;
+            ui.statusIc.className = 'rc-status-ic ' + ic.cls;
+            ui.statusIc.innerHTML = ic.svg;
+            ui.statusTx.textContent = label || stage;
+        }
+
+        /* Turn [n] markers into citation chips using the source map. */
+        function renderCitations(html, srcById){
+            // Replace [n] markers with the website name (link to the exact page we
+            // read) or the document title.
+            return html.replace(/\[(\d+)\]/g, (m, n) => {
+                const s = srcById[n];
+                if (!s) return '';
+                if (s.type === 'web' && s.url){
+                    const name = s.domain || s.title || 'source';
+                    return `<a class="rc-cite" href="${esc(s.url)}" target="_blank" rel="noopener" title="${esc(s.title)} — ${esc(s.url)}">${GLOBE}${esc(name)}</a>`;
+                }
+                return `<span class="rc-cite rc-cite-doc" title="${esc(s.title)}">${DOCICON}${esc(s.title)}</span>`;
+            });
+        }
+
+        function renderSources(sources){
+            if (!sources || !sources.length) return '';
+            const cards = sources.map(s => {
+                if (s.type === 'web' && s.url){
+                    return `<a class="rc-source" href="${esc(s.url)}" target="_blank" rel="noopener">` +
+                        `<span class="rc-source-num">${s.id}</span>` +
+                        `<span class="rc-source-body"><span class="rc-source-title">${esc(s.title)}</span>` +
+                        `<span class="rc-source-meta">${GLOBE}<span>${esc(s.domain || '')}</span></span></span></a>`;
+                }
+                return `<div class="rc-source rc-source-doc">` +
+                    `<span class="rc-source-num">${s.id}</span>` +
+                    `<span class="rc-source-body"><span class="rc-source-title">${esc(s.title)}</span>` +
+                    `<span class="rc-source-meta">${DOCICON}<span>Document</span></span></span></div>`;
+            }).join('');
+            return `<div class="rc-sources"><div class="rc-sources-h">Sources</div><div class="rc-source-grid">${cards}</div></div>`;
+        }
+
+        async function handleSend(){
+            const query = chatInput.value.trim();
+            if (!query || busy) return;
+            busy = true;
+            if (brandMark) brandMark.classList.add('rc-live');
+            addUser(query);
+            chatInput.value = ''; chatInput.style.height = 'auto';
+
+            const ui = addAssistant();
+            let answer = '';
+            let sources = [];
+            let srcById = {};
+            let firstToken = true;
+
+            function handleEvent(ev){
+                if (ev.type === 'stage'){
+                    setStage(ui, ev.stage, ev.label);
+                    // Show the actual (LLM-crafted) search query while searching.
+                    if (ev.stage === 'searching' && ev.query){
+                        ui.statusTx.textContent = 'Searching · “' + ev.query + '”';
+                    }
+                } else if (ev.type === 'token'){
+                    if (firstToken){ firstToken = false; ui.status.style.display = 'none'; ui.bubble.style.display = ''; }
+                    answer += ev.text;
+                    ui.bubble.innerHTML = md(answer) + '<span class="rc-cursor"></span>';
+                    scrollDown();
+                } else if (ev.type === 'done'){
+                    sources = ev.sources || [];
+                    srcById = {}; sources.forEach(s => srcById[String(s.id)] = s);
+                    finalize();
+                } else if (ev.type === 'error'){
+                    ui.status.remove();
+                    ui.bubble.style.display = '';
+                    ui.bubble.innerHTML = `<p>${esc(ev.message || 'Something went wrong.')}</p>`;
+                }
+            }
+
+            function finalize(){
+                ui.status.remove();
+                ui.bubble.style.display = '';
+                let html = md(answer || '');
+                html = renderCitations(html, srcById);
+                html += renderSources(sources);
+                ui.bubble.innerHTML = html;
+                chatHistory.push({ role: 'user', content: query });
+                chatHistory.push({ role: 'assistant', content: answer });
+                scrollDown();
+            }
+
+            const payload = {
+                query,
+                diagnostic_context_text: diagText,
+                chat_history: JSON.stringify(chatHistory.slice(-4)),
+                attachments: attachedDocs.map(d => d.doc_id),
+            };
+
+            // Non-streaming fallback (older server, proxy that buffers, etc.).
+            async function runFallback(){
+                const res = await fetch('/kc/chat', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const data = await res.json();
+                answer = data.answer || '';
+                sources = data.sources || [];
+                srcById = {}; sources.forEach(s => srcById[String(s.id)] = s);
+                finalize();
+            }
+
+            // Doctor research assistant (non-streaming): knowledge base, web, PubMed, drugs.
+            async function runDoctorResearch(){
+                setStage(ui, 'thinking', 'Researching');
+                const res = await fetch('/health/chat/doctor-research/', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: query,
+                        context: diagText,
+                        history: chatHistory.slice(-4),
+                        employee_id: VIEWED_USER_ID,
+                    }),
+                });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const data = await res.json();
+                answer = data.answer || '';
+                sources = data.sources || [];
+                srcById = {}; sources.forEach(s => srcById[String(s.id)] = s);
+                finalize();
+            }
+
+            if (CHAT_MODE === 'doctor'){
+                try {
+                    await runDoctorResearch();
+                } catch (err){
+                    console.error('doctor research failed', err);
+                    ui.status.remove();
+                    ui.bubble.style.display = '';
+                    ui.bubble.innerHTML = `<p>Sorry — I couldn't reach the research assistant. Please try again.</p>`;
+                } finally {
+                    ui.ava.classList.remove('rc-live');
+                    if (brandMark) brandMark.classList.remove('rc-live');
+                    busy = false; chatInput.focus();
+                }
+                return;
+            }
+
+            try{
+                const res = await fetch('/kc/chat/stream', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                if (!res.ok || !res.body) throw new Error('HTTP ' + res.status);
+
+                const reader = res.body.getReader();
+                const dec = new TextDecoder();
+                let buf = '';
+                while (true){
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    buf += dec.decode(value, { stream: true });
+                    let i;
+                    while ((i = buf.indexOf('\n\n')) >= 0){
+                        const rawEv = buf.slice(0, i); buf = buf.slice(i + 2);
+                        const line = rawEv.split('\n').find(l => l.startsWith('data:'));
+                        if (!line) continue;
+                        let ev; try { ev = JSON.parse(line.slice(5).trim()); } catch (e) { continue; }
+                        handleEvent(ev);
+                    }
+                }
+            } catch (err){
+                console.error('chat stream error — trying fallback', err);
+                try {
+                    setStage(ui, 'writing', 'Writing');
+                    await runFallback();
+                } catch (err2){
+                    console.error('chat fallback failed', err2);
+                    ui.status.remove();
+                    ui.bubble.style.display = '';
+                    ui.bubble.innerHTML = `<p>Sorry — I couldn't reach the assistant. Please try again.</p>`;
+                }
+            } finally {
+                ui.ava.classList.remove('rc-live');
+                if (brandMark) brandMark.classList.remove('rc-live');
+                busy = false; chatInput.focus();
+            }
+        }
+
+        /* Auto-grow textarea */
+        chatInput.addEventListener('input', () => {
+            chatInput.style.height = 'auto';
+            chatInput.style.height = Math.min(chatInput.scrollHeight, 140) + 'px';
+        });
+        chatForm.addEventListener('submit', (e) => { e.preventDefault(); handleSend(); });
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); handleSend(); }
+        });
+
+        /* ---- centered system notice (uploads, errors) ---- */
+        function addSystem(text, isError){
+            const row = document.createElement('div');
+            row.className = 'rc-sys' + (isError ? ' rc-sys-err' : '');
+            row.textContent = text;
+            chatMessages.appendChild(row); scrollDown();
+            return row;
+        }
+
+        /* ---- Attach a document to THIS conversation (ChatGPT-style) ---- */
+        const fileInput = document.getElementById('rc-file');
+        const attachBtn = document.getElementById('rc-attach');
+        const attachBar = document.getElementById('rc-attachments');
+        const attachedDocs = [];   // {doc_id, title, filename}
+        const FILE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>`;
+
+        function renderAttachments(){
+            if (!attachBar) return;
+            attachBar.innerHTML = attachedDocs.map((d, i) =>
+                `<span class="rc-attach-chip" data-i="${i}">` +
+                    `<span class="rc-attach-ic">${FILE_ICON}</span>` +
+                    `<span class="rc-attach-name" title="${d.filename}">${d.filename}</span>` +
+                    `<button type="button" class="rc-attach-x" data-i="${i}" title="Remove" aria-label="Remove">×</button>` +
+                `</span>`).join('');
+            attachBar.querySelectorAll('.rc-attach-x').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    attachedDocs.splice(Number(btn.dataset.i), 1);
+                    renderAttachments();
+                });
+            });
+        }
+
+        if (attachBtn && fileInput){
+            attachBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', async () => {
+                const f = fileInput.files && fileInput.files[0];
+                if (!f) return;
+                const note = addSystem(`Reading “${f.name}”…`);
+                attachBtn.classList.add('rc-busy');
+                try{
+                    const fd = new FormData(); fd.append('file', f);
+                    const res = await fetch('/kc/chat/upload', { method: 'POST', body: fd });
+                    const data = await res.json().catch(() => ({}));
+                    if (res.ok && data.ok){
+                        attachedDocs.push({ doc_id: data.doc_id, title: data.title, filename: data.filename });
+                        renderAttachments();
+                        note.textContent = `Attached “${data.filename}”. Ask me anything about it.`;
+                    } else {
+                        note.textContent = data.error || 'Could not read the document.';
+                        note.classList.add('rc-sys-err');
+                    }
+                } catch (e){
+                    note.textContent = 'Upload failed. Please try again.';
+                    note.classList.add('rc-sys-err');
+                } finally {
+                    attachBtn.classList.remove('rc-busy'); fileInput.value = '';
+                }
+            });
+        }
+
+        /* ---- Voice input ----
+           Primary: the browser's Web Speech API (client-side → instant, free, and
+           never rate-limited). Language is auto-detected: it defaults to Persian,
+           learns the language from what you actually said (script of the result),
+           and if it hears nothing it automatically retries in the other language —
+           so there is no manual fa/en switch. On browsers without the Web Speech
+           API (e.g. Firefox) it falls back to server-side Whisper. */
+        const micBtn = document.getElementById('rc-mic');
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const FA_RE = /[\u0600-\u06FF]/;
+
+        function micUI(on){
+            if (!micBtn) return;
+            micBtn.classList.toggle('is-recording', on);
+            micBtn.title = on ? 'Stop recording' : 'Speak — Persian or English (auto-detected)';
+        }
+
+        if (micBtn && SR){
+            let recog = null, listening = false;
+            let dictLang = localStorage.getItem('rcDictLang') || 'fa-IR';
+
+            function listen(lang, isRetry){
+                recog = new SR();
+                recog.lang = lang;
+                recog.interimResults = true;
+                recog.continuous = false;
+                recog.maxAlternatives = 1;
+
+                const base = chatInput.value.trim();
+                let finalText = '';
+
+                recog.onstart = () => { listening = true; micUI(true); };
+                recog.onresult = (e) => {
+                    let interim = '';
+                    for (let i = e.resultIndex; i < e.results.length; i++){
+                        const r = e.results[i];
+                        if (r.isFinal) finalText += (finalText ? ' ' : '') + r[0].transcript.trim();
+                        else interim += r[0].transcript;
+                    }
+                    const spoken = (finalText + (interim ? (finalText ? ' ' : '') + interim : '')).trim();
+                    chatInput.value = (base ? base + ' ' : '') + spoken;
+                    chatInput.dispatchEvent(new Event('input'));
+                };
+                recog.onerror = (e) => {
+                    if (e.error === 'not-allowed' || e.error === 'service-not-allowed'){
+                        listening = false; micUI(false); recog = null;
+                        addSystem('Microphone permission was denied.', true);
+                    }
+                };
+                recog.onend = () => {
+                    listening = false; micUI(false);
+                    if (finalText){
+                        // Remember the language actually spoken → adaptive auto-detect.
+                        dictLang = FA_RE.test(finalText) ? 'fa-IR' : 'en-US';
+                        localStorage.setItem('rcDictLang', dictLang);
+                        chatInput.focus();
+                    } else if (!isRetry){
+                        // Heard nothing in this language — auto-try the other one once.
+                        listen(lang === 'fa-IR' ? 'en-US' : 'fa-IR', true);
+                    }
+                };
+                try { recog.start(); } catch (e) { /* already started */ }
+            }
+
+            micBtn.addEventListener('click', () => {
+                if (listening){ recog && recog.stop(); return; }
+                listen(dictLang, false);
+            });
+
+        } else if (micBtn){
+            /* Fallback: record + server Whisper (auto-detects language). */
+            let recorder = null, audioChunks = [], recording = false;
+            micBtn.addEventListener('click', async () => {
+                if (recording){ recorder && recorder.stop(); return; }
+                if (!navigator.mediaDevices || !window.MediaRecorder){
+                    addSystem('Voice input is not supported in this browser.', true); return;
+                }
+                let stream;
+                try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+                catch (e){ addSystem('Microphone permission was denied.', true); return; }
+                audioChunks = [];
+                recorder = new MediaRecorder(stream);
+                recorder.ondataavailable = e => { if (e.data && e.data.size) audioChunks.push(e.data); };
+                recorder.onstop = async () => {
+                    stream.getTracks().forEach(t => t.stop());
+                    recording = false; micUI(false); micBtn.classList.add('rc-busy');
+                    try{
+                        const blob = new Blob(audioChunks, { type: recorder.mimeType || 'audio/webm' });
+                        const fd = new FormData(); fd.append('audio', blob, 'audio.webm');
+                        const res = await fetch('/kc/chat/transcribe', { method: 'POST', body: fd });
+                        const data = await res.json().catch(() => ({}));
+                        if (res.ok && data.ok && data.text){
+                            chatInput.value = (chatInput.value ? chatInput.value.trim() + ' ' : '') + data.text;
+                            chatInput.dispatchEvent(new Event('input')); chatInput.focus();
+                        } else { addSystem(data.error || 'Could not transcribe the audio.', true); }
+                    } catch (e){ addSystem('Transcription failed. Please try again.', true); }
+                    finally { micBtn.classList.remove('rc-busy'); }
+                };
+                recorder.start(); recording = true; micUI(true);
+            });
+        }
+
+        /* Boot greeting */
+        (function boot(){
+            const row = document.createElement('div');
+            row.className = 'rc-msg rc-msg-ai';
+            row.innerHTML =
+                `<div class="rc-ava">${AI_AVATAR}</div>` +
+                `<div class="rc-ai"><div class="rc-bubble"><p>Hi! I'm your keratoconus assistant. Ask about this screening, corneal ectasia, or treatment options like cross-linking — I'll cite the documents and web sources I use.</p></div></div>`;
+            chatMessages.appendChild(row);
+        })();
+    });
+        </script>
+        <script>
+    (function() {
+        function escapeHtml(text) {
+            return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function parseMarkdown(md) {
+            // Code blocks (fenced)
+            md = md.replace(/```(\w+)?\n([\s\S]*?)```/g, function(_, lang, code) {
+                const escaped = escapeHtml(code);
+                return `<pre><code class="language-${lang || ''}">${escaped}</code></pre>`;
+            });
+
+            // Inline code
+            md = md.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+            // Bold and italic
+            md = md.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+            md = md.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            md = md.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+            // Links [text](url)
+            md = md.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+
+            // Headings (atx)
+            md = md.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+            md = md.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+            md = md.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+
+            // Unordered list items (lines starting with - or *)
+            // First convert list blocks
+            md = md.replace(/^(\s*[-*] .+)(?:\n\s*[-*] .+)*/gm, function(listBlock) {
+                const items = listBlock.trim().split('\n').map(line => line.replace(/^\s*[-*] /, ''));
+                return '<ul>' + items.map(item => `<li>${item}</li>`).join('') + '</ul>';
+            });
+
+            // Ordered list (1. ...)
+            md = md.replace(/^(\s*\d+\. .+)(?:\n\s*\d+\. .+)*/gm, function(listBlock) {
+                const items = listBlock.trim().split('\n').map(line => line.replace(/^\s*\d+\. /, ''));
+                return '<ol>' + items.map(item => `<li>${item}</li>`).join('') + '</ol>';
+            });
+
+            // Paragraphs: split by blank lines
+            const paragraphs = md.split(/\n\s*\n/);
+            return paragraphs.map(p => {
+                if (p.startsWith('<h') || p.startsWith('<ul') || p.startsWith('<ol') || p.startsWith('<pre')) {
+                    return p; // already HTML block
+                }
+                // Replace single newlines with <br> inside paragraphs
+                p = p.replace(/\n/g, '<br>');
+                return `<p>${p}</p>`;
+            }).join('');
+        }
+
+        window.marked = { parse: parseMarkdown };
+    })();
+        </script>
+
         </div>
     {% endif %}
 </main>
+
+<script>
+    /* theme — shared .dark class + 'theme' key (same as the marketplace) */
+    (function () {
+        const root = document.documentElement, btn = document.getElementById('themeToggle');
+        if (!btn) return;
+        const setIcon = () => { btn.textContent = root.classList.contains('dark') ? '☀️' : '🌙'; };
+        if (localStorage.getItem('theme') === 'dark') root.classList.add('dark');
+        setIcon();
+        btn.addEventListener('click', () => {
+            root.classList.toggle('dark');
+            localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+            setIcon();
+        });
+    })();
+
+    /* user dropdown (click to open/close) */
+    (function () {
+        const dd = document.getElementById('userDropdown');
+        if (!dd) return;
+        dd.querySelector('.dd-trigger').addEventListener('click', e => { e.stopPropagation(); dd.classList.toggle('open'); });
+        document.addEventListener('click', () => dd.classList.remove('open'));
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') dd.classList.remove('open'); });
+    })();
+</script>
 </body>
 <script>
     function load(event, side) {

@@ -1,472 +1,209 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="en" dir="ltr" class="h-full">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>در حال تولید گزارش | MediverseAI</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Preparing your report | MediverseAI</title>
+  <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png">
   <style>
-    /* ===== فونت وزیر (آفلاین) ===== */
-    @font-face {
-      font-family: Vazirmatn;
-      src: url("{% static 'fonts/Vazirmatn-Regular.woff2' %}") format("woff2");
-    }
-    @font-face {
-      font-family: Vazirmatn;
-      src: url("{% static 'fonts/Vazirmatn-Bold.woff2' %}") format("woff2");
-      font-weight: bold;
-    }
-
-    /* ===== متغیرها ===== */
+    @font-face { font-family: Vazirmatn; src: url("{% static 'fonts/Vazirmatn-Regular.woff2' %}") format("woff2"); font-weight: 400; font-display: swap; }
+    @font-face { font-family: Vazirmatn; src: url("{% static 'fonts/Vazirmatn-Bold.woff2' %}") format("woff2"); font-weight: 700; font-display: swap; }
     :root {
-      --medical-blue: #0A6EFF;
-      --medical-teal: #00A896;
-      --gray-100: #F8FAFD;
-      --gray-200: #E9EDF5;
-      --gray-600: #5B6B7C;
-      --gray-800: #1E293B;
-      --white-soft: #FFFFFF;
-      --shadow-sm: 0 4px 12px rgba(0,0,0,0.04);
-      --shadow-md: 0 12px 32px rgba(0,0,0,0.08);
-      --shadow-glow: 0 0 24px rgba(10,110,255,0.18);
-      --radius-xl: 24px;
-      --radius-lg: 16px;
-      --radius-md: 12px;
-      --transition: 0.25s ease;
+      --bg: #F7F7F5; --surface: #FFFFFF; --surface-2: #F3F2EF; --surface-hover: rgba(23,23,28,.045);
+      --ink: #1C1C22; --ink-soft: #3B3B44; --muted: #6E6E79;
+      --border: rgba(23,23,28,.09); --border-strong: rgba(23,23,28,.15);
+      --accent: #6D5AE6; --accent-2: #8B6DF0; --accent-ink: #4B3CB5;
+      --accent-soft: rgba(109,90,230,.10); --accent-ring: rgba(109,90,230,.30);
+      --user-grad: linear-gradient(135deg,#6D5AE6 0%,#8B6DF0 100%);
+      --spark-grad: linear-gradient(140deg,#7C6BF0 0%,#9B7DF5 55%,#63C7F0 100%);
+      --danger: #E5484D; --online: #22C55E;
+      --shadow-sm: 0 1px 2px rgba(20,20,30,.06),0 1px 3px rgba(20,20,30,.04);
+      --shadow-md: 0 10px 34px rgba(24,24,44,.10); --shadow-lg: 0 28px 70px rgba(24,24,44,.18);
+      --radius-xl: 26px; --radius-lg: 20px; --radius-md: 14px; --radius-sm: 10px;
+      --transition: .22s cubic-bezier(.4,0,.2,1);
+      --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Vazirmatn", sans-serif;
     }
+    .dark {
+      --bg: #0E0E11; --surface: #1A1A1E; --surface-2: #212127; --surface-hover: rgba(255,255,255,.06);
+      --ink: #ECECEF; --ink-soft: #C9C9D2; --muted: #8C8C99;
+      --border: rgba(255,255,255,.09); --border-strong: rgba(255,255,255,.16);
+      --accent: #8B6DF0; --accent-2: #A78BFA; --accent-ink: #C4B2FF;
+      --accent-soft: rgba(139,109,240,.16); --accent-ring: rgba(139,109,240,.40);
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.4); --shadow-md: 0 12px 40px rgba(0,0,0,.5); --shadow-lg: 0 28px 70px rgba(0,0,0,.62);
+    }
+    *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body { font-family: var(--sans); color: var(--ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 28px 20px;
+      background: var(--bg); overflow-x: hidden; -webkit-font-smoothing: antialiased; transition: background .35s ease, color .35s ease; }
+    a { text-decoration: none; color: inherit; }
 
-    * { margin:0; padding:0; box-sizing:border-box; }
+    .bg-orbs { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(70px); opacity: .5; }
+    .orb.a { width: 520px; height: 520px; top: -160px; right: -110px; background: radial-gradient(circle at 30% 30%,#8B6DF0,transparent 70%); animation: drift1 18s ease-in-out infinite; }
+    .orb.b { width: 480px; height: 480px; bottom: -180px; left: -130px; background: radial-gradient(circle at 30% 30%,#63C7F0,transparent 70%); animation: drift2 22s ease-in-out infinite; }
+    .dark .orb { opacity: .3; }
+    @keyframes drift1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-40px,50px) scale(1.08); } }
+    @keyframes drift2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(50px,-30px) scale(1.1); } }
 
-    body {
-      font-family: Vazirmatn, Tahoma, sans-serif;
-      background: linear-gradient(150deg, #E3F0FD 0%, #F2F8FF 50%, #FFFFFF 100%);
-      background-attachment: fixed;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      position: relative;
-      overflow-x: hidden;
-    }
+    .theme-toggle { position: fixed; top: 22px; right: 22px; z-index: 50; width: 44px; height: 44px; border-radius: var(--radius-md); display: grid; place-items: center;
+      background: var(--surface); border: 1px solid var(--border); color: var(--ink); font-size: 19px; cursor: pointer; box-shadow: var(--shadow-sm); transition: var(--transition); }
+    .theme-toggle:hover { border-color: var(--accent); box-shadow: var(--shadow-md); }
 
-    /* پس‌زمینه هگزاگونال */
-    .medical-bg {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5L52.5 17.5V42.5L30 55L7.5 42.5V17.5L30 5Z' fill='none' stroke='%230A6EFF' stroke-opacity='0.07' stroke-width='1'/%3E%3C/svg%3E");
-      background-size: 80px 80px;
-      opacity: 0.35;
-      animation: bgShift 30s linear infinite;
-    }
-    @keyframes bgShift {
-      0% { background-position: 0 0; }
-      100% { background-position: 80px 80px; }
-    }
+    .card { position: relative; z-index: 2; width: 100%; max-width: 480px; text-align: center;
+      background: color-mix(in srgb, var(--surface) 90%, transparent); backdrop-filter: blur(20px) saturate(1.3);
+      border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); padding: 40px 36px 30px; animation: pop .6s cubic-bezier(.22,1,.36,1) both; }
+    @keyframes pop { from { opacity: 0; transform: translateY(20px) scale(.97); } to { opacity: 1; transform: none; } }
 
-    /* ===== کارت اصلی ===== */
-    .card {
-      position: relative;
-      z-index: 2;
-      width: 100%;
-      max-width: 600px;
-      background: rgba(255,255,255,0.8);
-      backdrop-filter: blur(18px) saturate(180%);
-      border: 1px solid rgba(255,255,255,0.6);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow-md), var(--shadow-glow);
-      padding: 40px 32px;
-      animation: cardAppear 0.6s ease-out;
-    }
-    @keyframes cardAppear {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    .mark { width: 82px; height: 82px; border-radius: 24px; margin: 0 auto 18px; display: grid; place-items: center; position: relative; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-md); }
+    .mark img { width: 48px; height: 48px; object-fit: contain; }
+    .mark::before { content: ""; position: absolute; inset: -6px; border-radius: 28px; border: 2px solid transparent;
+      background: var(--spark-grad) border-box; -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; opacity: .6; animation: spin 3.2s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ===== آیکون / لوگو ===== */
-    .logo-area {
-      text-align: center;
-      margin-bottom: 24px;
-    }
-    .logo-area img {
-      height: 52px;
-      margin-bottom: 12px;
-    }
-    .logo-area h1 {
-      font-size: 24px;
-      font-weight: bold;
-      color: var(--gray-800);
-    }
-    .logo-area p {
-      color: var(--gray-600);
-      margin-top: 8px;
-    }
+    h1 { font-size: 22px; font-weight: 750; letter-spacing: -.03em; line-height: 1.2;
+      background: linear-gradient(120deg, var(--ink) 40%, var(--accent) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .sub { color: var(--muted); font-size: 13.5px; line-height: 1.6; margin-top: 9px; }
 
-    /* ===== EKG Loading Animation ===== */
-    .ekg-loader {
-      display: flex;
-      justify-content: center;
-      margin: 20px 0;
-    }
-    .ekg-loader svg {
-      width: 200px;
-      height: 50px;
-      overflow: visible;
-    }
-    .ekg-path {
-      fill: none;
-      stroke: var(--medical-blue);
-      stroke-width: 2.5;
-      stroke-linecap: round;
-      stroke-dasharray: 300;
-      stroke-dashoffset: 300;
-      animation: drawEKG 1.8s ease-in-out infinite;
-    }
-    @keyframes drawEKG {
-      0% { stroke-dashoffset: 300; }
-      40% { stroke-dashoffset: 0; }
-      60% { stroke-dashoffset: 0; }
-      100% { stroke-dashoffset: -300; }
-    }
-    .ekg-dot {
-      fill: #00E5FF;
-      r: 4;
-      animation: pulseDot 1.8s ease-in-out infinite;
-    }
-    @keyframes pulseDot {
-      0%, 100% { opacity: 0.6; r: 4; }
-      50% { opacity: 1; r: 6; }
-    }
+    .status { margin: 24px 0 6px; }
+    .status-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .status-row .t { font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+    .badge { font-size: 11.5px; font-weight: 600; color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-ring); border-radius: 999px; padding: 4px 11px; }
+    .track { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; position: relative; }
+    .fill { position: absolute; inset: 0; width: 40%; border-radius: 999px; background: var(--user-grad); animation: indet 1.5s ease-in-out infinite; }
+    @keyframes indet { 0% { left: -40%; } 100% { left: 100%; } }
+    .track.done .fill { position: static; width: 100%; animation: none; background: linear-gradient(135deg,#16A34A,#22C55E); }
+    .elapsed { color: var(--muted); font-size: 12.5px; margin-top: 10px; }
 
-    /* ===== وضعیت پردازش ===== */
-    .status-section {
-      background: rgba(255,255,255,0.5);
-      backdrop-filter: blur(10px);
-      border-radius: var(--radius-lg);
-      padding: 20px;
-      margin: 24px 0;
-      border: 1px solid rgba(0,0,0,0.05);
-    }
-    .status-text {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    .status-text p {
-      font-weight: bold;
-      color: var(--gray-800);
-    }
-    .badge {
-      font-size: 12px;
-      padding: 4px 12px;
-      border-radius: 999px;
-      font-weight: 500;
-      background: rgba(10,110,255,0.1);
-      color: var(--medical-blue);
-      border: 1px solid rgba(10,110,255,0.2);
-    }
+    .statebox { display: none; align-items: center; gap: 9px; text-align: left; margin-top: 18px; padding: 12px 14px; border-radius: var(--radius-md); font-size: 13.5px; font-weight: 600; border: 1px solid; }
+    .statebox.visible { display: flex; }
+    .statebox svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
+    .statebox.success { background: rgba(34,197,94,.1); border-color: rgba(34,197,94,.3); color: #15803D; } .dark .statebox.success { color: #4ADE80; }
+    .statebox.error { background: rgba(229,72,77,.1); border-color: rgba(229,72,77,.32); color: var(--danger); } .dark .statebox.error { color: #FF9A9E; }
 
-    /* ===== نوار لودینگ (indeterminate) ===== */
-    .progress-track {
-      height: 8px;
-      background: rgba(0,0,0,0.04);
-      border-radius: 4px;
-      overflow: hidden;
-      margin: 14px 0;
-    }
-    .progress-fill {
-      height: 100%;
-      border-radius: 4px;
-      background: linear-gradient(90deg, var(--medical-blue), var(--medical-teal), var(--medical-blue));
-      background-size: 200% 100%;
-      animation: shimmer 2.5s linear infinite;
-      transition: width 0.3s ease; /* for when we set 100% on ready */
-    }
-    @keyframes shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-
-    /* ===== آماده / خطا ===== */
-    .ready-box {
-      display: none;
-      padding: 16px;
-      border-radius: var(--radius-md);
-      margin-top: 16px;
-      animation: popIn 0.3s ease-out;
-    }
-    .ready-box.visible { display: block; }
-    .ready-box.success {
-      background: #ECFDF5;
-      border: 1px solid #A7F3D0;
-      color: #065F46;
-    }
-    .ready-box.error {
-      background: #FEE2E2;
-      border: 1px solid #FECACA;
-      color: #991B1B;
-    }
-    @keyframes popIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
-    /* ===== دکمه‌ها ===== */
-    .btn-group {
-      display: flex;
-      gap: 12px;
-      margin-top: 24px;
-    }
-    .btn {
-      flex: 1;
-      padding: 14px;
-      border-radius: var(--radius-md);
-      font-weight: bold;
-      font-size: 16px;
-      text-align: center;
-      text-decoration: none;
-      transition: var(--transition);
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      color: white;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, #0A6EFF, #3B82F6);
-    }
-    .btn-primary:hover { transform: translateY(-2px); }
-    .btn-minigame {
-      background: linear-gradient(135deg, #8B5CF6, #A78BFA);
-    }
-    .btn-disabled {
-      opacity: 0.5;
-      pointer-events: none;
-      background: #cbd5e1;
-    }
-
-    /* ===== فوتر ===== */
-    .footer-text {
-      text-align: center;
-      color: var(--gray-600);
-      font-size: 13px;
-      margin-top: 20px;
-    }
-
-    /* ===== دارک مود ===== */
-    .dark body {
-      background: linear-gradient(150deg, #0B1121 0%, #131A2E 50%, #1A2540 100%);
-    }
-    .dark .card {
-      background: rgba(24,30,50,0.8);
-      border-color: rgba(255,255,255,0.08);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
-    }
-    .dark .logo-area h1,
-    .dark .status-text p { color: #EDF2F9; }
-    .dark .logo-area p,
-    .dark .footer-text { color: #B9C5DA; }
-    .dark .status-section {
-      background: rgba(24,30,50,0.5);
-      border-color: rgba(255,255,255,0.08);
-    }
-    .dark .badge {
-      background: rgba(10,110,255,0.2);
-      border-color: rgba(10,110,255,0.3);
-    }
-    .dark .progress-track { background: rgba(255,255,255,0.08); }
-    .dark .ready-box.success {
-      background: rgba(16,185,129,0.15);
-      border-color: rgba(16,185,129,0.3);
-      color: #A7F3D0;
-    }
-    .dark .ready-box.error {
-      background: rgba(239,68,68,0.15);
-      border-color: rgba(239,68,68,0.3);
-      color: #FCA5A5;
-    }
+    .btns { display: flex; flex-direction: column; gap: 10px; margin-top: 22px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; height: 50px; border-radius: var(--radius-md);
+      font-family: inherit; font-weight: 700; font-size: 15px; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--ink); box-shadow: var(--shadow-sm); transition: var(--transition); }
+    .btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .btn-primary { background: var(--user-grad); color: #fff; border-color: transparent; box-shadow: 0 10px 26px rgba(109,90,230,.34); }
+    .btn-primary:hover { filter: brightness(1.05); transform: translateY(-1px); box-shadow: 0 14px 30px rgba(109,90,230,.5); }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    .btn.disabled { opacity: .5; pointer-events: none; box-shadow: none; }
+    .footer { color: var(--muted); font-size: 12px; margin-top: 18px; }
+    @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
   </style>
 </head>
 <body>
-  <div class="medical-bg"></div>
+  <div class="bg-orbs"><span class="orb a"></span><span class="orb b"></span></div>
+  <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">🌙</button>
 
-  <div class="card">
-    <div class="logo-area">
-      <img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediverseAI">
-      <h1>گزارش شما در حال آماده‌سازی است</h1>
-      <p>در حال پردازش اطلاعات هستیم؛ می‌توانید بازی کنید یا منتظر بمانید.</p>
-    </div>
+  <main class="card">
+    <div class="mark"><img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediverseAI"></div>
+    <h1>Preparing your report</h1>
+    <p class="sub">Our AI is analyzing your health data. This usually takes a moment — you can wait here or play a quick game.</p>
 
-    <!-- EKG Animation (replace spinner) -->
-    <div class="ekg-loader">
-      <svg viewBox="0 0 200 50">
-        <path class="ekg-path" d="M10,25 L30,25 L40,10 L50,25 L60,25 L70,25 L80,5 L90,45 L100,25 L110,25 L120,15 L130,25 L140,25 L160,25 L190,25" />
-        <circle class="ekg-dot" cx="190" cy="25" r="4" />
-      </svg>
-    </div>
-
-    <div class="status-section">
-      <div class="status-text">
-        <p>در حال پردازش…</p>
-        <span id="stateBadge" class="badge">بررسی هر ۵ ثانیه</span>
+    <div class="status">
+      <div class="status-row">
+        <span class="t" id="stateText">Processing…</span>
+        <span class="badge" id="stateBadge">Checking every 5s</span>
       </div>
-      <div class="progress-track">
-        <div class="progress-fill" style="width: 30%"></div>
-      </div>
-      <p id="elapsed" style="color:var(--gray-600); font-size:13px;" aria-live="polite">گذشته: ۰ ثانیه</p>
+      <div class="track" id="track"><div class="fill" id="progressFill"></div></div>
+      <p class="elapsed" id="elapsed" aria-live="polite">Elapsed: 0s</p>
     </div>
 
-    <!-- باکس آماده -->
-    <div id="readyBox" class="ready-box success">
-      <div style="display:flex; align-items:center; gap:8px;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
-        <span>🎉 گزارش آماده شد! می‌توانید آن را مشاهده کنید.</span>
-      </div>
+    <div id="readyBox" class="statebox success">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+      <span>Your report is ready — opening it now…</span>
+    </div>
+    <div id="errorBox" class="statebox error">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="errorText"></span>
     </div>
 
-    <!-- باکس خطا -->
-    <div id="errorBox" class="ready-box error"></div>
-
-    <div class="btn-group">
-      <a id="viewBtn" href="#" class="btn btn-primary btn-disabled">مشاهده گزارش</a>
-      <a href="{% url 'health_minigame' %}" class="btn btn-minigame">🎮 بازی می‌کنم</a>
+    <div class="btns">
+      <a id="viewBtn" href="#" class="btn btn-primary disabled">
+        View report <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+      </a>
+      <a href="{% url 'health_minigame' %}" class="btn btn-ghost">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="4"/><line x1="7" y1="12" x2="10" y2="12"/><line x1="8.5" y1="10.5" x2="8.5" y2="13.5"/><circle cx="16" cy="11" r="1"/><circle cx="18.5" cy="13.5" r="1"/></svg>
+        Play a game while you wait
+      </a>
     </div>
 
-    <p class="footer-text">هر ۵ ثانیه یک‌بار وضعیت بررسی می‌شود.</p>
-  </div>
+    <p class="footer">We check your report status automatically every 5 seconds.</p>
+  </main>
 
   <script>
-    // --- Element refs
-    const readyBox = document.getElementById('readyBox');
-    const errorBox = document.getElementById('errorBox');
-    const viewBtn  = document.getElementById('viewBtn');
-    const elapsed  = document.getElementById('elapsed');
-    const stateBadge = document.getElementById('stateBadge');
-    const progressFill = document.querySelector('.progress-fill');
-
-    // --- Elapsed timer
-    let startTs = Date.now();
-    const fmt = (n) => new Intl.NumberFormat('fa-IR').format(n);
-    (function tickElapsed(){
-      const s = Math.floor((Date.now() - startTs) / 1000);
-      if (elapsed) elapsed.textContent = 'گذشته: ' + fmt(s) + ' ثانیه';
-      requestAnimationFrame(tickElapsed);
+    /* theme */
+    (function () {
+      const root = document.documentElement, btn = document.getElementById('themeToggle');
+      const setIcon = () => { btn.textContent = root.classList.contains('dark') ? '☀️' : '🌙'; };
+      if (localStorage.getItem('theme') === 'dark') root.classList.add('dark');
+      setIcon();
+      btn.addEventListener('click', () => { root.classList.toggle('dark'); localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light'); setIcon(); });
     })();
 
-    // --- State
-    let stopPolling = false;
-    let detailUrl = null;
+    (function () {
+      const readyBox = document.getElementById('readyBox');
+      const errorBox = document.getElementById('errorBox');
+      const errorText = document.getElementById('errorText');
+      const viewBtn = document.getElementById('viewBtn');
+      const elapsed = document.getElementById('elapsed');
+      const stateText = document.getElementById('stateText');
+      const stateBadge = document.getElementById('stateBadge');
+      const track = document.getElementById('track');
+      const startTs = Date.now();
+      let detailUrl = null, stop = false;
 
-    function enableViewButton(href){
-      viewBtn.href = href;
-      viewBtn.classList.remove('btn-disabled');
-      viewBtn.style.pointerEvents = 'auto';
-      viewBtn.style.opacity = '1';
-      viewBtn.style.background = 'linear-gradient(135deg, #059669, #10b981)';
-    }
+      (function tick() { const s = Math.floor((Date.now() - startTs) / 1000); elapsed.textContent = 'Elapsed: ' + s + 's'; if (!stop) setTimeout(tick, 1000); })();
 
-    function onReady(url){
-      detailUrl = url;
-      console.log('[processing] ready. detailUrl =', detailUrl);
-
-      enableViewButton(detailUrl);
-
-      // Show ready box
-      readyBox.classList.add('visible');
-
-      // Fill progress bar to 100%
-      if (progressFill) {
-        progressFill.style.width = '100%';
-        progressFill.style.animation = 'none';
+      function onReady(url) {
+        detailUrl = url; stop = true;
+        stateText.textContent = 'Done'; stateBadge.textContent = 'Ready';
+        track.classList.add('done');
+        viewBtn.href = url; viewBtn.classList.remove('disabled');
+        readyBox.classList.add('visible');
+        setTimeout(() => { window.location.assign(url); }, 1200);
+      }
+      /* Eye screening is done (independent of the report): let the user view
+         results now, but keep waiting for the report in the background. */
+      function enableResults(url) {
+        detailUrl = url;
+        viewBtn.href = url;
+        viewBtn.classList.remove('disabled');
+        // first child node is the button's leading text ("View report ")
+        if (viewBtn.firstChild && viewBtn.firstChild.nodeType === 3) viewBtn.firstChild.nodeValue = 'View results ';
+      }
+      function onError(msg, url) {
+        stop = true; stateText.textContent = 'Failed';
+        errorText.textContent = 'Report generation failed: ' + (msg || 'unknown error') +
+          '. Your eye-screening results are still available.';
+        errorBox.classList.add('visible');
+        if (url) enableResults(url);  // don't dead-end — results are ready
       }
 
-      // Change badge
-      stateBadge.textContent = 'آماده نمایش';
-      stateBadge.style.background = '#ECFDF5';
-      stateBadge.style.border = '1px solid #A7F3D0';
-      stateBadge.style.color = '#065F46';
-
-      // Auto-redirect after a short pause
-      setTimeout(() => { window.location.assign(detailUrl); }, 1200);
-
-      stopPolling = true;
-    }
-
-    // Click on view button
-    viewBtn.addEventListener('click', function(e){
-      if (!detailUrl){
-        e.preventDefault();
-        return false;
+      async function fetchStatus() {
+        const url = new URL("{% url 'health_processing_status' %}", window.location.origin);
+        url.searchParams.set('_', Date.now().toString());
+        const res = await fetch(url, { headers: { 'X-Requested-With': 'fetch' }, cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
       }
-      window.location.assign(detailUrl);
-    });
-
-    // --- Networking helpers
-    async function fetchStatus(){
-      const url = new URL("{% url 'health_processing_status' %}", window.location.origin);
-      url.searchParams.set('_', Date.now().toString());
-      const res = await fetch(url, {
-        headers: { 'X-Requested-With': 'fetch' },
-        cache: 'no-store'
-      });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return res.json();
-    }
-
-    async function checkOnce(){
-      try{
-        const data = await fetchStatus();
-        console.log('[processing] first check:', data);
-        if (data.error){
-          errorBox.textContent = 'خطا در تولید گزارش: ' + (data.error_msg || 'نامشخص');
-          errorBox.classList.add('visible');
-        }
-        if (data.ready){
-          onReady(data.detail_url);
-          return true;
-        }
-        return false;
-      }catch(err){
-        console.warn('[processing] first check error:', err);
-        return false;
+      async function poll() {
+        if (stop) return;
+        try {
+          const data = await fetchStatus();
+          // Only leave this page when EVERYTHING is done: the report is fully
+          // generated and the eye segmentation/classification and medical-test
+          // extraction have all finished. The server raises `ready` only then.
+          if (data.error) { onError(data.error_msg, data.detail_url); return; }
+          if (data.ready) { onReady(data.detail_url); return; }
+        } catch (e) { /* retry */ }
+        if (!stop) setTimeout(poll, 5000);
       }
-    }
-
-    async function poll(){
-      if (stopPolling) return;
-      try{
-        const data = await fetchStatus();
-        console.log('[processing] poll:', data);
-        if (data.error){
-          errorBox.textContent = 'خطا در تولید گزارش: ' + (data.error_msg || 'نامشخص');
-          errorBox.classList.add('visible');
-        }
-        if (data.ready){
-          onReady(data.detail_url);
-          return;
-        }
-      }catch(err){
-        console.warn('[processing] poll error:', err);
-      }finally{
-        if (!stopPolling) setTimeout(poll, 5000);
-      }
-    }
-
-    (async () => {
-      const alreadyReady = await checkOnce();
-      if (!alreadyReady) poll();
+      viewBtn.addEventListener('click', (e) => { if (!detailUrl) e.preventDefault(); });
+      poll();
     })();
-
-    document.addEventListener('visibilitychange', () => {
-      if (!stopPolling && document.visibilityState === 'visible') checkOnce();
-    });
   </script>
 </body>
 </html>

@@ -91,3 +91,4 @@ yarn-error.log*
 data/
 notebooks/
 logs/
+sessions/

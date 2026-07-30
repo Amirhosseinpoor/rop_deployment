@@ -22,13 +22,32 @@ class RoleChoiceForm(forms.Form):
 
 class ManagerSignupForm(UserCreationForm):
     # Extra non-User fields
-    email = forms.EmailField(label="ایمیل مدیر")
-    phone = forms.CharField(label="شماره مدیر", required=False)
+    email = forms.EmailField(label="Manager email")
+    phone = forms.CharField(label="Manager phone", required=False)
 
-    company_name = forms.CharField(label="نام شرکت")
-    company_address = forms.CharField(label="آدرس دقیق شرکت", widget=forms.Textarea(attrs={"rows": 3}))
-    company_email = forms.EmailField(label="ایمیل شرکت")
-    company_phone = forms.CharField(label="شماره شرکت")
+    company_name = forms.CharField(label="Company name")
+    company_address = forms.CharField(label="Company address", widget=forms.Textarea(attrs={"rows": 3}))
+    company_email = forms.EmailField(label="Company email")
+    company_phone = forms.CharField(label="Company phone")
+
+    # Faint example text shown inside each empty field.
+    _PLACEHOLDERS = {
+        "username": "e.g. dr.ahmadi",
+        "email": "e.g. manager@clinic.com",
+        "phone": "e.g. +98 912 345 6789",
+        "password1": "At least 8 characters",
+        "password2": "Re-enter your password",
+        "company_name": "e.g. Mediverse Clinic",
+        "company_address": "e.g. No. 12, Valiasr St., Tehran",
+        "company_email": "e.g. info@clinic.com",
+        "company_phone": "e.g. +98 21 1234 5678",
+    }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            if name in self._PLACEHOLDERS:
+                field.widget.attrs.setdefault("placeholder", self._PLACEHOLDERS[name])
 
     class Meta:
         model = User
@@ -39,7 +58,7 @@ class ManagerSignupForm(UserCreationForm):
         name = self.cleaned_data['company_name'].strip()
         # Enforce unique company name (case-insensitive) BEFORE hitting DB unique constraint
         if Company.objects.filter(name__iexact=name).exists():
-            raise ValidationError("نام شرکت قبلاً ثبت شده است. لطفاً نام دیگری انتخاب کنید.")
+            raise ValidationError("This company name is already registered. Please choose another one.")
         return name
 
     def save(self, commit=True):
@@ -72,14 +91,27 @@ class ManagerSignupForm(UserCreationForm):
 
 class StaffSignupForm(UserCreationForm):
     # Extra non-User fields
-    email = forms.EmailField(label="ایمیل")
-    phone = forms.CharField(label="شماره", required=False)
-    national_code = forms.CharField(label="کد ملی (۱۰ رقمی)", max_length=10)
+    email = forms.EmailField(label="Email")
+    phone = forms.CharField(label="Phone", required=False)
+    national_code = forms.CharField(label="National code (10 digits)", max_length=10)
+
+    # Faint example text shown inside each empty field.
+    _PLACEHOLDERS = {
+        "username": "e.g. dr.ahmadi",
+        "email": "e.g. you@example.com",
+        "phone": "e.g. +98 912 345 6789",
+        "national_code": "e.g. 1234567890",
+        "password1": "At least 8 characters",
+        "password2": "Re-enter your password",
+    }
 
     # role is injected by the view (doctor/employee)
     def __init__(self, *args, **kwargs):
         self.role = kwargs.pop('role')
         super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            if name in self._PLACEHOLDERS:
+                field.widget.attrs.setdefault("placeholder", self._PLACEHOLDERS[name])
 
     class Meta:
         model = User
@@ -89,19 +121,19 @@ class StaffSignupForm(UserCreationForm):
     def clean_national_code(self):
         nc = self.cleaned_data['national_code']
         if len(nc) != 10 or not nc.isdigit():
-            raise ValidationError("کد ملی باید ۱۰ رقم باشد.")
+            raise ValidationError("National code must be exactly 10 digits.")
         return nc
 
     def clean(self):
         cleaned = super().clean()
         if not _has_up_table():
-            raise ValidationError("زیرساخت سیستم در حال آماده‌سازی است. کمی بعد تلاش کنید.")
+            raise ValidationError("The system is still initializing. Please try again shortly.")
 
         nc = cleaned.get('national_code')
         try:
             inv = Invitation.objects.get(national_code=nc, role=self.role, used_by__isnull=True)
         except Invitation.DoesNotExist:
-            raise ValidationError("برای این کد ملی دعوت فعالی یافت نشد. لطفاً با مدیر شرکت خود هماهنگ کنید.")
+            raise ValidationError("No active invitation found for this national code. Please contact your company manager.")
         self._invitation = inv
         return cleaned
 

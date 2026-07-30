@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.db import connection
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
+from django.utils.http import url_has_allowed_host_and_scheme
 # NEW imports (add near the top of views.py)
 from django.db.models import Q
 from django.core.serializers.json import DjangoJSONEncoder
@@ -103,6 +104,10 @@ def custom_login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
+            # Honor ?next= (e.g. when redirected here by @login_required)
+            nxt = request.POST.get('next') or request.GET.get('next')
+            if nxt and url_has_allowed_host_and_scheme(nxt, allowed_hosts={request.get_host()}):
+                return redirect(nxt)
             # redirect by role
             try:
                 if hasattr(user, "profile"):
@@ -395,7 +400,7 @@ def manager_dashboard(request):
 
     # If no company is attached, render page with a clear message and block POSTs
     if request.method == 'POST' and not company:
-        messages.error(request, "حساب مدیر شما هنوز به یک شرکت متصل نیست. لطفاً ثبت‌نام مدیر را کامل کنید یا با ادمین تماس بگیرید.")
+        messages.error(request, "Your manager account isn't linked to a company yet. Please complete manager sign-up or contact an administrator.")
         return redirect('manager_dashboard')
 
     if not company:
@@ -404,12 +409,14 @@ def manager_dashboard(request):
             'doctors': User.objects.none(),
             'employees': User.objects.none(),
             'invitations': Invitation.objects.none(),
+            'pending_invitations': 0,
+            'assessed_employees': 0,
             # Charts: empty payloads
             'bmi_bins_json': json.dumps({}, ensure_ascii=False),
             'risks_json': json.dumps({}, ensure_ascii=False),
             'opinions_json': json.dumps({}, ensure_ascii=False),
         }
-        messages.warning(request, "شرکت شما یافت نشد. اگر همین الان ثبت‌نام کرده‌اید، یکبار خارج و وارد شوید یا ثبت‌نام مدیر را دوباره انجام دهید.")
+        messages.warning(request, "Your company was not found. If you just signed up, please sign out and back in, or complete manager sign-up again.")
         return render(request, 'usac/manager_dashboard2.html', context)
 
     # Normal flow when company exists
@@ -432,7 +439,7 @@ def manager_dashboard(request):
 
         valid_roles = dict(UserProfile.ROLE_CHOICES).keys()
         if not (len(national_code) == 10 and national_code.isdigit() and add_role in valid_roles):
-            messages.error(request, "کد ملی یا نقش نامعتبر است.")
+            messages.error(request, "Invalid national code or role.")
             return redirect('manager_dashboard')
 
         # Create/update invitation scoped to this company
@@ -445,7 +452,7 @@ def manager_dashboard(request):
             inv.role = add_role
             inv.save(update_fields=['role'])
 
-        messages.success(request, "کد ملی ذخیره شد. کاربر می‌تواند با این کد ملی ثبت‌نام کند.")
+        messages.success(request, "National code saved. The user can now sign up with it.")
         return redirect('manager_dashboard')
 
     # =========================
@@ -456,18 +463,18 @@ def manager_dashboard(request):
 
     # BMI distribution (WHO)
     bmi_bins = {
-        "کم‌وزن (<18.5)": profiles.filter(bmi__lt=18.5).count(),
-        "نرمال (18.5–24.9)": profiles.filter(bmi__gte=18.5, bmi__lt=25).count(),
-        "اضافه‌وزن (25–29.9)": profiles.filter(bmi__gte=25, bmi__lt=30).count(),
-        "چاق (≥30)": profiles.filter(bmi__gte=30).count(),
-        "نامشخص": profiles.filter(Q(bmi__isnull=True) | Q(bmi__lte=0)).count(),
+        "Underweight (<18.5)": profiles.filter(bmi__lt=18.5).count(),
+        "Normal (18.5–24.9)": profiles.filter(bmi__gte=18.5, bmi__lt=25).count(),
+        "Overweight (25–29.9)": profiles.filter(bmi__gte=25, bmi__lt=30).count(),
+        "Obese (≥30)": profiles.filter(bmi__gte=30).count(),
+        "Unknown": profiles.filter(Q(bmi__isnull=True) | Q(bmi__lte=0)).count(),
     }
 
     # Health risks prevalence
     risks = {
-        "دیابت": profiles.filter(has_diabetes=True).count(),
-        "سیگار": profiles.filter(is_currently_smoking=True).count(),
-        "داروی فشار خون": profiles.filter(on_bp_meds=True).count(),
+        "Diabetes": profiles.filter(has_diabetes=True).count(),
+        "Smoking": profiles.filter(is_currently_smoking=True).count(),
+        "BP medication": profiles.filter(on_bp_meds=True).count(),
     }
 
     # Final medical opinion distribution
@@ -481,17 +488,24 @@ def manager_dashboard(request):
     ).count()
 
     opinions = {
-        "بلامانع": fit,
-        "مشروط": conditional,
-        "عدم صلاحیت": unfit,
-        "نامشخص": unspecified,
+        "Fit": fit,
+        "Conditional": conditional,
+        "Unfit": unfit,
+        "Unspecified": unspecified,
     }
+
+    pending_invitations = invitations.filter(used_by__isnull=True).count()
+    assessed_employees = profiles.filter(
+        Q(opinion_fit=True) | Q(opinion_fit_with_conditions=True) | Q(opinion_unfit=True)
+    ).count()
 
     context = {
         'company': company,
         'doctors': doctors,
         'employees': employees,
         'invitations': invitations,
+        'pending_invitations': pending_invitations,
+        'assessed_employees': assessed_employees,
 
         # Chart payloads (JSON)
         'bmi_bins_json': json.dumps(bmi_bins, cls=DjangoJSONEncoder, ensure_ascii=False),
@@ -557,3 +571,8 @@ def send_test_email(request):
         fail_silently=False,
     )
     return HttpResponse("Test email sent!")
+
+def landing_view(request):
+    if request.user.is_authenticated:
+        return role_based_redirect(request)
+    return render(request, "landing.html")

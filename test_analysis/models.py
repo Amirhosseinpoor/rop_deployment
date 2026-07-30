@@ -224,6 +224,111 @@ class PreviousJob(models.Model):
         return f"Previous Job: {self.title} for {self.profile.user.username}"
 
 
+class EyeImage(models.Model):
+    """An eye photo uploaded by the employee (for future disease screening).
+    Stored on the profile so a doctor can review the images."""
+    profile = models.ForeignKey(HealthProfile, on_delete=models.CASCADE, related_name='eye_images')
+    image = models.ImageField(upload_to='eye_images/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    # sha-256 of the file content, used to skip re-processing duplicate uploads
+    content_hash = models.CharField(max_length=64, blank=True, db_index=True)
+
+    def __str__(self):
+        return f"Eye image for {self.profile.user.username}"
+
+
+class EyeAnalysis(models.Model):
+    """AI screening results for a single uploaded eye photo.
+
+    The pipeline runs in two segmentation phases plus a (mock) classifier:
+      • phase 1  — segment the forniceal+palpebral conjunctiva from the raw photo
+      • phase 2  — segment the palpebral region from the phase-1 RGB crop
+      • classify — anemia positive / negative (placeholder model)
+    Each phase stores both its binary mask and the RGB crop it produced.
+    """
+    STATUS_PENDING = 'pending'
+    STATUS_DONE = 'done'
+    STATUS_FAILED = 'failed'
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_DONE, 'Done'),
+        (STATUS_FAILED, 'Failed'),
+    ]
+
+    eye_image = models.OneToOneField(EyeImage, on_delete=models.CASCADE, related_name='analysis')
+
+    phase1_mask = models.ImageField(upload_to='eye_analysis/phase1_mask/', blank=True, null=True)
+    phase1_overlay = models.ImageField(upload_to='eye_analysis/phase1_rgb/', blank=True, null=True)
+    phase2_mask = models.ImageField(upload_to='eye_analysis/phase2_mask/', blank=True, null=True)
+    phase2_overlay = models.ImageField(upload_to='eye_analysis/phase2_rgb/', blank=True, null=True)
+
+    anemia_label = models.CharField(max_length=16, blank=True)          # 'positive' | 'negative'
+    anemia_confidence = models.FloatField(null=True, blank=True)        # 0..1
+
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    error = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"EyeAnalysis(eye_image={self.eye_image_id}, status={self.status})"
+
+
+class MedicalTest(models.Model):
+    """A medical test document (lab report, addiction panel, imaging, etc.)
+    uploaded by the employee, together with the results extracted from it by
+    an LLM (gpt-4o-mini).
+
+    Only the *test results* are extracted and stored — panels, analytes,
+    their values, units and reference ranges. Patient-identifying details on
+    the document (name, DOB, MRN, ordering provider) are deliberately ignored.
+    The structured data is kept in ``panels`` so it can be rendered as tables
+    for every viewer tier (employee, manager, doctor)."""
+    STATUS_PENDING = 'pending'
+    STATUS_DONE = 'done'
+    STATUS_FAILED = 'failed'
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_DONE, 'Done'),
+        (STATUS_FAILED, 'Failed'),
+    ]
+
+    profile = models.ForeignKey(HealthProfile, on_delete=models.CASCADE, related_name='medical_tests')
+    file = models.FileField(upload_to='medical_tests/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    # sha-256 of the file content, used to skip re-processing duplicate uploads
+    content_hash = models.CharField(max_length=64, blank=True, db_index=True)
+
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_PENDING)
+
+    # --- extracted report metadata (no patient-identifying info) ---
+    report_type = models.CharField(max_length=255, blank=True)   # e.g. "Complete Blood Count"
+    lab_name = models.CharField(max_length=255, blank=True)
+    specimen = models.CharField(max_length=255, blank=True)
+    collected_on = models.CharField(max_length=64, blank=True)   # kept as text — formats vary
+    reported_on = models.CharField(max_length=64, blank=True)
+
+    # --- extracted results ---
+    # panels = [{"name": str, "analytes": [
+    #     {"name": str, "result": str, "flag": str, "unit": str, "reference": str}, ...]}, ...]
+    panels = models.JSONField(default=list, blank=True)
+    abnormal_count = models.IntegerField(default=0)              # analytes flagged out of range
+    summary = models.TextField(blank=True)                       # short plain-language overview
+
+    error = models.TextField(blank=True, null=True)
+    extracted_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-uploaded_at']
+
+    @property
+    def filename(self):
+        import os
+        return os.path.basename(self.file.name) if self.file else ''
+
+    def __str__(self):
+        return f"MedicalTest(profile={self.profile_id}, status={self.status})"
+
+
 class Referral(models.Model):
     """Stores a single referral entry related to a HealthProfile."""
     profile = models.ForeignKey(HealthProfile, on_delete=models.CASCADE, related_name='referrals')

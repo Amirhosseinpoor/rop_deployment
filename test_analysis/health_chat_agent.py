@@ -1,13 +1,33 @@
 import json
 import re
+import logging
 import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 import os
 
+# ------------------------------------------------------------------
+# Logging setup — verbose terminal logging for the health chat agent.
+# A dedicated StreamHandler guarantees records reach the terminal/stdout
+# even if Django's own LOGGING config does not capture this logger.
+# ------------------------------------------------------------------
+logger = logging.getLogger("test_analysis.health_chat_agent")
+if not logger.handlers:
+    _console_handler = logging.StreamHandler()
+    _console_handler.setFormatter(logging.Formatter(
+        "%(asctime)s [%(levelname)s] %(name)s:%(funcName)s:%(lineno)d | %(message)s"
+    ))
+    logger.addHandler(_console_handler)
+    logger.setLevel(logging.DEBUG)
+    logger.propagate = False
+
 load_dotenv()
 gapgpt_base_url = os.getenv("GAPGPT_BASE_URL")
 gapgpt_api_key = os.getenv("GAPGPT_API_KEY")
+gapgpt_model = os.getenv("GAPGPT_MODEL") or os.getenv("OPENAI_MODEL") or "gpt-4o-mini"
+
+logger.info("📦 health_chat_agent module imported | GAPGPT_BASE_URL set=%s | GAPGPT_API_KEY set=%s | GAPGPT_MODEL=%s",
+            bool(gapgpt_base_url), bool(gapgpt_api_key), gapgpt_model)
 
 # ------------------------------
 # Nobat.ir constants
@@ -122,11 +142,21 @@ NOBAT_SPECIALTIES = {
 
 class FINDERS():
     def doctors_finder_tool(self, province, neighborhood, speciality, insurance=None):
+        logger.info("🔧 doctors_finder_tool() | province=%r | neighborhood=%r | speciality=%r | insurance=%r",
+                    province, neighborhood, speciality, insurance)
         if insurance is None:
+            logger.debug("   ↳ no insurance → using nobat.ir scraper")
             nobat_dot_ir_dr_info = self.nobat_dot_ir_scrapper(province, neighborhood, speciality)
+            logger.info("   ✅ nobat.ir scraper returned %s",
+                        f"{len(nobat_dot_ir_dr_info)} doctors" if isinstance(nobat_dot_ir_dr_info, list)
+                        else nobat_dot_ir_dr_info)
             return nobat_dot_ir_dr_info
         else:
+            logger.debug("   ↳ insurance provided → using doctoreto scraper")
             doctoreto_dr_info = self.doctoreto_scrapper(province, neighborhood, speciality)
+            logger.info("   ✅ doctoreto scraper returned %s",
+                        f"{len(doctoreto_dr_info)} doctors" if isinstance(doctoreto_dr_info, list)
+                        else doctoreto_dr_info)
             return doctoreto_dr_info
 
     def medications_finder_tool(self, medications_list):
@@ -139,11 +169,14 @@ class FINDERS():
             from selenium.webdriver.common.by import By
             from selenium.webdriver.support.ui import WebDriverWait
             from selenium.webdriver.support import expected_conditions as EC
+            logger.info("🔧 medications_finder_tool() | medications_list=%r", medications_list)
             if not medications_list or not isinstance(medications_list, list):
+                logger.warning("   ❌ invalid input (not a non-empty list)")
                 return {"error": "Invalid input: expected a list of medications"}
 
             medications = medications_list
             drugs_list = []
+            logger.info("   🌐 launching headless Chrome (Selenium) for %d medication(s)", len(medications))
 
             # کانفیگ بروزر سلنیوم به صورت Headless
             options = webdriver.ChromeOptions()
@@ -159,7 +192,9 @@ class FINDERS():
             try:
                 for med_name in medications:
                     try:
+                        logger.info("   💊 processing medication: %r", med_name)
                         search_url = f"https://www.darooyab.ir/Search?SearchText={med_name}"
+                        logger.debug("      ↳ GET %s", search_url)
                         driver.get(search_url)
 
                         # ۱. انتظار برای ردیف اول جدول جستجو
@@ -274,17 +309,23 @@ class FINDERS():
                             "specific_brand_name": specific_brand_name
                         }
                         drugs_list.append(drug_info)
+                        logger.info("      ✅ scraped med=%r | pharmacy=%r | availability=%r",
+                                    med_name, pharmacy_name, availability_duration)
 
-                    except Exception:
+                    except Exception as inner_e:
                         # نادیده گرفتن خطای یک دارو و ادامه فرآیند برای داروهای بعدی لیست
+                        logger.warning("      ⚠️  skipping med=%r due to error: %s", med_name, inner_e)
                         continue
 
+                logger.info("   ✅ medications_finder_tool done | %d drug record(s) collected", len(drugs_list))
                 return drugs_list
 
             except Exception as e:
+                logger.exception("   🔥 medications_finder_tool scraping failed: %s", e)
                 return {"error": f"Scraping Failed: {str(e)}"}
 
             finally:
+                logger.debug("   🧹 quitting Selenium driver")
                 driver.quit()
 
     def drugs_finder_tool(self, disease_results, personal_information):
@@ -293,15 +334,20 @@ class FINDERS():
         filtered by the user's province and neighborhood (city).
         Returns a list of medications with pharmacy details including address, phone, and availability.
         """
+        logger.info("🔧 drugs_finder_tool() | disease_results=%r | personal_information=%r",
+                    disease_results, personal_information)
         if not disease_results or 'medications' not in disease_results[0]:
+            logger.warning("   ❌ no medications found in disease_results")
             return {"error": "No medications found in disease_results"}
         if not personal_information or not personal_information[0]:
+            logger.warning("   ❌ no personal information provided")
             return {"error": "No personal information provided"}
 
         medications = disease_results[0]['medications']
         user_info = personal_information[0]
         province = user_info.get('living_province', '').strip()
         neighborhood = user_info.get('neighborhood', '').strip()
+        logger.info("   📍 province=%r | neighborhood=%r | medications=%r", province, neighborhood, medications)
 
         # Mapping of neighborhood (or city) to the expected city name in the pharmacy table
         # The table displays "شهر X". We'll build a dictionary of neighborhood -> city name
@@ -317,6 +363,7 @@ class FINDERS():
         }
         target_city = NEIGHBORHOOD_TO_CITY.get(neighborhood, "تهران")  # default to Tehran
         target_province = "تهران"  # we assume province is always تهران based on input
+        logger.debug("   ↳ target_province=%r | target_city=%r", target_province, target_city)
 
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
@@ -326,14 +373,17 @@ class FINDERS():
 
         for med_name in medications:
             try:
+                logger.info("   💊 [requests] processing medication: %r", med_name)
                 # Step 1: Get the generic drug page URL (same as medications_finder_tool)
                 search_url = f"https://www.darooyab.ir/Search?SearchText={med_name}"
-                resp = requests.get(search_url, headers=headers, timeout=10)
+                logger.debug("      ↳ GET %s", search_url)
+                resp = requests.get(search_url, headers=headers, timeout=100)
                 resp.raise_for_status()
                 soup = BeautifulSoup(resp.text, 'html.parser')
 
                 first_row = soup.select_one('#tbody_DrugList tr')
                 if not first_row:
+                    logger.warning("      ⚠️  no search results for med=%r", med_name)
                     all_results.append({"medication": med_name, "pharmacies": [], "error": "No search results"})
                     continue
 
@@ -345,7 +395,7 @@ class FINDERS():
                 generic_url = urljoin("https://www.darooyab.ir", link_tag['href'])
 
                 # Step 2: Fetch the generic page and extract the pharmacy table
-                resp2 = requests.get(generic_url, headers=headers, timeout=10)
+                resp2 = requests.get(generic_url, headers=headers, timeout=100)
                 resp2.raise_for_status()
                 soup2 = BeautifulSoup(resp2.text, 'html.parser')
 
@@ -403,15 +453,17 @@ class FINDERS():
                         pharmacy_dict[key]["brands"].append(brand_name)
 
                 if not pharmacy_dict:
+                    logger.info("      ℹ️  no pharmacies in area for med=%r", med_name)
                     all_results.append({"medication": med_name, "pharmacies": [],
                                         "message": "No pharmacies found in the specified area"})
                     continue
 
+                logger.debug("      ↳ %d unique pharmacies matched for med=%r", len(pharmacy_dict), med_name)
                 # Step 4: For each unique pharmacy, fetch details (address, phone, availability)
                 pharmacies_list = []
                 for (name, url), info in pharmacy_dict.items():
                     try:
-                        resp3 = requests.get(url, headers=headers, timeout=10)
+                        resp3 = requests.get(url, headers=headers, timeout=100)
                         resp3.raise_for_status()
                         soup3 = BeautifulSoup(resp3.text, 'html.parser')
 
@@ -454,18 +506,21 @@ class FINDERS():
                             "error": f"Failed to fetch details: {str(e)}"
                         })
 
+                logger.info("      ✅ med=%r → %d pharmacy detail record(s)", med_name, len(pharmacies_list))
                 all_results.append({
                     "medication": med_name,
                     "pharmacies": pharmacies_list
                 })
 
             except Exception as e:
+                logger.warning("      ⚠️  processing failed for med=%r: %s", med_name, e)
                 all_results.append({
                     "medication": med_name,
                     "pharmacies": [],
                     "error": f"Processing failed: {str(e)}"
                 })
 
+        logger.info("   ✅ drugs_finder_tool done | %d medication result(s)", len(all_results))
         return all_results
 
     def nobat_dot_ir_scrapper(self, province, neighborhood, speciality):
@@ -475,6 +530,8 @@ class FINDERS():
         - neighborhood name (e.g., "آذری")
         - specialty name (e.g., "cardiovascular" or "قلب و عروق")
         """
+        logger.info("🕷️  nobat_dot_ir_scrapper() | province=%r | neighborhood=%r | speciality=%r",
+                    province, neighborhood, speciality)
         # 1. Constants (unchanged)
         nobat_dot_ir_constants = {
             "cities": {"city-1": "تهران"},
@@ -603,12 +660,16 @@ class FINDERS():
         if not neighborhood_code: missing.append("neighborhood")
         if not speciality_code: missing.append("speciality")
 
+        logger.debug("   ↳ mapped codes | city=%s | neighborhood=%s | speciality=%s",
+                     city_code, neighborhood_code, speciality_code)
         if missing:
+            logger.warning("   ❌ could not map inputs to codes: %s", missing)
             return {
                 "error": f"Could not map the following inputs to codes: {', '.join(missing)}. Please check your constants."}
 
         # 4. Build the search URL
         search_url = f"https://nobat.ir/find/{city_code}/{neighborhood_code}/{speciality_code}/"
+        logger.info("   🌐 nobat.ir search URL: %s", search_url)
 
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
@@ -616,13 +677,15 @@ class FINDERS():
 
         try:
             # 5. Fetch search results page
-            response = requests.get(search_url, headers=headers, timeout=10)
+            response = requests.get(search_url, headers=headers, timeout=100)
             response.raise_for_status()
             soup = BeautifulSoup(response.text, 'html.parser')
 
             # 6. Find the top 3 doctor cards
             doctor_cards = soup.select('a.doctor-ui')[:3]
+            logger.info("   📋 found %d doctor card(s) on nobat.ir", len(doctor_cards))
             if not doctor_cards:
+                logger.warning("   ❌ no doctors found for this query")
                 return {"error": "No doctors found for this search query."}
 
             doctors_list = []
@@ -630,13 +693,14 @@ class FINDERS():
             for card in doctor_cards:
                 try:
                     doctor_page_href = card.get('href')
+                    logger.debug("      ↳ fetching doctor profile: %s", doctor_page_href)
                     if not doctor_page_href.startswith('http'):
                         doctor_page_url = 'https://nobat.ir' + doctor_page_href
                     else:
                         doctor_page_url = doctor_page_href
 
                     # 7. Fetch the Doctor's Profile Page
-                    profile_response = requests.get(doctor_page_url, headers=headers, timeout=10)
+                    profile_response = requests.get(doctor_page_url, headers=headers, timeout=100)
                     profile_response.raise_for_status()
                     profile_soup = BeautifulSoup(profile_response.text, 'html.parser')
 
@@ -752,15 +816,20 @@ class FINDERS():
                         "offices": offices_info
                     }
                     doctors_list.append(doctor_info)
+                    logger.info("      ✅ scraped doctor: name=%r | code=%r | offices=%d",
+                                name, medical_code, len(offices_info))
 
                 except Exception as e:
                     # Skip this doctor but continue with others
+                    logger.warning("      ⚠️  skipping a doctor card due to error: %s", e)
                     continue
 
             # Return list of doctors (up to 3)
+            logger.info("   ✅ nobat_dot_ir_scrapper done | %d doctor(s)", len(doctors_list))
             return doctors_list
 
         except Exception as e:
+            logger.exception("   🔥 nobat.ir scraping failed: %s", e)
             return {"error": f"Scraping Failed: {str(e)}"}
 
     def doctor_doctor_scrapper(self, province, neighborhood, speciality):
@@ -772,6 +841,8 @@ class FINDERS():
         Extracts all requested fields except phones and first available appointment.
         Comments now correctly fetch content, recommendation, and wait time.
         """
+        logger.info("🕷️  doctoreto_scrapper() | province=%r | neighborhood=%r | speciality=%r | insurance=%r",
+                    province, neighborhood, speciality, insurance)
 
         # Mappings (extend as needed)
         DOCTORETO_REGION_MAPPING = {
@@ -799,13 +870,17 @@ class FINDERS():
         province_slug = DOCTORETO_CITY_MAPPING.get(province, province.lower().replace(' ', '-'))
         neighborhood_slug = DOCTORETO_REGION_MAPPING.get(neighborhood, neighborhood.lower().replace(' ', '-'))
         speciality_slug = DOCTORETO_SPECIALITY_MAPPING.get(speciality, speciality.lower().replace(' ', '-'))
+        logger.debug("   ↳ slugs | speciality=%r | city=%r | region=%r",
+                     speciality_slug, province_slug, neighborhood_slug)
         if not all([province_slug, neighborhood_slug, speciality_slug]):
+            logger.warning("   ❌ could not map inputs to doctoreto slugs")
             return {"error": "Could not map one of province, neighborhood, or speciality to a valid Doctoreto slug."}
 
         search_url = f"https://doctoreto.com/doctors/speciality/{speciality_slug}/city/{province_slug}/region/{neighborhood_slug}"
+        logger.info("   🌐 doctoreto search URL: %s", search_url)
         try:
             # ---------- 2. Fetch search results page ----------
-            response = requests.get(search_url, headers=headers, timeout=10)
+            response = requests.get(search_url, headers=headers, timeout=100)
             response.raise_for_status()
             soup = BeautifulSoup(response.text, 'html.parser')
 
@@ -817,7 +892,9 @@ class FINDERS():
             else:
                 articles = soup.select('article.flex.cursor-pointer.flex-col')[:3]
 
+            logger.info("   📋 found %d doctor article(s) on doctoreto.com", len(articles))
             if not articles:
+                logger.warning("   ❌ no doctors found on doctoreto.com")
                 return {"error": "No doctors found on doctoreto.com for this search."}
 
             doctors_list = []
@@ -831,9 +908,10 @@ class FINDERS():
                         continue
                     href = profile_link_a.get('href')
                     profile_page_url = 'https://doctoreto.com' + href if href.startswith('/') else href
+                    logger.debug("      ↳ fetching doctoreto profile: %s", profile_page_url)
 
                     # ---------- 3. Fetch profile page ----------
-                    profile_response = requests.get(profile_page_url, headers=headers, timeout=10)
+                    profile_response = requests.get(profile_page_url, headers=headers, timeout=100)
                     profile_response.raise_for_status()
                     profile_soup = BeautifulSoup(profile_response.text, 'html.parser')
 
@@ -1020,15 +1098,20 @@ class FINDERS():
                         }
                     }
                     doctors_list.append(doctor_info)
+                    logger.info("      ✅ scraped doctoreto doctor: name=%r | code=%r | rating=%r",
+                                name, medical_code, rating)
 
-                except Exception:
+                except Exception as e:
                     # Skip this doctor and continue with next
+                    logger.warning("      ⚠️  skipping a doctoreto article due to error: %s", e)
                     continue
 
             # Return list of doctors (up to 3)
+            logger.info("   ✅ doctoreto_scrapper done | %d doctor(s)", len(doctors_list))
             return doctors_list
 
         except Exception as e:
+            logger.exception("   🔥 doctoreto scraping failed: %s", e)
             return {"error": f"Doctoreto Scraping Failed: {str(e)}"}
 
 
@@ -1062,6 +1145,7 @@ def get_openai_client():
     """Initialize if not already done (using settings or env)."""
     global OPENAI_CLIENT
     if OPENAI_CLIENT is None:
+        logger.info("🔌 initializing OpenAI client | base_url=%s", gapgpt_base_url)
         import openai
         from django.conf import settings
 
@@ -1069,6 +1153,9 @@ def get_openai_client():
             base_url=gapgpt_base_url,
             api_key=gapgpt_api_key,
         )
+        logger.info("   ✅ OpenAI client initialized")
+    else:
+        logger.debug("🔌 reusing cached OpenAI client")
     return OPENAI_CLIENT
 
 
@@ -1120,6 +1207,7 @@ def handle_tool_call(message):
     tool_call = message.tool_calls[0]
     function_name = tool_call.function.name
     args = json.loads(tool_call.function.arguments)
+    logger.info("🛠️  handle_tool_call() | function=%r | args=%r", function_name, args)
     finder = FINDERS()
 
     # متغیرهای خروجی پیش‌فرض
@@ -1163,6 +1251,8 @@ def handle_tool_call(message):
         else:
             tool_content = json.dumps(finder_results, ensure_ascii=False)
 
+    logger.info("🛠️  handle_tool_call result | function=%r | summary_content=%s",
+                function_name, tool_content)
     # ساختار پاسخ استاندارد برای ارسال به API جهت اطلاع مدل
     response = {
         "role": "tool",
@@ -1173,6 +1263,8 @@ def handle_tool_call(message):
 
 
 def chat_with_assistant(message, history):
+    logger.info("💬 chat_with_assistant() | user_message_len=%d | history_turns=%d",
+                len(message or ""), len(history or []))
     client = get_openai_client()
     system_content = system_prompt_finders.format(
         disease_results=disease_results,
@@ -1180,16 +1272,20 @@ def chat_with_assistant(message, history):
     )
     messages = [{"role": "system", "content": system_content}] + history + [{"role": "user", "content": message}]
 
+    logger.info("   📤 sending chat completion request | model=%s | messages=%d | tools=%d",
+                gapgpt_model, len(messages), len(tools))
     response = client.chat.completions.create(
-        model="gpt-5-nano",
+        model=gapgpt_model,
         messages=messages,
         tools=tools
     )
     choice = response.choices[0]
+    logger.info("   📥 first response | finish_reason=%s", choice.finish_reason)
 
     # هندل کردن اجرای ابزارها در صورت درخواست مدل
     if choice.finish_reason == "tool_calls":
         msg = choice.message
+        logger.info("   🔧 model requested tool call → executing")
 
         # اجرای ابزار مناسب با توجه به شرط نوشته شده در متد قبلی
         tool_response, finder_results = handle_tool_call(msg)
@@ -1199,10 +1295,678 @@ def chat_with_assistant(message, history):
         messages.append(tool_response)
 
         # دریافت پاسخ نهایی متنی از مدل بر اساس دیتای خلاصه شده ابزار
+        logger.info("   📤 sending follow-up completion (with tool result) | messages=%d", len(messages))
         final_response = client.chat.completions.create(
-            model="gpt-5-nano",
+            model=gapgpt_model,
             messages=messages
         )
-        return final_response.choices[0].message.content, finder_results
+        final_text = final_response.choices[0].message.content
+        logger.info("   ✅ final reply ready (len=%d) | finder_results=%s",
+                    len(final_text or ""),
+                    f"{len(finder_results)} items" if isinstance(finder_results, list) else type(finder_results).__name__)
+        return final_text, finder_results
     else:
+        logger.info("   ✅ direct reply (no tool) | len=%d", len(choice.message.content or ""))
         return choice.message.content, None
+
+
+# ============================================================
+#  DOCTOR / MANAGER FORM-FILLING ASSISTANT
+#  ------------------------------------------------------------
+#  Unlike the employee finder bot above, this agent does NOT
+#  search for doctors/medications. Instead it acts as a clinical
+#  drafting assistant: given a free-text prompt from the
+#  examining physician (or manager) plus the patient's profile,
+#  it drafts every field of the occupational-health examination
+#  record — physical-exam notes per body system, the final
+#  fitness opinion, conditions / unfit reasons, medical
+#  recommendations and specialist referrals — each with a clear
+#  rationale. The physician always reviews and edits before save.
+# ============================================================
+
+# Maps each draftable exam-note field (the model field name) to its Persian label.
+DOCTOR_ASSIST_EXAM_FIELDS = {
+    "general_exam_notes": "معاینه عمومی",
+    "head_neck_exam_notes": "سر و گردن",
+    "eye_exam_notes": "چشم",
+    "ent_mouth_exam_notes": "گوش، حلق، بینی و دهان",
+    "lung_exam_notes": "ریه",
+    "cardiovascular_exam_notes": "قلب و عروق",
+    "abdomen_pelvis_exam_notes": "شکم و لگن",
+    "urinary_system_exam_notes": "دستگاه ادراری",
+    "musculoskeletal_exam_notes": "اسکلتی-عضلانی",
+    "nervous_system_exam_notes": "سیستم عصبی",
+    "mental_health_exam_notes": "سلامت روان",
+    "skin_hair_nails_exam_notes": "پوست، مو و ناخن",
+}
+
+doctor_assist_system_prompt = (
+    "شما دستیار هوشمند و ارشد مستندسازی بالینی برای 'پزشکان متخصص طب کار' هستید. "
+    "کاربر شما یک پزشک معاینه‌کننده (یا مدیر سلامت شغلی) است که در حال تکمیل فرم معاینات دوره‌ای طب کار برای یک پرونده پرسنلی است. "
+    "شما نقش پیش‌نویس‌کننده پرونده پزشکی را دارید؛ پزشک تمامی فیلدهای پیشنهادی شما را مرور، ویرایش و نهایی می‌کند. "
+    "\n\n"
+    "ورودی‌های شما شامل موارد زیر است:\n"
+    "۱. PATIENT CONTEXT: اطلاعات کامل پرونده شامل مشخصات فردی بیمار، شغل و مواجهات زیان‌آور شغلی، سوابق پزشکی و شغلی، علائم حیاتی و معاینات اولیه، نتایج کامل پاراکلینیک (اسپیرومتری، ECG، CXR)، آزمایش‌های خون/ادرار/آدیکشن، مدارک و اسناد پزشکی بارگذاری‌شده (Medical Tests با تمامی پنل‌ها و فاکتورها)، نتیجه غربالگری آنمی چشم، و گزارش کامل تحلیل ریسک هوش مصنوعی.\n"
+    "۲. PHYSICIAN REQUEST: دستور یا توضیح آزاد پزشک.\n"
+    "\n\n"
+    "تشخیص دقیق حالت درخواست پزشک (MODE DETECTION):\n"
+    "پزشک ممکن است یکی از دو حالت زیر را درخواست کند:\n"
+    "حالت ۱. تکمیل کامل پرونده (FULL DRAFT MODE):\n"
+    "  - زمانی که پزشک می‌گوید 'پرونده را پر کن'، 'همه فیلدها را تکمیل کن'، 'پیش‌نویس کامل بنویس' یا یک دستور عمومی برای تکمیل پرونده می‌دهد.\n"
+    "  - در این حالت: is_targeted = false، requires_approval = false، لیست target_fields خالی است و تمام فیلدهای فرم پیش‌نویس می‌شوند.\n"
+    "\n"
+    "حالت ۲. اصلاح/تکمیل فیلد(های) خاص (TARGETED FIELD MODIFICATION MODE):\n"
+    "  - زمانی که پزشک فقط درباره یک یا چند ارگان یا فیلد خاص صحبت می‌کند (مثلاً 'در سر و گردن ضایعه لمس شد اینو ثبت کن'، 'فقط فیلد ریه را اصلاح کن'، 'فشار خون در فیلد قلب ثبت شود'، 'توصیه‌ها را تغییر بده').\n"
+    "  - در این حالت: is_targeted = true، requires_approval = true (مگر اینکه در پیام تایید قبلی داده شده باشد)، و اسامی فیلدهای هدف دقیقاً در لیست target_fields قرار می‌گیرند (مثلاً [\"head_neck_exam_notes\"]).\n"
+    "  - در approval_prompt_text متنی شفاف به زبان فارسی بنویسید که از پزشک سوال می‌کند: 'آیا تایید می‌فرمایید که فیلد(های) [نام فیلدها به فارسی] با متن زیر بروزرسانی شود؟'.\n"
+    "  - در proposed_changes متنی که فقط باید در فیلد(های) هدف قرار گیرد قرار دهید.\n"
+    "\n"
+    "اسامی کلیدهای فیلدها جهت ارجاع دقیق در target_fields و proposed_changes:\n"
+    "- general_exam_notes: معاینه عمومی\n"
+    "- head_neck_exam_notes: سر، گردن و حواس (Head, neck & senses)\n"
+    "- eye_exam_notes: چشم\n"
+    "- ent_mouth_exam_notes: گوش، حلق، بینی و دهان\n"
+    "- lung_exam_notes: ریه و دستگاه تنفس\n"
+    "- cardiovascular_exam_notes: قلب و عروق\n"
+    "- abdomen_pelvis_exam_notes: شکم و لگن\n"
+    "- urinary_system_exam_notes: دستگاه ادراری\n"
+    "- musculoskeletal_exam_notes: اسکلتی-عضلانی\n"
+    "- nervous_system_exam_notes: سیستم عصبی\n"
+    "- mental_health_exam_notes: سلامت روان\n"
+    "- skin_hair_nails_exam_notes: پوست، مو و ناخن\n"
+    "- opinion_choice / opinion_fit_conditions_details / opinion_unfit_reason: نظریه نهایی\n"
+    "- medical_recommendations: توصیه‌های پزشکی\n"
+    "- referrals: ارجاعات تخصصی\n"
+    "\n\n"
+    "قواعد نگارش پزشکی:\n"
+    "۱. لحن نگارش باید ۱۰۰٪ مانند یک پزشک متخصص طب کار در پرونده‌های رسمی معاینات دوره‌ای باشد. از هرگونه ادبیات هوش مصنوعی پرهیز کنید.\n"
+    "۲. جملات هر بخش مستقیم و مختصر (۱ تا ۳ جمله) باشد.\n"
+    "۳. نظریه نهایی (opinion_choice) باید دقیقاً یکی از 'fit'، 'conditional' یا 'unfit' باشد.\n"
+    "۴. در صورت وجود مواجهه یا خطرات شغلی، ارجاعات تخصصی کاربردی (۱ الی ۳ ارجاع) در referrals پیشنهاد شود. هشدار بسیار مهم: اگر در PATIENT CONTEXT ارجاعاتی از قبل ثبت شده است، به هیچ عنوان ارجاعی با همان تخصص یا تخصص مشابه تولید نکنید (مثلاً اگر 'چشم' وجود دارد، 'متخصص چشم' را اضافه نکنید). فقط ارجاعات کاملاً جدید را در لیست قرار دهید.\n"
+    "\n\n"
+    "پاسخ شما باید منحصراً یک JSON معتبر باشد که دقیقاً کلیدهای زیر را داشته باشد:\n"
+    "اگر پیام پزشک صرفاً سلام، احوالپرسی یا یک سوال عمومی است که نیازی به پر کردن یا تغییر فرم ندارد، فقط دو کلید زیر را برگردانید:\n"
+    "{\n"
+    '  "is_chat_only": true,\n'
+    '  "chat_message": "پاسخ متنی شما به پزشک..."\n'
+    "}\n\n"
+    "اما اگر پزشک دستور پر کردن، تغییر، یا اصلاح فرم را داده است، باید به صورت زیر پاسخ دهید:\n"
+    "{\n"
+    '  "is_chat_only": false,\n'
+    '  "is_targeted": bool,\n'
+    '  "target_fields": [str],\n'
+    '  "requires_approval": bool,\n'
+    '  "approval_prompt_text": str,\n'
+    '  "proposed_changes": { "field_name": "proposed text..." },\n'
+    '  "general_exam_notes": str,\n'
+    '  "head_neck_exam_notes": str,\n'
+    '  "eye_exam_notes": str,\n'
+    '  "ent_mouth_exam_notes": str,\n'
+    '  "lung_exam_notes": str,\n'
+    '  "cardiovascular_exam_notes": str,\n'
+    '  "abdomen_pelvis_exam_notes": str,\n'
+    '  "urinary_system_exam_notes": str,\n'
+    '  "musculoskeletal_exam_notes": str,\n'
+    '  "nervous_system_exam_notes": str,\n'
+    '  "mental_health_exam_notes": str,\n'
+    '  "skin_hair_nails_exam_notes": str,\n'
+    '  "opinion_choice": "fit" | "conditional" | "unfit",\n'
+    '  "opinion_fit_conditions_details": str,\n'
+    '  "opinion_unfit_reason": str,\n'
+    '  "medical_recommendations": str,\n'
+    '  "referrals": [ { "specialty": str, "reason": str, "result": str, "date": str } ],\n'
+    '  "explanation": str\n'
+    "}"
+)
+
+
+def _extract_json_object(text):
+    """Robustly pull the first JSON object out of an LLM response."""
+    logger.debug("🧩 _extract_json_object() | text_len=%d", len(text or ""))
+    if not text:
+        logger.warning("   ⚠️  empty text → None")
+        return None
+    cleaned = text.strip()
+    # strip ``` / ```json fences if present
+    if cleaned.startswith("```"):
+        logger.debug("   ↳ stripping code fences")
+        cleaned = re.sub(r"^```[a-zA-Z]*\s*", "", cleaned)
+        cleaned = re.sub(r"\s*```$", "", cleaned).strip()
+    try:
+        parsed = json.loads(cleaned)
+        logger.debug("   ✅ parsed JSON directly")
+        return parsed
+    except Exception:
+        logger.debug("   ↳ direct json.loads failed, trying outermost { ... }")
+    # fall back: grab the outermost { ... }
+    start = cleaned.find("{")
+    end = cleaned.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        try:
+            parsed = json.loads(cleaned[start:end + 1])
+            logger.debug("   ✅ parsed JSON from outermost braces")
+            return parsed
+        except Exception:
+            logger.warning("   ⚠️  could not parse JSON from braces → None")
+            return None
+    logger.warning("   ⚠️  no JSON object found → None")
+    return None
+
+
+def doctor_assist_assistant(prompt, profile_context, history=None):
+    """
+    Draft the occupational-health examination record for a physician/manager.
+
+    Args:
+        prompt: free-text instruction from the physician.
+        profile_context: a readable text block describing the patient.
+        history: optional prior [{role, content}] turns for iterative refinement.
+
+    Returns:
+        (suggestions_dict, error_str). suggestions_dict is None on failure.
+    """
+    logger.info("🩺 doctor_assist_assistant() | prompt_len=%d | context_len=%d | history_turns=%d",
+                len(prompt or ""), len(profile_context or ""), len(history or []))
+    client = get_openai_client()
+    user_content = (
+        f"PATIENT CONTEXT:\n{profile_context}\n\n"
+        f"PHYSICIAN REQUEST:\n{prompt}\n\n"
+        "Draft the full record now as the JSON object specified."
+    )
+    messages = (
+        [{"role": "system", "content": doctor_assist_system_prompt}]
+        + (history or [])
+        + [{"role": "user", "content": user_content}]
+    )
+
+    # Prefer enforced JSON output; gracefully fall back if the proxy rejects it.
+    try:
+        logger.info("   📤 requesting completion with response_format=json_object | model=%s", gapgpt_model)
+        response = client.chat.completions.create(
+            model=gapgpt_model,
+            messages=messages,
+            response_format={"type": "json_object"},
+        )
+    except Exception as json_mode_err:
+        logger.warning("   ⚠️  json_object mode rejected (%s), retrying without response_format", json_mode_err)
+        try:
+            response = client.chat.completions.create(
+                model=gapgpt_model,
+                messages=messages,
+            )
+        except Exception as e:
+            logger.exception("   🔥 AI engine connection failed: %s", e)
+            return None, f"خطا در ارتباط با موتور هوش مصنوعی: {e}"
+
+    content = response.choices[0].message.content
+    logger.info("   📥 model response received | content_len=%d", len(content or ""))
+    data = _extract_json_object(content)
+    if not isinstance(data, dict):
+        logger.warning("   ❌ model response not parseable as dict")
+        return None, "پاسخ مدل قابل پردازش نبود. لطفاً دوباره و با توضیح دقیق‌تر تلاش کنید."
+
+    # Normalise / sanitise the result so the front-end can rely on it.
+    suggestions = {}
+    suggestions["is_targeted"] = bool(data.get("is_targeted"))
+    suggestions["requires_approval"] = bool(data.get("requires_approval"))
+    suggestions["target_fields"] = [str(f) for f in (data.get("target_fields") or []) if isinstance(f, str)]
+    suggestions["approval_prompt_text"] = (data.get("approval_prompt_text") or "").strip()
+    suggestions["proposed_changes"] = data.get("proposed_changes") if isinstance(data.get("proposed_changes"), dict) else {}
+
+    for field in DOCTOR_ASSIST_EXAM_FIELDS:
+        suggestions[field] = (data.get(field) or "").strip()
+
+    choice = (data.get("opinion_choice") or "").strip().lower()
+    if choice not in ("fit", "conditional", "unfit"):
+        choice = ""
+    suggestions["opinion_choice"] = choice
+    suggestions["opinion_fit_conditions_details"] = (data.get("opinion_fit_conditions_details") or "").strip()
+    suggestions["opinion_unfit_reason"] = (data.get("opinion_unfit_reason") or "").strip()
+    suggestions["medical_recommendations"] = (data.get("medical_recommendations") or "").strip()
+
+    referrals = []
+    seen_specs = set()
+    for ref in (data.get("referrals") or []):
+        if not isinstance(ref, dict):
+            continue
+        spec = (ref.get("specialty") or "").strip()
+        reas = (ref.get("reason") or "").strip()
+        if not spec and not reas:
+            continue
+        spec_clean = spec or "متخصص طب کار"
+        spec_key = spec_clean.lower()
+        if spec_key in seen_specs:
+            continue
+        seen_specs.add(spec_key)
+        referrals.append({
+            "specialty": spec_clean,
+            "reason": reas or "ارزیابی و معاینه تکمیلی دوره‌ای",
+            "result": (ref.get("result") or "").strip() or "در انتظار ارزیابی بالینی",
+            "date": (ref.get("date") or "").strip(),
+        })
+    suggestions["referrals"] = referrals
+    suggestions["explanation"] = (data.get("explanation") or "").strip()
+
+    logger.info("   ✅ doctor_assist_assistant done | is_targeted=%s | opinion_choice=%r | referrals=%d | recommendations_len=%d",
+                suggestions.get("is_targeted"), suggestions.get("opinion_choice"), len(referrals),
+                len(suggestions.get("medical_recommendations") or ""))
+    return suggestions, None
+
+
+# ============================================================
+#  DOCTOR RESEARCH CHAT  (knowledge base + web + read-URL +
+#  PubMed + medications)
+#  ------------------------------------------------------------
+#  A tool-calling research assistant for a DOCTOR (or MANAGER)
+#  reviewing an employee's ROP / KC eye-screening case. It runs a
+#  bounded tool-calling loop against GAPGPT (OpenAI-compatible)
+#  and returns (answer_markdown, sources_list) where each source
+#  is {id, title, url, domain} — the same shape the ROP chat and
+#  the marketplace chat use for their inline [n] citation cards.
+#
+#  Web-search / KB retrieval helpers are reused from
+#  ``single_rop.chat_service`` when importable (retrieve_local,
+#  _serper_search, _scrape_url, _domain); otherwise it falls back
+#  to ``doctors_marketplace.services.websearch``. Every tool is
+#  crash-safe: a failure returns a short error string to the model
+#  instead of raising out of the loop.
+# ============================================================
+
+DOCTOR_RESEARCH_SYSTEM_PROMPT = (
+    "You are a meticulous clinical RESEARCH assistant working for a DOCTOR (or an "
+    "occupational-health manager) who is reviewing an employee's automated eye-screening "
+    "case — either ROP (Retinopathy of Prematurity) or KC (Keratoconus). The doctor uses "
+    "you to research clinical guidelines, recent evidence, and medications so they can "
+    "make and justify a decision. Your user is a licensed clinician, so precise, technical, "
+    "evidence-based answers are expected and appropriate.\n\n"
+    "You have these tools — use them proactively before answering any factual/clinical "
+    "question, and prefer authoritative sources:\n"
+    "  • search_knowledge_base(query): the clinic's local ROP/KC knowledge base.\n"
+    "  • search_web(query): general web search for guidelines and current information.\n"
+    "  • fetch_url(url): read the readable text of a specific web page.\n"
+    "  • search_pubmed(query): search peer-reviewed literature on PubMed (returns PMIDs + links).\n"
+    "  • medication_lookup(names): look up drug classification / info for medications.\n\n"
+    "RULES:\n"
+    "1) Ground every clinical claim, number, guideline, or dosage in a tool result. "
+    "Never invent facts and NEVER invent citations, PMIDs, URLs, or study titles.\n"
+    "2) Cite the sources you actually used with inline markers like [1], [2] that correspond "
+    "to the sources returned by the tools; put each marker next to the specific claim it "
+    "supports. Do not write your own 'References' list — the app renders source cards from the "
+    "returned sources.\n"
+    "3) If the tools do not yield enough evidence, say so plainly rather than guessing.\n"
+    "4) Always take the provided CASE CONTEXT into account and tailor the research to it.\n"
+    "5) Answer in clear Markdown. Be concise but complete; lead with the clinically actionable "
+    "point, then the supporting evidence."
+)
+
+
+def _dr_get_web_helpers():
+    """
+    Resolve the (kb_retrieve, web_search, url_scrape, domain_of) helpers, preferring
+    ``single_rop.chat_service`` and falling back to
+    ``doctors_marketplace.services.websearch``. Any missing piece is returned as None
+    so callers degrade gracefully. Never raises.
+    """
+    kb_retrieve = web_search = url_scrape = domain_of = None
+    try:
+        from single_rop import chat_service as _cs
+        kb_retrieve = getattr(_cs, "retrieve_local", None)
+        web_search = getattr(_cs, "_serper_search", None)
+        url_scrape = getattr(_cs, "_scrape_url", None)
+        domain_of = getattr(_cs, "_domain", None)
+        logger.info("🔬 doctor_research | reusing single_rop.chat_service helpers "
+                    "(kb=%s web=%s scrape=%s)",
+                    bool(kb_retrieve), bool(web_search), bool(url_scrape))
+    except Exception as e:
+        logger.warning("🔬 doctor_research | single_rop.chat_service unavailable: %s", e)
+
+    # Fall back to the marketplace web-search module for anything missing.
+    if not (web_search and url_scrape and domain_of):
+        try:
+            from doctors_marketplace.services import websearch as _ws
+            web_search = web_search or getattr(_ws, "serper_search", None)
+            url_scrape = url_scrape or getattr(_ws, "scrape_url", None)
+            domain_of = domain_of or getattr(_ws, "domain_of", None)
+            logger.info("🔬 doctor_research | using doctors_marketplace.services.websearch fallback")
+        except Exception as e:
+            logger.warning("🔬 doctor_research | websearch fallback unavailable: %s", e)
+
+    if domain_of is None:
+        from urllib.parse import urlparse
+
+        def domain_of(url):
+            try:
+                return urlparse(url).netloc.replace("www.", "")
+            except Exception:
+                return url or ""
+
+    return kb_retrieve, web_search, url_scrape, domain_of
+
+
+DOCTOR_RESEARCH_TOOLS = [
+    {"type": "function", "function": {
+        "name": "search_knowledge_base",
+        "description": "Search the clinic's local ROP/KC knowledge base for relevant guideline "
+                       "passages and decision rules. Use this first for questions about the "
+                       "clinic's screening/decision criteria.",
+        "parameters": {
+            "type": "object",
+            "properties": {"query": {"type": "string", "description": "The search query."}},
+            "required": ["query"], "additionalProperties": False,
+        },
+    }},
+    {"type": "function", "function": {
+        "name": "search_web",
+        "description": "Search the web for clinical guidelines, definitions, or up-to-date "
+                       "information. Returns a list of {title, url, snippet}.",
+        "parameters": {
+            "type": "object",
+            "properties": {"query": {"type": "string", "description": "The web search query."}},
+            "required": ["query"], "additionalProperties": False,
+        },
+    }},
+    {"type": "function", "function": {
+        "name": "fetch_url",
+        "description": "Fetch and extract the readable text of a specific web page (e.g. a "
+                       "result from search_web or search_pubmed) to read it in detail.",
+        "parameters": {
+            "type": "object",
+            "properties": {"url": {"type": "string", "description": "The absolute URL to read."}},
+            "required": ["url"], "additionalProperties": False,
+        },
+    }},
+    {"type": "function", "function": {
+        "name": "search_pubmed",
+        "description": "Search PubMed (NCBI) for peer-reviewed medical literature. Returns a "
+                       "list of {title, journal, year, pmid, url}. Use for evidence/study lookups.",
+        "parameters": {
+            "type": "object",
+            "properties": {"query": {"type": "string", "description": "The PubMed search query."}},
+            "required": ["query"], "additionalProperties": False,
+        },
+    }},
+    {"type": "function", "function": {
+        "name": "medication_lookup",
+        "description": "Look up classification and information for one or more medications by name.",
+        "parameters": {
+            "type": "object",
+            "properties": {"names": {
+                "type": "array", "items": {"type": "string"},
+                "description": "List of medication names to look up.",
+            }},
+            "required": ["names"], "additionalProperties": False,
+        },
+    }},
+]
+
+
+def _dr_tool_search_knowledge_base(query, kb_retrieve):
+    """Local KB search. Returns (text_for_model, source_dicts)."""
+    if not kb_retrieve:
+        return "The local knowledge base is not available in this environment.", []
+    try:
+        docs = kb_retrieve(query, k=5) or []
+    except Exception as e:
+        logger.warning("🔬 search_knowledge_base failed: %s", e)
+        return f"search_knowledge_base error: {e}", []
+    if not docs:
+        return "No relevant passages found in the local knowledge base.", []
+    lines, sources = [], []
+    for d in docs:
+        meta = getattr(d, "metadata", {}) or {}
+        title = meta.get("title") or _pretty_title(meta.get("source", "knowledge base"))
+        content = (getattr(d, "page_content", "") or "")[:800]
+        sources.append({"title": title, "url": None, "domain": "knowledge base"})
+        lines.append(f"[{title}] {content}")
+    return "\n---\n".join(lines), sources
+
+
+def _dr_tool_search_web(query, web_search, domain_of):
+    """Web search. Returns (text_for_model, source_dicts)."""
+    if not web_search:
+        return "Web search is not available in this environment.", []
+    try:
+        organic = web_search(query) or []
+    except Exception as e:
+        logger.warning("🔬 search_web failed: %s", e)
+        return f"search_web error: {e}", []
+    results, sources = [], []
+    for r in organic[:6]:
+        url = r.get("link") or r.get("url")
+        if not url:
+            continue
+        title = r.get("title") or domain_of(url)
+        snippet = r.get("snippet") or ""
+        results.append({"title": title, "url": url, "snippet": snippet})
+        sources.append({"title": title, "url": url, "domain": domain_of(url)})
+    if not results:
+        return "No web results found.", []
+    return json.dumps(results, ensure_ascii=False), sources
+
+
+def _dr_tool_fetch_url(url, url_scrape, domain_of):
+    """Fetch readable page text. Returns (text_for_model, source_dicts)."""
+    if not url:
+        return "No URL provided.", []
+    text = ""
+    try:
+        if url_scrape:
+            text = url_scrape(url, char_limit=4000) or ""
+        else:
+            resp = requests.get(url, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
+            resp.raise_for_status()
+            soup = BeautifulSoup(resp.text, "html.parser")
+            for tag in soup(["script", "style", "noscript", "header", "footer", "nav", "aside"]):
+                tag.decompose()
+            text = " ".join(soup.get_text(separator=" ").split())[:4000]
+    except Exception as e:
+        logger.warning("🔬 fetch_url failed for %s: %s", url, e)
+        return f"fetch_url error for {url}: {e}", []
+    if not text:
+        return f"Could not extract readable text from {url}.", []
+    src = [{"title": domain_of(url), "url": url, "domain": domain_of(url)}]
+    return text[:4000], src
+
+
+def _dr_tool_search_pubmed(query):
+    """Query NCBI E-utilities (no API key). Returns (text_for_model, source_dicts)."""
+    if not query:
+        return "No query provided.", []
+    try:
+        esearch = requests.get(
+            "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi",
+            params={"db": "pubmed", "retmode": "json", "retmax": 5, "term": query},
+            timeout=10, headers={"User-Agent": "Mozilla/5.0"},
+        )
+        esearch.raise_for_status()
+        ids = (esearch.json().get("esearchresult", {}) or {}).get("idlist", []) or []
+        if not ids:
+            return "No PubMed results found.", []
+        esummary = requests.get(
+            "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi",
+            params={"db": "pubmed", "retmode": "json", "id": ",".join(ids)},
+            timeout=10, headers={"User-Agent": "Mozilla/5.0"},
+        )
+        esummary.raise_for_status()
+        result = esummary.json().get("result", {}) or {}
+    except Exception as e:
+        logger.warning("🔬 search_pubmed failed: %s", e)
+        return f"search_pubmed error: {e}", []
+
+    articles, sources = [], []
+    for pmid in ids:
+        rec = result.get(pmid) or {}
+        if not rec:
+            continue
+        title = rec.get("title") or f"PubMed {pmid}"
+        journal = rec.get("fulljournalname") or rec.get("source") or ""
+        pubdate = rec.get("pubdate") or ""
+        year = pubdate.split(" ")[0] if pubdate else ""
+        url = f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/"
+        articles.append({"title": title, "journal": journal, "year": year,
+                         "pmid": pmid, "url": url})
+        sources.append({"title": title, "url": url, "domain": "pubmed.ncbi.nlm.nih.gov"})
+    if not articles:
+        return "No PubMed article details found.", []
+    return json.dumps(articles, ensure_ascii=False), sources
+
+
+def _dr_tool_medication_lookup(names):
+    """
+    Lightweight drug-info lookup (classification) via darooyab.ir — a fast, crash-safe
+    variant of the FINDERS drug tools (which target pharmacy availability and are much
+    heavier). Returns (text_for_model, source_dicts).
+    """
+    from urllib.parse import urljoin
+    if isinstance(names, str):
+        names = [names]
+    if not names or not isinstance(names, list):
+        return "No medication names provided.", []
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+    out, sources = [], []
+    for name in names[:5]:
+        try:
+            resp = requests.get(f"https://www.darooyab.ir/Search?SearchText={name}",
+                                headers=headers, timeout=12)
+            resp.raise_for_status()
+            soup = BeautifulSoup(resp.text, "html.parser")
+            row = soup.select_one("#tbody_DrugList tr")
+            link = row.select_one("a.ahref_Generic") if row else None
+            if not link or not link.get("href"):
+                out.append({"medication": name, "info": "not found"})
+                continue
+            drug_url = urljoin("https://www.darooyab.ir", link["href"])
+            page = requests.get(drug_url, headers=headers, timeout=12)
+            page.raise_for_status()
+            dsoup = BeautifulSoup(page.text, "html.parser")
+            info = dsoup.select_one("#divExtraInfo")
+            classification = ""
+            if info:
+                classification = " ".join(info.get_text(separator=" ").split())[:600]
+            out.append({"medication": name, "url": drug_url,
+                        "classification": classification or "no classification found"})
+            sources.append({"title": f"{name} (darooyab.ir)", "url": drug_url,
+                            "domain": "darooyab.ir"})
+        except Exception as e:
+            logger.warning("🔬 medication_lookup failed for %r: %s", name, e)
+            out.append({"medication": name, "error": str(e)})
+    return json.dumps(out, ensure_ascii=False), sources
+
+
+def _dr_register_sources(new_sources, registry, ordered):
+    """Dedupe sources by url (or title for KB) and assign stable 1-based ids."""
+    for s in new_sources or []:
+        key = s.get("url") or ("kb::" + (s.get("title") or ""))
+        if key in registry:
+            continue
+        sid = len(ordered) + 1
+        entry = {"id": sid, "title": s.get("title") or "source",
+                 "url": s.get("url"), "domain": s.get("domain")}
+        registry[key] = entry
+        ordered.append(entry)
+
+
+def doctor_research_chat(message, history, context_text=""):
+    """
+    Research assistant for a doctor/manager reviewing an employee's ROP/KC case.
+
+    Runs a bounded (≈4 round) GAPGPT tool-calling loop with tools for the local
+    knowledge base, web search, URL reading, PubMed and medication lookup.
+
+    Args:
+        message: the doctor's latest message (str).
+        history: prior turns as a list of {role, content} dicts (may be empty/None).
+        context_text: a text summary of the case under review (str).
+
+    Returns:
+        (answer_markdown, sources_list) where sources_list items are
+        {id, title, url, domain}. Never raises.
+    """
+    logger.info("🔬 doctor_research_chat() | message_len=%d | history_turns=%d | context_len=%d",
+                len(message or ""), len(history or []), len(context_text or ""))
+
+    kb_retrieve, web_search, url_scrape, domain_of = _dr_get_web_helpers()
+
+    def run_tool(name, args):
+        try:
+            if name == "search_knowledge_base":
+                return _dr_tool_search_knowledge_base(args.get("query", ""), kb_retrieve)
+            if name == "search_web":
+                return _dr_tool_search_web(args.get("query", ""), web_search, domain_of)
+            if name == "fetch_url":
+                return _dr_tool_fetch_url(args.get("url", ""), url_scrape, domain_of)
+            if name == "search_pubmed":
+                return _dr_tool_search_pubmed(args.get("query", ""))
+            if name == "medication_lookup":
+                return _dr_tool_medication_lookup(args.get("names", []))
+            return f"Unknown tool: {name}", []
+        except Exception as e:  # last-resort guard — tools must never crash the loop
+            logger.warning("🔬 tool %r raised: %s", name, e)
+            return f"{name} error: {e}", []
+
+    try:
+        client = get_openai_client()
+    except Exception as e:
+        logger.exception("🔬 doctor_research_chat | could not init LLM client: %s", e)
+        return ("I couldn't reach the language model just now. Please try again in a moment.", [])
+
+    case_block = (f"CASE CONTEXT (the case under review):\n{context_text}\n\n"
+                  if context_text else "CASE CONTEXT: (none provided)\n\n")
+    messages = (
+        [{"role": "system", "content": DOCTOR_RESEARCH_SYSTEM_PROMPT}]
+        + list(history or [])
+        + [{"role": "user", "content": case_block + f"DOCTOR'S QUESTION:\n{message}"}]
+    )
+
+    registry, ordered_sources = {}, []
+    MAX_ROUNDS = 4
+    answer = ""
+
+    for round_no in range(MAX_ROUNDS):
+        try:
+            response = client.chat.completions.create(
+                model=gapgpt_model,
+                messages=messages,
+                tools=DOCTOR_RESEARCH_TOOLS,
+            )
+        except Exception as e:
+            logger.exception("🔬 doctor_research_chat | LLM call failed (round %d): %s",
+                             round_no, e)
+            return ("I couldn't reach the language model just now. Please try again in a moment.",
+                    ordered_sources)
+
+        choice = response.choices[0]
+        msg = choice.message
+        logger.info("🔬 round %d | finish_reason=%s | tool_calls=%s",
+                    round_no, choice.finish_reason,
+                    len(msg.tool_calls) if msg.tool_calls else 0)
+
+        if not msg.tool_calls:
+            answer = msg.content or ""
+            break
+
+        # Append the assistant's tool-request message, then each tool result.
+        messages.append(msg)
+        for tc in msg.tool_calls:
+            fname = tc.function.name
+            try:
+                fargs = json.loads(tc.function.arguments or "{}")
+            except Exception:
+                fargs = {}
+            logger.info("🔬   ↳ tool call: %s(%s)", fname, fargs)
+            tool_text, tool_sources = run_tool(fname, fargs)
+            _dr_register_sources(tool_sources, registry, ordered_sources)
+            messages.append({"role": "tool", "tool_call_id": tc.id, "content": tool_text})
+    else:
+        # Loop exhausted without a final text answer — force one last completion.
+        try:
+            final = client.chat.completions.create(model=gapgpt_model, messages=messages)
+            answer = final.choices[0].message.content or ""
+        except Exception as e:
+            logger.exception("🔬 doctor_research_chat | final completion failed: %s", e)
+            answer = ("I gathered research material but couldn't compose a final answer. "
+                      "Please try again.")
+
+    logger.info("🔬 doctor_research_chat done | answer_len=%d | sources=%d",
+                len(answer or ""), len(ordered_sources))
+    return answer, ordered_sources

@@ -1,3 +1,18 @@
+# --- Doctors Marketplace: LLM + RAG pipeline (GAPGPT gpt-5-nano) ---
+openai==1.90.0
+langchain==0.3.25
+langchain-community==0.3.24
+langchain-core==0.3.66
+langchain-openai==0.3.24
+faiss-cpu==1.8.0
+tiktoken==0.9.0
+PyMuPDF==1.26.0
+PyPDF2==3.0.1
+docx2txt==0.9
+chardet==5.2.0
+django-environ==0.12.0
+edge-tts==7.2.8   # neural Persian/English TTS for live voice chat (espeak-ng fallback)
+# -------------------------------------------------------------------
 amqp==5.3.1
 asgiref==3.8.1
 billiard==4.2.1

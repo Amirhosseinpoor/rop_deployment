@@ -64,6 +64,10 @@ class Doctor(models.Model):
     # NEW: long system prompt (used to seed chat)
     system_prompt = models.TextField(blank=True, default='')
 
+    # Enabled agents/tools for this assistant (list of agent keys). The chat
+    # runtime exposes ONLY these to the model. Empty = legacy KB+web behaviour.
+    agents = models.JSONField(default=list, blank=True)
+
     avatar = models.ImageField(upload_to='doctor_avatars/', blank=True, null=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -87,6 +91,7 @@ class ChatSession(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='dm_sessions')
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='sessions')
     title = models.CharField(max_length=160, blank=True)
+    pinned = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -102,12 +107,46 @@ class ChatMessage(models.Model):
     id = models.BigAutoField(primary_key=True)
     session = models.ForeignKey(ChatSession, on_delete=models.CASCADE, related_name='messages')
     role = models.CharField(max_length=10, choices=Role.choices)
-    content = models.TextField()
+    content = models.TextField(blank=True)
     tokens = models.IntegerField(default=0)
+    # Numbered RAG/web sources this assistant message cited (for inline [n]
+    # citations + the Sources card grid). Shape: [{id,type,title,url,domain}].
+    sources = models.JSONField(default=list, blank=True)
+    # Quote-reply: the earlier message this one is replying to (if any), and the
+    # exact snippet quoted (may be a single selected sentence, ChatGPT-style).
+    reply_to = models.ForeignKey('self', null=True, blank=True,
+                                 on_delete=models.SET_NULL, related_name='+')
+    reply_quote = models.TextField(blank=True)
+    # Thumbs feedback on an assistant answer: 1 = up, -1 = down, 0 = none.
+    feedback = models.SmallIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['created_at']
+
+
+def chat_attachment_upload_to(instance, filename):
+    base = slugify_filename(os.path.splitext(filename)[0])[:60]
+    ext = os.path.splitext(filename)[1].lower()
+    session_id = instance.message.session_id
+    return os.path.join("chat_uploads", str(session_id), f"{base}{ext}".strip("-"))
+
+
+class ChatAttachment(models.Model):
+    """An image or document a user attached to a chat message."""
+    class Kind(models.TextChoices):
+        IMAGE = 'image', 'Image'
+        DOCUMENT = 'document', 'Document'
+
+    id = models.BigAutoField(primary_key=True)
+    message = models.ForeignKey(ChatMessage, on_delete=models.CASCADE, related_name='attachments')
+    kind = models.CharField(max_length=10, choices=Kind.choices)
+    file = models.FileField(upload_to=chat_attachment_upload_to)
+    original_name = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.get_kind_display()} · {self.original_name or self.file.name}"
 
 # NEW: per-doctor RAG file
 class DoctorKnowledge(models.Model):
@@ -122,3 +161,39 @@ class DoctorKnowledge(models.Model):
         super().save(*args, **kwargs)
     def __str__(self):
         return f"{self.title} · {self.doctor}"
+
+
+class ScheduledMessage(models.Model):
+    """A reminder / follow-up to deliver over WhatsApp (WAHA) at a future time.
+    Delivered by the `deliver_due_messages` management command (cron-friendly)."""
+    class Kind(models.TextChoices):
+        REMINDER = 'reminder', 'Reminder'
+        FOLLOWUP = 'followup', 'Follow-up'
+
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'Pending'
+        SENT = 'sent', 'Sent'
+        FAILED = 'failed', 'Failed'
+        CANCELED = 'canceled', 'Canceled'
+
+    id = models.BigAutoField(primary_key=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                             related_name='dm_scheduled', null=True, blank=True)
+    doctor = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True, blank=True)
+    session = models.ForeignKey(ChatSession, on_delete=models.SET_NULL, null=True, blank=True)
+    phone = models.CharField(max_length=64)
+    text = models.TextField()
+    kind = models.CharField(max_length=10, choices=Kind.choices, default=Kind.REMINDER)
+    send_at = models.DateTimeField()
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
+    attempts = models.IntegerField(default=0)
+    detail = models.CharField(max_length=250, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['send_at']
+        indexes = [models.Index(fields=['status', 'send_at'])]
+
+    def __str__(self):
+        return f"{self.get_kind_display()} → {self.phone} @ {self.send_at:%Y-%m-%d %H:%M} [{self.status}]"

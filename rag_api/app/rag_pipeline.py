@@ -37,9 +37,11 @@ from sentence_transformers import CrossEncoder
 # --- Global Models and Settings ---
 
 OLLAMA_API_URL = os.getenv("OLLAMA_API_URL", "http://localhost:11434")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", 'tpsg-TT4pAiTkRvBiG1h16VSeBoARYVfyxrO')
-OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.metisai.ir/openai/v1")
-LLM_MODEL = os.getenv("LLM_MODEL", "gpt-5-nano")
+# Generation LLM: prefer the project's GAPGPT credentials from the root .env,
+# then the generic OPENAI_* names, then a safe default.
+OPENAI_API_KEY = os.getenv("GAPGPT_API_KEY") or os.getenv("OPENAI_API_KEY", "")
+OPENAI_BASE_URL = os.getenv("GAPGPT_BASE_URL") or os.getenv("OPENAI_BASE_URL", "https://api.gapgpt.app/v1")
+LLM_MODEL = os.getenv("GAPGPT_MODEL") or os.getenv("OPENAI_MODEL") or os.getenv("LLM_MODEL", "gpt-4o-mini")
 EMBEDDINGS_MODEL = os.getenv("EMBEDDINGS_MODEL", "nomic-embed-text:latest")
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 

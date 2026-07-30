@@ -28,6 +28,11 @@ class PredictionLog(models.Model):
     final_decision = models.CharField(max_length=100, blank=True, null=True)
     classification_status = models.IntegerField(default=1)
 
+    # Doctor/manager case notes about the uploaded images (case-level; stored on the
+    # newest log of an upload batch). Employees can view these but not edit them.
+    doctor_assessment = models.TextField(blank=True, null=True)
+    doctor_recommendation = models.TextField(blank=True, null=True)
+
     segmented_image = models.ImageField(upload_to='segmented/', null=True, blank=True)
     segmented_image_url = models.URLField(max_length=500, blank=True, null=True)
 

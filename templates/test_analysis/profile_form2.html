@@ -1,1306 +1,823 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="en" dir="ltr" class="h-full">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ایجاد پرونده سلامت | MediverseAI</title>
-    <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png">
-
-    <style>
-        /* ===== فونت وزیر (آفلاین) ===== */
-        @font-face {
-            font-family: Vazirmatn;
-            src: url("{% static 'fonts/Vazirmatn-Regular.woff2' %}") format("woff2");
-            font-weight: normal;
-        }
-
-        @font-face {
-            font-family: Vazirmatn;
-            src: url("{% static 'fonts/Vazirmatn-Bold.woff2' %}") format("woff2");
-            font-weight: bold;
-        }
-
-        /* ===== متغیرهای ریشه ===== */
-        :root {
-            --medical-blue: #0A6EFF;
-            --medical-teal: #00A896;
-            --gray-100: #F8FAFD;
-            --gray-200: #E9EDF5;
-            --gray-600: #5B6B7C;
-            --gray-800: #1E293B;
-            --white-soft: #FFFFFF;
-            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.04);
-            --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.08);
-            --shadow-glow: 0 0 24px rgba(10, 110, 255, 0.18);
-            --radius-xl: 24px;
-            --radius-lg: 16px;
-            --radius-md: 12px;
-            --transition: 0.25s ease;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: Vazirmatn, Tahoma, sans-serif;
-            background: linear-gradient(150deg, #E3F0FD 0%, #F2F8FF 50%, #FFFFFF 100%);
-            background-attachment: fixed;
-            min-height: 100vh;
-            color: var(--gray-800);
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        .medical-bg {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5L52.5 17.5V42.5L30 55L7.5 42.5V17.5L30 5Z' fill='none' stroke='%230A6EFF' stroke-opacity='0.07' stroke-width='1'/%3E%3C/svg%3E");
-            background-size: 80px 80px;
-            opacity: 0.35;
-            animation: bgShift 30s linear infinite;
-        }
-
-        @keyframes bgShift {
-            0% {
-                background-position: 0 0;
-            }
-            100% {
-                background-position: 80px 80px;
-            }
-        }
-
-        /* ===== TOP BAR ===== */
-        .topbar {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: rgba(255, 255, 255, 0.75);
-            backdrop-filter: blur(18px) saturate(180%);
-            border-bottom: 1px solid rgba(10, 110, 255, 0.12);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
-            padding: 12px 32px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-        }
-
-        .topbar-brand {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .topbar-brand img {
-            height: 36px;
-        }
-
-        .topbar-brand h1 {
-            font-size: 22px;
-            font-weight: bold;
-            color: var(--gray-800);
-        }
-
-        .topbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .back-btn {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
-            background: rgba(255, 255, 255, 0.6);
-            border: 1px solid rgba(0, 0, 0, 0.06);
-            border-radius: 999px;
-            color: var(--gray-800);
-            font-size: 14px;
-            text-decoration: none;
-            transition: var(--transition);
-            backdrop-filter: blur(6px);
-        }
-
-        .back-btn:hover {
-            background: rgba(10, 110, 255, 0.08);
-            border-color: var(--medical-blue);
-            color: var(--medical-blue);
-        }
-
-        .theme-toggle {
-            width: 46px;
-            height: 46px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.75);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(0, 0, 0, 0.06);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            cursor: pointer;
-            box-shadow: var(--shadow-sm);
-            transition: var(--transition);
-            flex-shrink: 0;
-        }
-
-        .theme-toggle:hover {
-            background: white;
-            box-shadow: var(--shadow-md);
-        }
-
-        /* ===== MAIN CONTAINER ===== */
-        .main-wrapper {
-            position: relative;
-            z-index: 2;
-            max-width: 1100px;
-            margin: 20px auto 40px;
-            padding: 0 20px;
-        }
-
-        /* ===== PROGRESS BAR (HORIZONTAL STEPPER) ===== */
-        .progress-bar-wrap {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(18px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            border-radius: var(--radius-xl);
-            padding: 16px 24px;
-            box-shadow: var(--shadow-md);
-            margin-bottom: 24px;
-            overflow-x: auto;
-        }
-
-        .progress-steps {
-            display: flex;
-            gap: 0;
-            min-width: max-content;
-            justify-content: space-between;
-        }
-
-        .progress-step {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            padding: 8px 12px;
-            border-radius: 999px;
-            transition: var(--transition);
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--gray-600);
-            white-space: nowrap;
-            position: relative;
-        }
-
-        .progress-step:hover {
-            color: var(--medical-blue);
-        }
-
-        .progress-step.completed {
-            color: var(--medical-teal);
-        }
-
-        .progress-step.active {
-            color: var(--medical-blue);
-            font-weight: 700;
-            background: rgba(10, 110, 255, 0.06);
-        }
-
-        .step-connector {
-            display: none;
-        }
-
-        .step-circle {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: 2px solid var(--gray-200);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            font-weight: bold;
-            transition: var(--transition);
-            flex-shrink: 0;
-            background: white;
-        }
-
-        .progress-step.completed .step-circle {
-            background: var(--medical-teal);
-            border-color: var(--medical-teal);
-            color: white;
-        }
-
-        .progress-step.active .step-circle {
-            background: var(--medical-blue);
-            border-color: var(--medical-blue);
-            color: white;
-            box-shadow: 0 0 12px rgba(10, 110, 255, 0.3);
-            animation: pulseStep 2s infinite;
-        }
-
-        @keyframes pulseStep {
-            0%, 100% {
-                box-shadow: 0 0 8px rgba(10, 110, 255, 0.3);
-            }
-            50% {
-                box-shadow: 0 0 20px rgba(10, 110, 255, 0.5);
-            }
-        }
-
-        .step-connector {
-            flex: 1;
-            height: 2px;
-            background: var(--gray-200);
-            min-width: 20px;
-            margin: 0 4px;
-            border-radius: 1px;
-        }
-
-        .step-connector.done {
-            background: var(--medical-teal);
-        }
-
-        /* ===== CARD ===== */
-        .card {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(18px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            border-radius: var(--radius-xl);
-            padding: 28px;
-            box-shadow: var(--shadow-md), var(--shadow-glow);
-            margin-bottom: 16px;
-            animation: cardAppear 0.5s ease-out;
-        }
-
-        @keyframes cardAppear {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .card-header {
-            font-size: 20px;
-            font-weight: bold;
-            color: var(--gray-800);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding-bottom: 14px;
-            border-bottom: 1px solid rgba(10, 110, 255, 0.15);
-        }
-
-        .card-header svg {
-            width: 28px;
-            height: 28px;
-            stroke: var(--medical-blue);
-            fill: none;
-            stroke-width: 2;
-        }
-
-        .card-subtitle {
-            font-size: 14px;
-            color: var(--gray-600);
-            margin-bottom: 20px;
-        }
-
-        /* ===== FORM ELEMENTS ===== */
-        .form-grid {
-            display: grid;
-            gap: 18px;
-        }
-
-        .form-grid-2 {
-            grid-template-columns: 1fr;
-        }
-
-        .form-grid-3 {
-            grid-template-columns: 1fr;
-        }
-
-        .form-grid-4 {
-            grid-template-columns: 1fr 1fr;
-        }
-
-        @media (min-width: 768px) {
-            .form-grid-2 {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .form-grid-3 {
-                grid-template-columns: repeat(3, 1fr);
-            }
-
-            .form-grid-4 {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-
-        .form-col-full {
-            grid-column: 1 / -1;
-        }
-
-        .field-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .field-label {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--gray-800);
-            margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .field-label svg {
-            width: 16px;
-            height: 16px;
-            stroke: var(--medical-blue);
-        }
-
-        input[type="text"], input[type="email"], input[type="number"],
-        input[type="date"], input[type="file"], select, textarea {
-            width: 100%;
-            padding: 12px 14px;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--gray-200);
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(6px);
-            font-size: 14px;
-            color: var(--gray-800);
-            transition: var(--transition);
-            font-family: inherit;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--medical-blue);
-            box-shadow: 0 0 0 3px rgba(10, 110, 255, 0.15);
-            background: white;
-        }
-
-        textarea {
-            min-height: 90px;
-            resize: vertical;
-        }
-
-        /* Choice cards (checkboxes/radios styled as cards) */
-        .choice-cards-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 8px;
-        }
-
-        .choice-card {
-            position: relative;
-            padding: 12px;
-            border: 2px solid var(--gray-200);
-            border-radius: var(--radius-md);
-            text-align: center;
-            cursor: pointer;
-            transition: var(--transition);
-            background: rgba(255, 255, 255, 0.5);
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .choice-card:hover {
-            border-color: var(--medical-blue);
-            background: rgba(10, 110, 255, 0.03);
-        }
-
-        .choice-card input {
-            position: absolute;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            cursor: pointer;
-        }
-
-        .choice-card:has(input:checked) {
-            border-color: var(--medical-blue);
-            background: rgba(10, 110, 255, 0.08);
-            color: var(--medical-blue);
-            font-weight: 600;
-            box-shadow: 0 0 0 3px rgba(10, 110, 255, 0.15);
-        }
-
-        /* Conditional cards (medical history) */
-        .conditional-card {
-            display: block;
-            padding: 14px 18px;
-            border: 2px solid var(--gray-200);
-            border-radius: var(--radius-md);
-            text-align: right;
-            cursor: pointer;
-            transition: var(--transition);
-            font-weight: 500;
-            background: rgba(255, 255, 255, 0.5);
-            margin-bottom: 0;
-        }
-
-        .conditional-card:hover {
-            border-color: var(--medical-blue);
-            background: rgba(10, 110, 255, 0.03);
-        }
-
-        .conditional-card input {
-            position: absolute;
-            opacity: 0;
-        }
-
-        .conditional-card:has(input:checked) {
-            border-color: var(--medical-blue);
-            background: rgba(10, 110, 255, 0.06);
-            font-weight: 600;
-        }
-
-        .details-panel {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease, padding 0.4s ease, opacity 0.3s ease;
-            opacity: 0;
-            padding: 0 16px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 0 0 var(--radius-md) var(--radius-md);
-        }
-
-        .conditional-wrapper {
-            position: relative;
-            margin-bottom: 12px;
-        }
-
-        .conditional-wrapper:has(.conditional-card input:checked) .details-panel {
-            max-height: 300px;
-            padding: 16px;
-            opacity: 1;
-        }
-
-        /* Formset items */
-        .formset-item {
-            background: rgba(255, 255, 255, 0.5);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            border-radius: var(--radius-md);
-            padding: 20px;
-            margin-bottom: 12px;
-            position: relative;
-        }
-
-        .delete-btn {
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            color: #EF4444;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .delete-btn:hover {
-            color: #DC2626;
-        }
-
-        .delete-checkbox {
-            display: none;
-        }
-
-        /* ===== BUTTONS ===== */
-        .btn-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 24px;
-            margin-top: 24px;
-            border-top: 1px solid rgba(0, 0, 0, 0.06);
-        }
-
-        .btn {
-            padding: 12px 28px;
-            border-radius: 999px;
-            font-weight: 600;
-            font-size: 15px;
-            border: none;
-            cursor: pointer;
-            transition: var(--transition);
-            font-family: inherit;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-prev {
-            background: rgba(255, 255, 255, 0.7);
-            border: 1px solid rgba(0, 0, 0, 0.06);
-            color: var(--gray-800);
-            backdrop-filter: blur(6px);
-        }
-
-        .btn-prev:hover {
-            background: rgba(0, 0, 0, 0.03);
-        }
-
-        .btn-next {
-            background: linear-gradient(135deg, #0A6EFF, #3B82F6);
-            color: white;
-            box-shadow: 0 6px 18px rgba(10, 110, 255, 0.25);
-        }
-
-        .btn-next:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 24px rgba(10, 110, 255, 0.35);
-        }
-
-        .btn-submit {
-            background: linear-gradient(135deg, #00A896, #059669);
-            color: white;
-            box-shadow: 0 6px 18px rgba(0, 168, 150, 0.25);
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 24px rgba(0, 168, 150, 0.35);
-        }
-
-        /* Error */
-        .error-box {
-            background: #FEE2E2;
-            border: 1px solid #FECACA;
-            color: #991B1B;
-            padding: 14px;
-            border-radius: var(--radius-md);
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-
-        .field-error {
-            color: #DC2626;
-            font-size: 12px;
-            margin-top: 4px;
-        }
-
-        /* Model selector */
-        .model-selector {
-            position: relative;
-            display: inline-block;
-        }
-
-        .model-selector-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: rgba(255, 255, 255, 0.6);
-            border: 1px solid rgba(0, 0, 0, 0.06);
-            border-radius: 999px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--gray-800);
-            backdrop-filter: blur(6px);
-            transition: var(--transition);
-        }
-
-        .model-selector-btn:hover {
-            background: white;
-        }
-
-        .model-selector-dropdown {
-            position: absolute;
-            top: calc(100% + 8px);
-            left: 0;
-            width: 280px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(14px);
-            border: 1px solid rgba(0, 0, 0, 0.08);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-md);
-            z-index: 50;
-            padding: 8px;
-            opacity: 0;
-            transform: translateY(10px);
-            pointer-events: none;
-            transition: all 0.25s;
-        }
-
-        .model-selector.open .model-selector-dropdown {
-            opacity: 1;
-            transform: translateY(0);
-            pointer-events: auto;
-        }
-
-        .model-option {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px;
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .model-option:hover {
-            background: rgba(10, 110, 255, 0.04);
-        }
-
-        .model-option input {
-            display: none;
-        }
-
-        .model-option:has(input:checked) {
-            background: rgba(10, 110, 255, 0.08);
-            font-weight: 600;
-        }
-
-        .model-option .check {
-            margin-right: auto;
-            color: var(--medical-blue);
-            opacity: 0;
-        }
-
-        .model-option:has(input:checked) .check {
-            opacity: 1;
-        }
-
-        /* Dark mode */
-        .dark body {
-            background: linear-gradient(150deg, #0B1121 0%, #131A2E 50%, #1A2540 100%);
-        }
-
-        .dark .topbar, .dark .card, .dark .progress-bar-wrap,
-        .dark input, .dark select, .dark textarea, .dark .choice-card,
-        .dark .conditional-card, .dark .formset-item,
-        .dark .model-selector-dropdown {
-            background: rgba(24, 30, 50, 0.75);
-            backdrop-filter: blur(18px) saturate(180%);
-            border-color: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), inset 0 0 30px rgba(255, 255, 255, 0.03);
-            color: #EDF2F9;
-        }
-
-        .dark .card-header, .dark .field-label, .dark .progress-step {
-            color: #EDF2F9;
-        }
-
-        .dark .card-subtitle, .dark .progress-step:not(.active):not(.completed) {
-            color: #B9C5DA;
-        }
-
-        .dark .btn-prev {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.1);
-            color: #E2E8F0;
-        }
-
-        .dark .theme-toggle {
-            background: rgba(30, 40, 65, 0.8);
-            color: #E2E8F0;
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .dark .back-btn {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.1);
-            color: #E2E8F0;
-        }
-
-        .dark .step-circle {
-            background: #1E293B;
-            border-color: #334155;
-        }
-
-        .dark .progress-step.completed .step-circle {
-            background: var(--medical-teal);
-            border-color: var(--medical-teal);
-        }
-
-        .dark .progress-step.active .step-circle {
-            background: var(--medical-blue);
-            border-color: var(--medical-blue);
-        }
-
-        .dark .step-connector {
-            background: #334155;
-        }
-
-        .dark .step-connector.done {
-            background: var(--medical-teal);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Health Profile | MediverseAI</title>
+  <link rel="icon" href="{% static 'icons/mediversai_logo_final-032.png' %}" type="image/png">
+  <style>
+    @font-face { font-family: Vazirmatn; src: url("{% static 'fonts/Vazirmatn-Regular.woff2' %}") format("woff2"); font-weight: 400; font-display: swap; }
+    @font-face { font-family: Vazirmatn; src: url("{% static 'fonts/Vazirmatn-Bold.woff2' %}") format("woff2"); font-weight: 700; font-display: swap; }
+
+    :root {
+      --bg: #F7F7F5; --surface: #FFFFFF; --surface-2: #F3F2EF;
+      --surface-hover: rgba(23, 23, 28, 0.045);
+      --ink: #1C1C22; --ink-soft: #3B3B44; --muted: #6E6E79;
+      --border: rgba(23, 23, 28, 0.09); --border-strong: rgba(23, 23, 28, 0.15);
+      --accent: #6D5AE6; --accent-2: #8B6DF0; --accent-ink: #4B3CB5;
+      --accent-soft: rgba(109, 90, 230, 0.10); --accent-ring: rgba(109, 90, 230, 0.30);
+      --user-grad: linear-gradient(135deg, #6D5AE6 0%, #8B6DF0 100%);
+      --spark-grad: linear-gradient(140deg, #7C6BF0 0%, #9B7DF5 55%, #63C7F0 100%);
+      --danger: #E5484D; --online: #22C55E;
+      --shadow-sm: 0 1px 2px rgba(20, 20, 30, .06), 0 1px 3px rgba(20, 20, 30, .04);
+      --shadow-md: 0 10px 34px rgba(24, 24, 44, .10); --shadow-lg: 0 28px 70px rgba(24, 24, 44, .18);
+      --radius-xl: 26px; --radius-lg: 20px; --radius-md: 14px; --radius-sm: 10px;
+      --transition: .22s cubic-bezier(.4, 0, .2, 1);
+      --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Vazirmatn", sans-serif;
+    }
+    .dark {
+      --bg: #0E0E11; --surface: #1A1A1E; --surface-2: #212127;
+      --surface-hover: rgba(255, 255, 255, 0.06);
+      --ink: #ECECEF; --ink-soft: #C9C9D2; --muted: #8C8C99;
+      --border: rgba(255, 255, 255, 0.09); --border-strong: rgba(255, 255, 255, 0.16);
+      --accent: #8B6DF0; --accent-2: #A78BFA; --accent-ink: #C4B2FF;
+      --accent-soft: rgba(139, 109, 240, 0.16); --accent-ring: rgba(139, 109, 240, 0.40);
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4); --shadow-md: 0 12px 40px rgba(0, 0, 0, .5); --shadow-lg: 0 28px 70px rgba(0, 0, 0, .62);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: var(--sans); color: var(--ink); min-height: 100vh;
+      background:
+        radial-gradient(900px 520px at 100% -8%, var(--accent-soft), transparent 60%),
+        radial-gradient(720px 460px at -6% 2%, rgba(99, 199, 240, .10), transparent 58%),
+        var(--bg);
+      background-attachment: fixed; -webkit-font-smoothing: antialiased;
+      transition: background .35s ease, color .35s ease;
+    }
+    a { text-decoration: none; color: inherit; }
+    ::selection { background: var(--accent-soft); }
+
+    /* ===== Top bar ===== */
+    .topbar { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(14px);
+      background: color-mix(in srgb, var(--bg) 80%, transparent); border-bottom: 1px solid var(--border); }
+    .topbar-in { max-width: 1140px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+    .brand-mark { width: 38px; height: 38px; border-radius: 11px; background: var(--surface); border: 1px solid var(--border);
+      display: grid; place-items: center; flex-shrink: 0; box-shadow: var(--shadow-sm); }
+    .brand-mark img { width: 26px; height: 26px; object-fit: contain; }
+    .brand-name { font-weight: 700; font-size: 17px; letter-spacing: -.3px; white-space: nowrap; }
+    .brand-name span { color: var(--accent); }
+    .brand-sep { width: 1px; height: 22px; background: var(--border); margin: 0 2px; }
+    .brand-page { font-size: 14px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+    .top-link { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 15px; border-radius: var(--radius-md);
+      background: var(--surface); border: 1px solid var(--border); color: var(--ink); font-size: 14px; font-weight: 600;
+      box-shadow: var(--shadow-sm); transition: var(--transition); cursor: pointer; }
+    .top-link svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .top-link:hover { border-color: var(--accent); color: var(--accent); }
+    .theme-toggle { width: 40px; height: 40px; border-radius: var(--radius-md); background: transparent; border: 1px solid var(--border);
+      display: grid; place-items: center; font-size: 18px; cursor: pointer; transition: var(--transition); flex-shrink: 0; }
+    .theme-toggle:hover { background: var(--surface-hover); }
+
+    /* ===== Model selector ===== */
+    .model-selector { position: relative; }
+    .model-selector-btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: var(--radius-md);
+      background: var(--surface); border: 1px solid var(--border); color: var(--ink); font-family: inherit; font-size: 13.5px; font-weight: 600;
+      cursor: pointer; box-shadow: var(--shadow-sm); transition: var(--transition); }
+    .model-selector-btn:hover { border-color: var(--accent); }
+    .model-selector-btn svg { width: 15px; height: 15px; stroke: var(--muted); fill: none; stroke-width: 2; transition: transform var(--transition); }
+    .model-selector.open .model-selector-btn svg.caret { transform: rotate(180deg); }
+    .model-selector-btn .spark { width: 9px; height: 9px; border-radius: 3px; background: var(--spark-grad); flex-shrink: 0; }
+    .model-selector-dropdown { position: absolute; top: calc(100% + 8px); right: 0; width: 290px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: 8px; z-index: 60;
+      opacity: 0; visibility: hidden; transform: translateY(-6px); transition: var(--transition); }
+    .model-selector.open .model-selector-dropdown { opacity: 1; visibility: visible; transform: none; }
+    .model-option { display: flex; align-items: center; gap: 11px; padding: 10px 11px; border-radius: var(--radius-md); cursor: pointer; transition: var(--transition); }
+    .model-option:hover { background: var(--surface-hover); }
+    .model-option input { display: none; }
+    .model-option:has(input:checked) { background: var(--accent-soft); }
+    .model-option .mo-ico { width: 20px; height: 20px; stroke: var(--muted); fill: none; stroke-width: 1.5; flex-shrink: 0; }
+    .model-option .mo-text strong { font-size: 13.5px; font-weight: 700; }
+    .model-option .mo-text small { display: block; font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+    .model-option .check { margin-left: auto; width: 16px; height: 16px; fill: var(--accent); opacity: 0; flex-shrink: 0; }
+    .model-option:has(input:checked) .check { opacity: 1; }
+
+    /* ===== Layout ===== */
+    .page-head { max-width: 1000px; margin: 44px auto 0; padding: 0 24px; text-align: center; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; color: var(--accent);
+      background: var(--accent-soft); border-radius: 999px; padding: 6px 14px; margin-bottom: 16px; animation: rise .6s ease both; }
+    .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--online); box-shadow: 0 0 0 3px rgba(34,197,94,.18); }
+    .page-head h1 { font-size: clamp(1.9rem, 4.5vw, 2.5rem); font-weight: 750; letter-spacing: -.03em; line-height: 1.1;
+      background: linear-gradient(120deg, var(--ink) 36%, var(--accent) 100%);
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: rise .6s .06s ease both; }
+    .page-head p { color: var(--muted); font-size: 1.02rem; line-height: 1.6; max-width: 560px; margin: 13px auto 0; animation: rise .6s .12s ease both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+    .wrap { max-width: 1000px; margin: 30px auto 60px; padding: 0 24px; }
+
+    /* ===== Progress stepper ===== */
+    .stepper { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 14px 16px; box-shadow: var(--shadow-sm); margin-bottom: 22px;
+      animation: rise .6s .16s ease both; }
+    .steps { display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 5px; }
+    .step { display: flex; align-items: center; gap: 6px; padding: 6px 9px; border-radius: 999px; cursor: pointer;
+      font-size: 12px; font-weight: 600; color: var(--muted); white-space: nowrap; transition: var(--transition); border: 1px solid transparent; min-width: 0; }
+    .step:hover { color: var(--accent); background: var(--surface-hover); }
+    .step.active { color: var(--accent); background: var(--accent-soft); border-color: var(--accent-ring); }
+    .step.completed { color: var(--accent-ink); }
+    .step-num { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0;
+      font-size: 11px; font-weight: 700; background: var(--surface-2); border: 1.5px solid var(--border-strong); color: var(--muted); transition: var(--transition); }
+    .step.active .step-num { background: var(--user-grad); border-color: transparent; color: #fff; box-shadow: 0 4px 12px rgba(109,90,230,.35); }
+    .step.completed .step-num { background: var(--accent); border-color: transparent; color: #fff; }
+    .step-line { flex: 1 1 6px; min-width: 6px; height: 2px; background: var(--border); border-radius: 1px; transition: background var(--transition); }
+    @media (max-width: 760px) { .steps { flex-wrap: wrap; justify-content: center; } .step-line { display: none; } }
+    .step-line.done { background: var(--accent); }
+
+    /* ===== Upload dropzones ===== */
+    .dropzone { position: relative; display: block; border: 2px dashed var(--border-strong); border-radius: var(--radius-lg);
+      background: var(--surface-2); padding: 30px 22px; text-align: center; cursor: pointer; transition: var(--transition); }
+    .dropzone:hover, .dropzone.drag { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 4px var(--accent-ring); }
+    .dropzone input[type=file] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+    .dz-ic { width: 54px; height: 54px; border-radius: 16px; margin: 0 auto 12px; display: grid; place-items: center;
+      background: var(--accent-soft); color: var(--accent); }
+    .dz-ic svg { width: 26px; height: 26px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .dz-title { font-size: 15px; font-weight: 700; }
+    .dz-title span { color: var(--accent); }
+    .dz-sub { font-size: 12.5px; color: var(--muted); margin-top: 5px; }
+    .dz-files { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+    .dz-files li { display: flex; align-items: center; gap: 9px; font-size: 13px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 8px 12px; text-align: left; }
+    .dz-files li svg { width: 16px; height: 16px; stroke: var(--accent); fill: none; stroke-width: 2; flex-shrink: 0; }
+    .dz-previews { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; margin-top: 14px; }
+    .dz-previews .thumb { position: relative; aspect-ratio: 1; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border); background: var(--surface-2); }
+    .dz-previews .thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .existing-eyes { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; margin-top: 12px; }
+    .existing-eyes a { border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border); aspect-ratio: 1; display: block; }
+    .existing-eyes img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* ===== Error summary ===== */
+    .error-box { display: flex; align-items: center; gap: 10px; background: rgba(229, 72, 77, .10);
+      border: 1px solid rgba(229, 72, 77, .32); color: var(--danger); padding: 13px 15px; border-radius: var(--radius-md);
+      margin-bottom: 20px; font-size: 13.5px; font-weight: 600; }
+    .error-box svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
+    .dark .error-box { color: #FF9A9E; }
+
+    /* ===== Cards ===== */
+    .step-panel { animation: panelIn .45s cubic-bezier(.22,1,.36,1) both; }
+    @keyframes panelIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 26px; box-shadow: var(--shadow-sm); margin-bottom: 18px; }
+    .card-head { display: flex; align-items: center; gap: 13px; margin-bottom: 4px; }
+    .card-head .ico { width: 40px; height: 40px; border-radius: 12px; background: var(--accent-soft); border: 1px solid var(--accent-ring);
+      display: grid; place-items: center; flex-shrink: 0; }
+    .card-head .ico svg { width: 21px; height: 21px; stroke: var(--accent); fill: none; stroke-width: 2; }
+    .card-head h2 { font-size: 18px; font-weight: 700; letter-spacing: -.2px; }
+    .card-head p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+    .subcard { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; margin-top: 18px; }
+    .subcard-title { display: flex; align-items: center; gap: 8px; font-size: 14.5px; font-weight: 700; margin-bottom: 14px; }
+    .subcard-title svg { width: 17px; height: 17px; stroke: var(--accent); fill: none; stroke-width: 2; }
+    .card-body { margin-top: 20px; }
+
+    /* ===== Fields ===== */
+    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    @media (min-width: 640px) { .grid.cols-2 { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 760px) { .grid.cols-3 { grid-template-columns: repeat(3, 1fr); } .grid.cols-4 { grid-template-columns: repeat(4, 1fr); } }
+    @media (min-width: 640px) and (max-width: 759px) { .grid.cols-3, .grid.cols-4 { grid-template-columns: repeat(2, 1fr); } }
+    .col-full { grid-column: 1 / -1; }
+
+    .field { display: flex; flex-direction: column; }
+    .field-label { font-size: 12.5px; font-weight: 600; color: var(--ink-soft); margin-bottom: 7px; }
+
+    /* Generic Django widget styling */
+    .form-body input:not([type=checkbox]):not([type=radio]),
+    .form-body select,
+    .form-body textarea {
+      width: 100%; border: 1px solid var(--border-strong); background: var(--surface); color: var(--ink);
+      border-radius: var(--radius-md); padding: 12px 14px; font-family: inherit; font-size: 14px;
+      outline: none; transition: border-color .15s, box-shadow .15s; unicode-bidi: plaintext; }
+    .form-body input::placeholder, .form-body textarea::placeholder { color: var(--muted); opacity: .7; }
+    .form-body input:not([type=checkbox]):not([type=radio]):focus,
+    .form-body select:focus,
+    .form-body textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-ring); }
+    .form-body textarea { min-height: 92px; resize: vertical; line-height: 1.55; }
+    .form-body input[type=checkbox], .form-body input[type=radio] { accent-color: var(--accent); width: 17px; height: 17px; cursor: pointer; flex-shrink: 0; }
+    .form-body input[type=file] { padding: 10px 14px; cursor: pointer; }
+    .form-body input[type=file]::file-selector-button { margin-right: 12px; padding: 7px 14px; border-radius: 999px; border: none;
+      background: var(--accent-soft); color: var(--accent); font-family: inherit; font-weight: 600; font-size: 13px; cursor: pointer; transition: var(--transition); }
+    .form-body input[type=file]::file-selector-button:hover { background: var(--accent); color: #fff; }
+
+    .field-error { color: var(--danger); font-size: 12px; margin-top: 5px; font-weight: 600; }
+    .field-error ul { list-style: none; }
+    .dark .field-error { color: #FF9A9E; }
+
+    /* Checkbox choice cards (hazards + standalone booleans) */
+    .choice-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+    .choice-card { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md); background: var(--surface); cursor: pointer; font-size: 13.5px; font-weight: 500; color: var(--ink-soft);
+      transition: var(--transition); }
+    .choice-card:hover { border-color: var(--accent); background: var(--surface-hover); }
+    .choice-card:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; }
+
+    /* Conditional (yes/no + reveal detail) cards */
+    .cond { border: 1px solid var(--border-strong); border-radius: var(--radius-md); background: var(--surface); margin-bottom: 12px; overflow: hidden; transition: var(--transition); }
+    .cond:has(> .cond-head input:checked) { border-color: var(--accent); }
+    .cond-head { display: flex; align-items: center; gap: 11px; padding: 14px 16px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink-soft); }
+    .cond:has(> .cond-head input:checked) .cond-head { color: var(--accent-ink); }
+    .cond-detail { max-height: 0; opacity: 0; overflow: hidden; padding: 0 16px; transition: max-height .4s ease, opacity .3s ease, padding .4s ease; border-top: 0 solid var(--border); }
+    .cond:has(> .cond-head input:checked) .cond-detail { max-height: 460px; opacity: 1; padding: 16px; border-top: 1px solid var(--border); }
+
+    /* Formset (previous jobs) */
+    .formset-item { position: relative; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; margin-bottom: 14px; }
+    .job-remove { position: absolute; top: 12px; right: 12px; display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12.5px; font-weight: 600; color: var(--danger); cursor: pointer; padding: 5px 10px; border-radius: 999px; border: 1px solid rgba(229,72,77,.3); transition: var(--transition); }
+    .job-remove:hover { background: rgba(229,72,77,.1); }
+    .job-remove svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .formset-item .delete-checkbox { position: absolute; opacity: 0; pointer-events: none; }
+    .add-job { display: inline-flex; align-items: center; gap: 8px; margin-top: 6px; padding: 10px 18px; border-radius: var(--radius-md);
+      background: var(--accent-soft); color: var(--accent); border: 1px dashed var(--accent-ring); font-family: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; transition: var(--transition); }
+    .add-job:hover { background: var(--accent); color: #fff; border-style: solid; }
+    .add-job svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+
+    /* ===== Nav buttons ===== */
+    .nav-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 6px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; border-radius: var(--radius-md);
+      padding: 0 22px; height: 48px; font-family: inherit; font-weight: 700; font-size: 14.5px; cursor: pointer;
+      border: 1px solid var(--border); background: var(--surface); color: var(--ink); box-shadow: var(--shadow-sm); transition: var(--transition); }
+    .btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary { background: var(--user-grad); color: #fff; border-color: transparent; box-shadow: 0 10px 26px rgba(109,90,230,.32); }
+    .btn-primary:hover { color: #fff; filter: brightness(1.05); transform: translateY(-1px); box-shadow: 0 16px 34px rgba(109,90,230,.48); }
+    .btn-submit { background: linear-gradient(135deg, #16A34A 0%, #22C55E 100%); color: #fff; border-color: transparent; box-shadow: 0 10px 26px rgba(34,197,94,.30); }
+    .btn-submit:hover { color: #fff; filter: brightness(1.05); transform: translateY(-1px); box-shadow: 0 16px 34px rgba(34,197,94,.46); }
+
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
+  </style>
 </head>
 <body>
-<div class="medical-bg"></div>
-
-<!-- ===== TOP BAR ===== -->
-<header class="topbar">
-    <div class="topbar-brand">
-        <img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediverseAI">
-        <h1>تکمیل پرونده سلامت</h1>
-    </div>
-    <div class="topbar-actions">
-        <!-- Model Selector -->
+  <!-- ===== Top bar ===== -->
+  <header class="topbar">
+    <div class="topbar-in">
+      <div class="brand">
+        <span class="brand-mark"><img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediverseAI"></span>
+        <span class="brand-name">Mediverse<span>AI</span></span>
+        <span class="brand-sep"></span>
+        <span class="brand-page">Health Profile</span>
+      </div>
+      <div class="top-actions">
+        <!-- Report model selector -->
         <div class="model-selector" id="modelSelector">
-            <button type="button" class="model-selector-btn" id="modelSelectorBtn">
-                <span id="selectedModelText">GPT-4o-mini (Cloud)</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="6 9 12 15 18 9"/>
-                </svg>
-            </button>
-            <div class="model-selector-dropdown">
-                <label class="model-option">
-                    <input type="radio" name="model_choice" value="cloud_gpt" data-text="GPT-4o-mini (Cloud)" checked>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">
-                        <path d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.5 4.5 0 002.25 15z"/>
-                    </svg>
-                    <div><strong>GPT-4o-mini</strong><br><small style="color:var(--gray-600);">سریع و هوشمند</small>
-                    </div>
-                    <svg class="check" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M9 16.2l-3.5-3.5L4 14.2l5 5 12-12-1.5-1.5z"/>
-                    </svg>
-                </label>
-                <label class="model-option">
-                    <input type="radio" name="model_choice" value="local_llama" data-text="Llama 3.2 (Local)">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">
-                        <path d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25A2.25 2.25 0 015.25 3h13.5A2.25 2.25 0 0121 5.25z"/>
-                    </svg>
-                    <div><strong>Llama 3.2 (Local)</strong><br><small style="color:var(--gray-600);">اجرای محلی</small>
-                    </div>
-                    <svg class="check" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M9 16.2l-3.5-3.5L4 14.2l5 5 12-12-1.5-1.5z"/>
-                    </svg>
-                </label>
-            </div>
+          <button type="button" class="model-selector-btn" id="modelSelectorBtn">
+            <span class="spark"></span>
+            <span id="selectedModelText">GPT-4o-mini (Cloud)</span>
+            <svg class="caret" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="model-selector-dropdown">
+            <label class="model-option">
+              <input type="radio" name="model_choice" value="cloud_gpt" data-text="GPT-4o-mini (Cloud)" checked>
+              <svg class="mo-ico" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.5 4.5 0 002.25 15z"/></svg>
+              <div class="mo-text"><strong>GPT-4o-mini</strong><small>Cloud &middot; fast and capable</small></div>
+              <svg class="check" viewBox="0 0 24 24"><path d="M9 16.2l-3.5-3.5L4 14.2l5 5 12-12-1.5-1.5z"/></svg>
+            </label>
+            <label class="model-option">
+              <input type="radio" name="model_choice" value="local_llama" data-text="Llama 3.2 (Local)">
+              <svg class="mo-ico" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M7.5 21h9M9 17v4M15 17v4"/></svg>
+              <div class="mo-text"><strong>Llama 3.2</strong><small>Local &middot; on-premise processing</small></div>
+              <svg class="check" viewBox="0 0 24 24"><path d="M9 16.2l-3.5-3.5L4 14.2l5 5 12-12-1.5-1.5z"/></svg>
+            </label>
+          </div>
         </div>
-
-        <a href="{% url 'dilemma' %}" class="back-btn">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M15 18l-6-6 6-6"/>
-            </svg>
-            بازگشت
+        <a href="{% url 'dilemma' %}" class="top-link">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+          Back
         </a>
-        <div class="theme-toggle" id="themeToggle">🌓</div>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">🌙</button>
+      </div>
     </div>
-</header>
+  </header>
 
-<!-- ===== MAIN CONTENT ===== -->
-<div class="main-wrapper">
-    <!-- Progress Bar -->
-    <div class="progress-bar-wrap">
-        <div class="progress-steps" id="progressSteps">
-            <div class="progress-step active" data-step="0">
-                <span class="step-circle">1</span> مشخصات فردی
-            </div>
-            <div class="step-connector"></div>
-            <div class="progress-step" data-step="1">
-                <span class="step-circle">2</span> سوابق شغلی
-            </div>
-            <div class="step-connector"></div>
-            <div class="progress-step" data-step="2">
-                <span class="step-circle">3</span> عوامل زیان‌آور
-            </div>
-            <div class="step-connector"></div>
-            <div class="progress-step" data-step="3">
-                <span class="step-circle">4</span> سابقه پزشکی
-            </div>
-            <div class="step-connector"></div>
-            <div class="progress-step" data-step="4">
-                <span class="step-circle">5</span> معاینات
-            </div>
-            <div class="step-connector"></div>
-            <div class="progress-step" data-step="5">
-                <span class="step-circle">6</span> آزمایش‌ها
-            </div>
-        </div>
+  <!-- ===== Hero ===== -->
+  <section class="page-head">
+    <span class="eyebrow"><span class="dot"></span> Occupational health record</span>
+    <h1>Complete your Health Profile</h1>
+    <p>Fill in the six sections below. Your answers help build an accurate occupational health report.</p>
+  </section>
+
+  <div class="wrap">
+    <!-- ===== Stepper ===== -->
+    <div class="stepper">
+      <div class="steps" id="steps">
+        <div class="step active" data-step="0"><span class="step-num">1</span> Personal details</div>
+        <div class="step-line"></div>
+        <div class="step" data-step="1"><span class="step-num">2</span> Work history</div>
+        <div class="step-line"></div>
+        <div class="step" data-step="2"><span class="step-num">3</span> Hazards</div>
+        <div class="step-line"></div>
+        <div class="step" data-step="3"><span class="step-num">4</span> Medical history</div>
+        <div class="step-line"></div>
+        <div class="step" data-step="4"><span class="step-num">5</span> Examination</div>
+        <div class="step-line"></div>
+        <div class="step" data-step="5"><span class="step-num">6</span> Medical tests</div>
+      </div>
     </div>
 
-    <!-- Error Display -->
+    <!-- ===== Error summary ===== -->
     {% if form.errors or job_formset.errors %}
-        <div class="error-box">
-            ⚠️ لطفاً موارد مشخص‌شده را بررسی و اصلاح نمایید. می‌توانید با کلیک روی مراحل، به بخش دارای خطا بروید.
-        </div>
+      <div class="error-box">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Please review and fix the highlighted fields. Use the steps above to jump to any section that has an error.
+      </div>
     {% endif %}
 
-    <!-- FORM -->
-    <form id="multiStepForm" method="post" enctype="multipart/form-data" action="{% url 'create_update_profile' %}">
-        {% csrf_token %}
-        <input type="hidden" name="selected_model" id="selectedModelInput" value="cloud_gpt">
+    <!-- ===== Form ===== -->
+    <form id="multiStepForm" class="form-body" method="post" enctype="multipart/form-data" action="{% url 'create_update_profile' %}">
+      {% csrf_token %}
+      <input type="hidden" name="selected_model" id="selectedModelInput" value="cloud_gpt">
 
-        <!-- ===== STEP 1: Personal Info ===== -->
-        <div class="form-step" data-step="0">
-            <div class="card">
-                <div class="card-header">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.25a8.25 8.25 0 1115 0v.75H4.5v-.75z"/>
-                    </svg>
-                    مشخصات فردی
-                </div>
-                <p class="card-subtitle">اطلاعات هویتی و اولیه خود را وارد کنید.</p>
-                <div class="form-grid form-grid-3">
-                    <div class="field-group"><label class="field-label">👤 نام پدر</label>{{ form.father_name }}
-                        {% if form.father_name.errors %}
-                            <div class="field-error">{{ form.father_name.errors }}</div>{% endif %}</div>
-                    <div class="field-group"><label class="field-label">🆔 کد ملی</label>{{ form.national_id }}
-                        {% if form.national_id.errors %}
-                            <div class="field-error">{{ form.national_id.errors }}</div>{% endif %}</div>
-                    <div class="field-group"><label class="field-label">📅 تاریخ تولد</label>{{ form.date_of_birth }}
-                        {% if form.date_of_birth.errors %}
-                            <div class="field-error">{{ form.date_of_birth.errors }}</div>{% endif %}</div>
-                    <div class="field-group"><label class="field-label">🔢 سن</label>{{ form.age }}
-                        {% if form.age.errors %}
-                            <div class="field-error">{{ form.age.errors }}</div>{% endif %}</div>
-                    <div class="field-group"><label class="field-label">⚧ جنسیت</label>{{ form.gender }}
-                        {% if form.gender.errors %}
-                            <div class="field-error">{{ form.gender.errors }}</div>{% endif %}</div>
-                    <div class="field-group"><label class="field-label">💍 وضعیت تاهل</label>{{ form.marital_status }}
-                        {% if form.marital_status.errors %}
-                            <div class="field-error">{{ form.marital_status.errors }}</div>{% endif %}</div>
-                    <div class="field-group"><label class="field-label">👶 تعداد فرزند</label>{{ form.children_count }}
-                        {% if form.children_count.errors %}
-                            <div class="field-error">{{ form.children_count.errors }}</div>{% endif %}</div>
-                    <div class="field-group"><label class="field-label">🏙 استان زندگی</label>{{ form.living_province }}
-                        {% if form.living_province.errors %}
-                            <div class="field-error">{{ form.living_province.errors }}</div>{% endif %}</div>
-                    <div class="field-group"><label class="field-label">🏘 محله</label>{{ form.neighborhood }}
-                        {% if form.neighborhood.errors %}
-                            <div class="field-error">{{ form.neighborhood.errors }}</div>{% endif %}</div>
-                    <div class="field-group"><label class="field-label">🛡 بیمه</label>{{ form.insurance }}
-                        {% if form.insurance.errors %}
-                            <div class="field-error">{{ form.insurance.errors }}</div>{% endif %}</div>
-                    <div class="field-group"><label class="field-label">🪖 وضعیت نظام
-                        وظیفه</label>{{ form.military_service_status }}{% if form.military_service_status.errors %}
-                        <div class="field-error">{{ form.military_service_status.errors }}</div>{% endif %}</div>
-                    <div class="field-group"><label class="field-label">🎖 رسته
-                        خدمت</label>{{ form.military_service_rank }}{% if form.military_service_rank.errors %}
-                        <div class="field-error">{{ form.military_service_rank.errors }}</div>{% endif %}</div>
-                    <div class="field-group form-col-full"><label class="field-label">📋 علت معافیت
-                        پزشکی</label>{{ form.medical_exemption_reason }}{% if form.medical_exemption_reason.errors %}
-                        <div class="field-error">{{ form.medical_exemption_reason.errors }}</div>{% endif %}</div>
-                    <div class="field-group form-col-full"><label class="field-label">🏢 آدرس محل
-                        کار</label>{{ form.work_address }}{% if form.work_address.errors %}
-                        <div class="field-error">{{ form.work_address.errors }}</div>{% endif %}</div>
-                    <div class="field-group"><label class="field-label">📞 تلفن محل کار</label>{{ form.work_phone }}
-                        {% if form.work_phone.errors %}
-                            <div class="field-error">{{ form.work_phone.errors }}</div>{% endif %}</div>
-
-                </div>
+      <!-- ===== STEP 1: Personal details ===== -->
+      <div class="step-panel" data-step="0">
+        <div class="card">
+          <div class="card-head">
+            <span class="ico"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+            <div><h2>Personal details</h2><p>Identity and basic information.</p></div>
+          </div>
+          <div class="card-body">
+            <div class="grid cols-3">
+              <div class="field"><label class="field-label">Father's name</label>{{ form.father_name }}{% if form.father_name.errors %}<div class="field-error">{{ form.father_name.errors }}</div>{% endif %}</div>
+              <div class="field"><label class="field-label">National ID</label>{{ form.national_id }}{% if form.national_id.errors %}<div class="field-error">{{ form.national_id.errors }}</div>{% endif %}</div>
+              <div class="field"><label class="field-label">Date of birth</label>{{ form.date_of_birth }}{% if form.date_of_birth.errors %}<div class="field-error">{{ form.date_of_birth.errors }}</div>{% endif %}</div>
+              <div class="field"><label class="field-label">Age</label>{{ form.age }}{% if form.age.errors %}<div class="field-error">{{ form.age.errors }}</div>{% endif %}</div>
+              <div class="field"><label class="field-label">Gender</label>{{ form.gender }}{% if form.gender.errors %}<div class="field-error">{{ form.gender.errors }}</div>{% endif %}</div>
+              <div class="field"><label class="field-label">Marital status</label>{{ form.marital_status }}{% if form.marital_status.errors %}<div class="field-error">{{ form.marital_status.errors }}</div>{% endif %}</div>
+              <div class="field"><label class="field-label">Number of children</label>{{ form.children_count }}{% if form.children_count.errors %}<div class="field-error">{{ form.children_count.errors }}</div>{% endif %}</div>
+              <div class="field"><label class="field-label">Province of residence</label>{{ form.living_province }}{% if form.living_province.errors %}<div class="field-error">{{ form.living_province.errors }}</div>{% endif %}</div>
+              <div class="field"><label class="field-label">Neighborhood</label>{{ form.neighborhood }}{% if form.neighborhood.errors %}<div class="field-error">{{ form.neighborhood.errors }}</div>{% endif %}</div>
+              <div class="field"><label class="field-label">Insurance</label>{{ form.insurance }}{% if form.insurance.errors %}<div class="field-error">{{ form.insurance.errors }}</div>{% endif %}</div>
+              <div class="field"><label class="field-label">Military service status</label>{{ form.military_service_status }}{% if form.military_service_status.errors %}<div class="field-error">{{ form.military_service_status.errors }}</div>{% endif %}</div>
+              <div class="field"><label class="field-label">Service rank</label>{{ form.military_service_rank }}{% if form.military_service_rank.errors %}<div class="field-error">{{ form.military_service_rank.errors }}</div>{% endif %}</div>
+              <div class="field col-full"><label class="field-label">Medical exemption reason</label>{{ form.medical_exemption_reason }}{% if form.medical_exemption_reason.errors %}<div class="field-error">{{ form.medical_exemption_reason.errors }}</div>{% endif %}</div>
+              <div class="field col-full"><label class="field-label">Work address</label>{{ form.work_address }}{% if form.work_address.errors %}<div class="field-error">{{ form.work_address.errors }}</div>{% endif %}</div>
+              <div class="field"><label class="field-label">Work phone</label>{{ form.work_phone }}{% if form.work_phone.errors %}<div class="field-error">{{ form.work_phone.errors }}</div>{% endif %}</div>
             </div>
+          </div>
         </div>
+      </div>
 
-        <!-- ===== STEP 2: Job History ===== -->
-        <div class="form-step" data-step="1" style="display:none;">
-            <div class="card">
-                <div class="card-header">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M2.25 21h19.5m-18-18v18m10.5-18v18m-6-13.5h.008v.008h-.008v-.008zm0 4.5h.008v.008h-.008v-.008zm0 4.5h.008v.008h-.008v-.008zm4.5-9h.008v.008h-.008v-.008zm0 4.5h.008v.008h-.008v-.008zm0 4.5h.008v.008h-.008v-.008zm4.5-9h.008v.008h-.008v-.008zm0 4.5h.008v.008h-.008v-.008z"/>
-                    </svg>
-                    سوابق شغلی
-                </div>
-                <div class="card" style="background:rgba(255,255,255,0.5);">
-                    <h3 style="font-size:18px; font-weight:bold; margin-bottom:14px;">💼 شغل فعلی</h3>
-                    <div class="form-grid form-grid-2">
-                        <div class="field-group"><label class="field-label">عنوان
-                            شغلی</label>{{ form.current_job_title }}{% if form.current_job_title.errors %}
-                            <div class="field-error">{{ form.current_job_title.errors }}</div>{% endif %}</div>
-                        <div class="field-group"><label class="field-label">تاریخ
-                            شروع</label>{{ form.current_job_start_date }}{% if form.current_job_start_date.errors %}
-                            <div class="field-error">{{ form.current_job_start_date.errors }}</div>{% endif %}</div>
-                        <div class="field-group form-col-full"><label class="field-label">وظیفه
-                            محوله</label>{{ form.current_job_duties }}{% if form.current_job_duties.errors %}
-                            <div class="field-error">{{ form.current_job_duties.errors }}</div>{% endif %}</div>
-                    </div>
-                </div>
+      <!-- ===== STEP 2: Work history ===== -->
+      <div class="step-panel" data-step="1" style="display:none;">
+        <div class="card">
+          <div class="card-head">
+            <span class="ico"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></span>
+            <div><h2>Work history</h2><p>Your current role and any previous jobs.</p></div>
+          </div>
+          <div class="card-body">
+            <div class="subcard">
+              <div class="subcard-title"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Current job</div>
+              <div class="grid cols-2">
+                <div class="field"><label class="field-label">Job title</label>{{ form.current_job_title }}{% if form.current_job_title.errors %}<div class="field-error">{{ form.current_job_title.errors }}</div>{% endif %}</div>
+                <div class="field"><label class="field-label">Start date</label>{{ form.current_job_start_date }}{% if form.current_job_start_date.errors %}<div class="field-error">{{ form.current_job_start_date.errors }}</div>{% endif %}</div>
+                <div class="field col-full"><label class="field-label">Duties &amp; responsibilities</label>{{ form.current_job_duties }}{% if form.current_job_duties.errors %}<div class="field-error">{{ form.current_job_duties.errors }}</div>{% endif %}</div>
+              </div>
             </div>
-            <div class="card">
-                <h3 style="font-size:18px; font-weight:bold; margin-bottom:14px;">📋 مشاغل قبلی</h3>
-                {{ job_formset.management_form }}
+
+            <div class="subcard">
+              <div class="subcard-title"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-5"/></svg> Previous jobs</div>
+              {{ job_formset.management_form }}
+              <div id="jobFormsContainer">
                 {% for job_form in job_formset %}
-                    <div class="formset-item">
-                        {{ job_form.id }}
-                        {% if job_form.instance.pk %}
-                            <label for="{{ job_form.DELETE.id_for_label }}" class="delete-btn">🗑️ حذف این شغل</label>
-                            {{ job_form.DELETE }}
-                        {% endif %}
-                        <div class="form-grid form-grid-3">
-                            <div class="field-group form-col-full"><label class="field-label">عنوان
-                                سمت</label>{{ job_form.title }}</div>
-                            <div class="field-group"><label class="field-label">تاریخ
-                                شروع</label>{{ job_form.start_date }}</div>
-                            <div class="field-group"><label class="field-label">تاریخ
-                                پایان</label>{{ job_form.end_date }}</div>
-                            <div class="field-group form-col-full"><label class="field-label">وظیفه
-                                محوله</label>{{ job_form.duties }}</div>
-                            <div class="field-group form-col-full"><label class="field-label">علت تغییر
-                                شغل</label>{{ job_form.reason_for_leaving }}</div>
-                        </div>
+                  <div class="formset-item">
+                    {{ job_form.id }}
+                    {% if job_form.instance.pk %}
+                      <label for="{{ job_form.DELETE.id_for_label }}" class="job-remove"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg> Remove</label>
+                      <span class="delete-checkbox">{{ job_form.DELETE }}</span>
+                    {% endif %}
+                    <div class="grid cols-3">
+                      <div class="field col-full"><label class="field-label">Position title</label>{{ job_form.title }}</div>
+                      <div class="field"><label class="field-label">Start date</label>{{ job_form.start_date }}</div>
+                      <div class="field"><label class="field-label">End date</label>{{ job_form.end_date }}</div>
+                      <div class="field col-full"><label class="field-label">Duties</label>{{ job_form.duties }}</div>
+                      <div class="field col-full"><label class="field-label">Reason for leaving</label>{{ job_form.reason_for_leaving }}</div>
                     </div>
+                  </div>
                 {% endfor %}
+              </div>
+              <button type="button" class="add-job" id="addJobBtn"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> Add another job</button>
+              <!-- Hidden empty-form template for cloning new job rows -->
+              <template id="emptyJobTemplate">
+                <div class="formset-item">
+                  <div class="grid cols-3">
+                    <div class="field col-full"><label class="field-label">Position title</label>{{ job_formset.empty_form.title }}</div>
+                    <div class="field"><label class="field-label">Start date</label>{{ job_formset.empty_form.start_date }}</div>
+                    <div class="field"><label class="field-label">End date</label>{{ job_formset.empty_form.end_date }}</div>
+                    <div class="field col-full"><label class="field-label">Duties</label>{{ job_formset.empty_form.duties }}</div>
+                    <div class="field col-full"><label class="field-label">Reason for leaving</label>{{ job_formset.empty_form.reason_for_leaving }}</div>
+                  </div>
+                </div>
+              </template>
             </div>
+          </div>
         </div>
+      </div>
 
-        <!-- ===== STEP 3: Hazards ===== -->
-        <div class="form-step" data-step="2" style="display:none;">
-            <div class="card">
-                <div class="card-header">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
-                    </svg>
-                    عوامل زیان‌آور شغلی
-                </div>
-                <div class="card" style="background:rgba(255,255,255,0.5);">
-                    <h4 style="font-weight:bold; margin-bottom:12px;">🔊 عوامل فیزیکی</h4>
-                    <div class="choice-cards-row">
-                        {% for field in form %}
-                            {% if 'hazard_physical' in field.name and field.field.widget.input_type == 'checkbox' %}
-                                <label class="choice-card">{{ field }} {{ field.label }}</label>{% endif %}{% endfor %}
-                    </div>
-                    <div class="field-group" style="margin-top:12px;"><label class="field-label">سایر عوامل
-                        فیزیکی</label>{{ form.hazard_physical_other }}</div>
-                </div>
-                <div class="card" style="background:rgba(255,255,255,0.5);">
-                    <h4 style="font-weight:bold; margin-bottom:12px;">🧪 عوامل شیمیایی</h4>
-                    <div class="choice-cards-row">
-                        {% for field in form %}
-                            {% if 'hazard_chemical' in field.name and field.field.widget.input_type == 'checkbox' %}
-                                <label class="choice-card">{{ field }} {{ field.label }}</label>{% endif %}{% endfor %}
-                    </div>
-                    <div class="field-group" style="margin-top:12px;"><label class="field-label">سایر عوامل
-                        شیمیایی</label>{{ form.hazard_chemical_other }}</div>
-                </div>
-                <div class="card" style="background:rgba(255,255,255,0.5);">
-                    <h4 style="font-weight:bold; margin-bottom:12px;">🦠 عوامل بیولوژیک</h4>
-                    <div class="choice-cards-row">
-                        {% for field in form %}
-                            {% if 'hazard_biological' in field.name and field.field.widget.input_type == 'checkbox' %}
-                                <label class="choice-card">{{ field }} {{ field.label }}</label>{% endif %}{% endfor %}
-                    </div>
-                    <div class="field-group" style="margin-top:12px;"><label class="field-label">سایر عوامل
-                        بیولوژیک</label>{{ form.hazard_biological_other }}</div>
-                </div>
-                <div class="card" style="background:rgba(255,255,255,0.5);">
-                    <h4 style="font-weight:bold; margin-bottom:12px;">🪑 عوامل ارگونومی</h4>
-                    <div class="choice-cards-row">
-                        {% for field in form %}
-                            {% if 'hazard_ergonomic' in field.name and field.field.widget.input_type == 'checkbox' %}
-                                <label class="choice-card">{{ field }} {{ field.label }}</label>{% endif %}{% endfor %}
-                    </div>
-                    <div class="field-group" style="margin-top:12px;"><label class="field-label">سایر عوامل
-                        ارگونومی</label>{{ form.hazard_ergonomic_other }}</div>
-                </div>
-                <div class="card" style="background:rgba(255,255,255,0.5);">
-                    <h4 style="font-weight:bold; margin-bottom:12px;">🧠 عوامل روانی</h4>
-                    <div class="choice-cards-row">
-                        {% for field in form %}
-                            {% if 'hazard_psychological' in field.name and field.field.widget.input_type == 'checkbox' %}
-                                <label class="choice-card">{{ field }} {{ field.label }}</label>{% endif %}{% endfor %}
-                    </div>
-                    <div class="field-group" style="margin-top:12px;"><label class="field-label">سایر عوامل
-                        روانی</label>{{ form.hazard_psychological_other }}</div>
-                </div>
+      <!-- ===== STEP 3: Occupational hazards ===== -->
+      <div class="step-panel" data-step="2" style="display:none;">
+        <div class="card">
+          <div class="card-head">
+            <span class="ico"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+            <div><h2>Occupational hazards</h2><p>Select every hazard you are exposed to at work.</p></div>
+          </div>
+          <div class="card-body">
+            <div class="subcard">
+              <div class="subcard-title"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> Physical hazards</div>
+              <div class="choice-grid">
+                <label class="choice-card">{{ form.hazard_physical_noise }} Noise</label>
+                <label class="choice-card">{{ form.hazard_physical_vibration }} Vibration</label>
+                <label class="choice-card">{{ form.hazard_physical_non_ionizing_radiation }} Non-ionizing radiation</label>
+                <label class="choice-card">{{ form.hazard_physical_ionizing_radiation }} Ionizing radiation</label>
+                <label class="choice-card">{{ form.hazard_physical_heat_stress }} Heat stress</label>
+              </div>
+              <div class="field" style="margin-top:14px;"><label class="field-label">Other physical hazards</label>{{ form.hazard_physical_other }}</div>
             </div>
+
+            <div class="subcard">
+              <div class="subcard-title"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-4.5 8a2 2 0 0 0 1.8 3h9.4a2 2 0 0 0 1.8-3L14 9V3"/></svg> Chemical hazards</div>
+              <div class="choice-grid">
+                <label class="choice-card">{{ form.hazard_chemical_dust }} Dust</label>
+                <label class="choice-card">{{ form.hazard_chemical_metal_fumes }} Metal fumes</label>
+                <label class="choice-card">{{ form.hazard_chemical_solvents }} Solvents</label>
+                <label class="choice-card">{{ form.hazard_chemical_pesticides }} Pesticides</label>
+                <label class="choice-card">{{ form.hazard_chemical_acids_bases }} Acids &amp; bases</label>
+                <label class="choice-card">{{ form.hazard_chemical_gases }} Gases</label>
+              </div>
+              <div class="field" style="margin-top:14px;"><label class="field-label">Other chemical hazards</label>{{ form.hazard_chemical_other }}</div>
+            </div>
+
+            <div class="subcard">
+              <div class="subcard-title"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg> Biological hazards</div>
+              <div class="choice-grid">
+                <label class="choice-card">{{ form.hazard_biological_bites }} Bites</label>
+                <label class="choice-card">{{ form.hazard_biological_bacteria }} Bacteria</label>
+                <label class="choice-card">{{ form.hazard_biological_virus }} Viruses</label>
+                <label class="choice-card">{{ form.hazard_biological_parasite }} Parasites</label>
+              </div>
+              <div class="field" style="margin-top:14px;"><label class="field-label">Other biological hazards</label>{{ form.hazard_biological_other }}</div>
+            </div>
+
+            <div class="subcard">
+              <div class="subcard-title"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Ergonomic hazards</div>
+              <div class="choice-grid">
+                <label class="choice-card">{{ form.hazard_ergonomic_prolonged_sitting_standing }} Prolonged sitting/standing</label>
+                <label class="choice-card">{{ form.hazard_ergonomic_repetitive_work }} Repetitive work</label>
+                <label class="choice-card">{{ form.hazard_ergonomic_heavy_lifting }} Heavy lifting</label>
+                <label class="choice-card">{{ form.hazard_ergonomic_poor_posture }} Poor posture</label>
+              </div>
+              <div class="field" style="margin-top:14px;"><label class="field-label">Other ergonomic hazards</label>{{ form.hazard_ergonomic_other }}</div>
+            </div>
+
+            <div class="subcard">
+              <div class="subcard-title"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2a4.5 4.5 0 0 0-4.5 4.5c0 1-1.5 1.5-1.5 3.5a3 3 0 0 0 1.5 2.6V16a3 3 0 0 0 3 3h1.5V2z"/><path d="M14.5 2a4.5 4.5 0 0 1 4.5 4.5c0 1 1.5 1.5 1.5 3.5a3 3 0 0 1-1.5 2.6V16a3 3 0 0 1-3 3h-1.5V2z"/></svg> Psychological hazards</div>
+              <div class="choice-grid">
+                <label class="choice-card">{{ form.hazard_psychological_shift_work }} Shift work</label>
+                <label class="choice-card">{{ form.hazard_psychological_stressors }} Psychological stressors</label>
+              </div>
+              <div class="field" style="margin-top:14px;"><label class="field-label">Other psychological hazards</label>{{ form.hazard_psychological_other }}</div>
+            </div>
+          </div>
         </div>
+      </div>
 
-        <!-- ===== STEP 4: Medical History ===== -->
-        <div class="form-step" data-step="3" style="display:none;">
-            <div class="card">
-                <div class="card-header">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/>
-                    </svg>
-                    سابقه پزشکی
-                </div>
-
-                <div class="conditional-wrapper"><label class="conditional-card">{{ form.has_disease_history }} 🤒 آیا
-                    سابقه بیماری دارید؟</label>
-                    <div class="details-panel"><label class="field-label">توضیحات
-                        بیماری:</label>{{ form.disease_history_details }}{% if form.disease_history_details.errors %}
-                        <div class="field-error">{{ form.disease_history_details.errors }}</div>{% endif %}</div>
-                </div>
-
-                <div class="conditional-wrapper"><label class="conditional-card">{{ form.has_allergies }} 🤧 آیا حساسیت
-                    دارید؟</label>
-                    <div class="details-panel"><label class="field-label">توضیحات
-                        حساسیت:</label>{{ form.allergy_details }}{% if form.allergy_details.errors %}
-                        <div class="field-error">{{ form.allergy_details.errors }}</div>{% endif %}</div>
-                </div>
-
-                <div class="conditional-wrapper"><label class="conditional-card">{{ form.has_hospitalization_history }}
-                    🏥 سابقه بستری در بیمارستان</label>
-                    <div class="details-panel"><label class="field-label">علت
-                        بستری:</label>{{ form.hospitalization_reason }}{% if form.hospitalization_reason.errors %}
-                        <div class="field-error">{{ form.hospitalization_reason.errors }}</div>{% endif %}</div>
-                </div>
-
-                <div class="conditional-wrapper"><label class="conditional-card">{{ form.has_surgery_history }} 🔪 سابقه
-                    جراحی</label>
-                    <div class="details-panel"><label class="field-label">توضیحات
-                        جراحی:</label>{{ form.surgery_details }}{% if form.surgery_details.errors %}
-                        <div class="field-error">{{ form.surgery_details.errors }}</div>{% endif %}</div>
-                </div>
-
-                <div class="conditional-wrapper"><label
-                        class="conditional-card">{{ form.has_family_cancer_or_chronic_disease }} 👨‍👩‍👧 سابقه سرطان یا
-                    بیماری مزمن در خانواده</label>
-                    <div class="details-panel"><label
-                            class="field-label">توضیحات:</label>{{ form.family_disease_details }}
-                        {% if form.family_disease_details.errors %}
-                            <div class="field-error">{{ form.family_disease_details.errors }}</div>{% endif %}</div>
-                </div>
-
-                <div class="conditional-wrapper"><label class="conditional-card">{{ form.is_on_medication }} 💊 آیا داروی
-                    خاصی مصرف می‌کنید؟</label>
-                    <div class="details-panel"><label class="field-label">نام
-                        داروها:</label>{{ form.medication_details }}{% if form.medication_details.errors %}
-                        <div class="field-error">{{ form.medication_details.errors }}</div>{% endif %}</div>
-                </div>
-
-                <div class="conditional-wrapper"><label class="conditional-card">{{ form.is_currently_smoking }} 🚬 آیا
-                    اکنون دخانیات مصرف می‌کنید؟</label>
-                    <div class="details-panel">
-                        <div class="form-grid form-grid-2">
-                            <div class="field-group"><label class="field-label">تعداد نخ در
-                                روز</label>{{ form.cigs_per_day }}{% if form.cigs_per_day.errors %}
-                                <div class="field-error">{{ form.cigs_per_day.errors }}</div>{% endif %}</div>
-                            <div class="field-group"><label class="field-label">توضیحات
-                                بیشتر</label>{{ form.smoking_details }}{% if form.smoking_details.errors %}
-                                <div class="field-error">{{ form.smoking_details.errors }}</div>{% endif %}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="conditional-wrapper" style="margin-top:12px;"><label
-                        class="conditional-card">{{ form.has_past_smoking_history }} 📅 آیا سابقه قبلی مصرف دخانیات
-                    دارید؟</label></div>
-
-                <div class="field-group" style="margin-top:16px;"><label class="field-label">🏃 ورزش یا
-                    سرگرمی</label>{{ form.hobbies }}{% if form.hobbies.errors %}
-                    <div class="field-error">{{ form.hobbies.errors }}</div>{% endif %}</div>
+      <!-- ===== STEP 4: Medical history ===== -->
+      <div class="step-panel" data-step="3" style="display:none;">
+        <div class="card">
+          <div class="card-head">
+            <span class="ico"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
+            <div><h2>Medical history</h2><p>Tell us about your health background and lifestyle.</p></div>
+          </div>
+          <div class="card-body">
+            <!-- Conditional yes/no with detail reveal -->
+            <div class="cond">
+              <label class="cond-head">{{ form.has_disease_history }} Do you have a history of disease?</label>
+              <div class="cond-detail"><label class="field-label">Disease details</label>{{ form.disease_history_details }}{% if form.disease_history_details.errors %}<div class="field-error">{{ form.disease_history_details.errors }}</div>{% endif %}</div>
             </div>
+            <div class="cond">
+              <label class="cond-head">{{ form.has_allergies }} Do you have any allergies?</label>
+              <div class="cond-detail"><label class="field-label">Allergy details</label>{{ form.allergy_details }}{% if form.allergy_details.errors %}<div class="field-error">{{ form.allergy_details.errors }}</div>{% endif %}</div>
+            </div>
+            <div class="cond">
+              <label class="cond-head">{{ form.has_hospitalization_history }} History of hospitalization?</label>
+              <div class="cond-detail"><label class="field-label">Reason for hospitalization</label>{{ form.hospitalization_reason }}{% if form.hospitalization_reason.errors %}<div class="field-error">{{ form.hospitalization_reason.errors }}</div>{% endif %}</div>
+            </div>
+            <div class="cond">
+              <label class="cond-head">{{ form.has_surgery_history }} History of surgery?</label>
+              <div class="cond-detail"><label class="field-label">Surgery details</label>{{ form.surgery_details }}{% if form.surgery_details.errors %}<div class="field-error">{{ form.surgery_details.errors }}</div>{% endif %}</div>
+            </div>
+            <div class="cond">
+              <label class="cond-head">{{ form.has_family_cancer_or_chronic_disease }} Family history of cancer or chronic disease?</label>
+              <div class="cond-detail"><label class="field-label">Family disease details</label>{{ form.family_disease_details }}{% if form.family_disease_details.errors %}<div class="field-error">{{ form.family_disease_details.errors }}</div>{% endif %}</div>
+            </div>
+            <div class="cond">
+              <label class="cond-head">{{ form.is_on_medication }} Are you currently taking any medication?</label>
+              <div class="cond-detail"><label class="field-label">Medication details</label>{{ form.medication_details }}{% if form.medication_details.errors %}<div class="field-error">{{ form.medication_details.errors }}</div>{% endif %}</div>
+            </div>
+            <div class="cond">
+              <label class="cond-head">{{ form.is_currently_smoking }} Do you currently smoke?</label>
+              <div class="cond-detail">
+                <div class="grid cols-2">
+                  <div class="field"><label class="field-label">Cigarettes per day</label>{{ form.cigs_per_day }}{% if form.cigs_per_day.errors %}<div class="field-error">{{ form.cigs_per_day.errors }}</div>{% endif %}</div>
+                  <div class="field"><label class="field-label">Smoking details</label>{{ form.smoking_details }}{% if form.smoking_details.errors %}<div class="field-error">{{ form.smoking_details.errors }}</div>{% endif %}</div>
+                </div>
+              </div>
+            </div>
+            <div class="cond">
+              <label class="cond-head">{{ form.has_occupational_accident_history }} History of an occupational accident?</label>
+              <div class="cond-detail"><label class="field-label">Accident details</label>{{ form.accident_details }}{% if form.accident_details.errors %}<div class="field-error">{{ form.accident_details.errors }}</div>{% endif %}</div>
+            </div>
+
+            <!-- Standalone yes/no questions -->
+            <div style="margin-top:18px;">
+              <label class="field-label" style="margin-bottom:10px;">Additional questions</label>
+              <div class="choice-grid">
+                <label class="choice-card">{{ form.has_past_smoking_history }} Past history of smoking</label>
+                <label class="choice-card">{{ form.does_symptoms_change_at_work }} Symptoms change at work</label>
+                <label class="choice-card">{{ form.do_colleagues_have_similar_symptoms }} Colleagues have similar symptoms</label>
+                <label class="choice-card">{{ form.does_symptoms_change_on_holidays }} Symptoms change on holidays</label>
+                <label class="choice-card">{{ form.has_absence_over_3_days }} Absence over 3 days</label>
+                <label class="choice-card">{{ form.lives_near_industrial_center }} Lives near an industrial center</label>
+                <label class="choice-card">{{ form.has_medical_commission_referral }} Medical commission referral</label>
+                <label class="choice-card">{{ form.on_bp_meds }} On blood-pressure medication</label>
+                <label class="choice-card">{{ form.has_diabetes }} Has diabetes</label>
+              </div>
+            </div>
+
+            <div class="field" style="margin-top:18px;"><label class="field-label">Sports &amp; hobbies</label>{{ form.hobbies }}{% if form.hobbies.errors %}<div class="field-error">{{ form.hobbies.errors }}</div>{% endif %}</div>
+          </div>
         </div>
+      </div>
 
-        <!-- ===== STEP 5: Examinations ===== -->
-        <div class="form-step" data-step="4" style="display:none;">
-            <div class="card">
-                <div class="card-header">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M3.75 9.75h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    شاخص‌های حیاتی و معاینات
-                </div>
-                <div class="form-grid form-grid-4">
-                    <div class="field-group"><label class="field-label">📅 تاریخ معاینه</label>{{ form.exam_date }}</div>
-                    <div class="field-group"><label class="field-label">⚖️ وزن (Kg)</label>{{ form.exam_weight }}</div>
-                    <div class="field-group"><label class="field-label">📏 قد (Cm)</label>{{ form.exam_height }}</div>
-                    <div class="field-group"><label class="field-label">📊 BMI</label>{{ form.bmi }}
-                        {% if form.bmi.errors %}
-                            <div class="field-error">{{ form.bmi.errors }}</div>{% endif %}</div>
-                    <div class="field-group"><label class="field-label">🩸 فشار
-                        سیستولیک</label>{{ form.exam_systolic_bp }}{% if form.exam_systolic_bp.errors %}
-                        <div class="field-error">{{ form.exam_systolic_bp.errors }}</div>{% endif %}</div>
-                    <div class="field-group"><label class="field-label">🩸 فشار
-                        دیاستولیک</label>{{ form.exam_diastolic_bp }}{% if form.exam_diastolic_bp.errors %}
-                        <div class="field-error">{{ form.exam_diastolic_bp.errors }}</div>{% endif %}</div>
-                    <div class="field-group"><label class="field-label">💓 نبض (bpm)</label>{{ form.exam_pulse_rate }}
-                        {% if form.exam_pulse_rate.errors %}
-                            <div class="field-error">{{ form.exam_pulse_rate.errors }}</div>{% endif %}</div>
-                </div>
+      <!-- ===== STEP 5: Examination ===== -->
+      <div class="step-panel" data-step="4" style="display:none;">
+        <div class="card">
+          <div class="card-head">
+            <span class="ico"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 5 4-12 2 7h6"/></svg></span>
+            <div><h2>Examination &amp; eye imaging</h2><p>Vital signs, and eye photos for screening.</p></div>
+          </div>
+          <div class="card-body">
+            <div class="grid cols-4">
+              <div class="field"><label class="field-label">Exam date</label>{{ form.exam_date }}{% if form.exam_date.errors %}<div class="field-error">{{ form.exam_date.errors }}</div>{% endif %}</div>
+              <div class="field"><label class="field-label">Weight (kg)</label>{{ form.exam_weight }}{% if form.exam_weight.errors %}<div class="field-error">{{ form.exam_weight.errors }}</div>{% endif %}</div>
+              <div class="field"><label class="field-label">Height (cm)</label>{{ form.exam_height }}{% if form.exam_height.errors %}<div class="field-error">{{ form.exam_height.errors }}</div>{% endif %}</div>
+              <div class="field"><label class="field-label">BMI</label>{{ form.bmi }}{% if form.bmi.errors %}<div class="field-error">{{ form.bmi.errors }}</div>{% endif %}</div>
+              <div class="field"><label class="field-label">Systolic BP (mmHg)</label>{{ form.exam_systolic_bp }}{% if form.exam_systolic_bp.errors %}<div class="field-error">{{ form.exam_systolic_bp.errors }}</div>{% endif %}</div>
+              <div class="field"><label class="field-label">Diastolic BP (mmHg)</label>{{ form.exam_diastolic_bp }}{% if form.exam_diastolic_bp.errors %}<div class="field-error">{{ form.exam_diastolic_bp.errors }}</div>{% endif %}</div>
+              <div class="field"><label class="field-label">Pulse rate (bpm)</label>{{ form.exam_pulse_rate }}{% if form.exam_pulse_rate.errors %}<div class="field-error">{{ form.exam_pulse_rate.errors }}</div>{% endif %}</div>
             </div>
-        </div>
 
-        <!-- ===== STEP 6: Lab Tests ===== -->
-        <div class="form-step" data-step="5" style="display:none;">
-            <div class="card">
-                <div class="card-header">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M3.75 4.5A2.25 2.25 0 016 2.25h12A2.25 2.25 0 0120.25 4.5v15A2.25 2.25 0 0118 21.75H6A2.25 2.25 0 013.75 19.5v-15zM9 12.75a.75.75 0 01.75-.75h4.5a.75.75 0 010 1.5h-4.5a.75.75 0 01-.75-.75z"/>
-                    </svg>
-                    آزمایش‌ها و پاراکلینیک
+            <div class="subcard" style="margin-top:18px;">
+              <div class="subcard-title">
+                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                Eye photos
+              </div>
+              <p class="dz-sub" style="margin:-2px 0 12px;">Upload clear photos of the eyes — you can use your phone camera. These are stored for your doctor to review for screening.</p>
+              <label class="dropzone" id="eyeDrop">
+                <div class="dz-ic"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+                <div class="dz-title">Tap to add eye photos, or <span>browse</span></div>
+                <div class="dz-sub">JPG or PNG — you can select multiple</div>
+                <input type="file" name="eye_images" id="eyeInput" accept="image/*" capture="environment" multiple>
+              </label>
+              <div class="dz-previews" id="eyePreviews"></div>
+              {% if form.instance.pk and form.instance.eye_images.all %}
+                <div class="dz-sub" style="margin-top:14px;">Previously uploaded:</div>
+                <div class="existing-eyes">
+                  {% for ei in form.instance.eye_images.all %}
+                    <a href="{{ ei.image.url }}" target="_blank"><img src="{{ ei.image.url }}" alt="eye photo"></a>
+                  {% endfor %}
                 </div>
-                <div class="form-grid form-grid-2">
-                    <div class="field-group"><label class="field-label">🩸 کلسترول
-                        تام</label>{{ form.lab_total_cholesterol }}{% if form.lab_total_cholesterol.errors %}
-                        <div class="field-error">{{ form.lab_total_cholesterol.errors }}</div>{% endif %}</div>
-                    <div class="field-group"><label class="field-label">🩸 گلوکز</label>{{ form.lab_glucose }}
-                        {% if form.lab_glucose.errors %}
-                            <div class="field-error">{{ form.lab_glucose.errors }}</div>{% endif %}</div>
-                    <div class="field-group form-col-full"><label class="field-label">📎 آپلود فایل نتایج
-                        آزمایش‌ها</label>{{ form.lab_test_files }}{% if form.lab_test_files.errors %}
-                        <div class="field-error">{{ form.lab_test_files.errors }}</div>{% endif %}</div>
-                </div>
+              {% endif %}
             </div>
-            <div class="card">
-                <h3 style="font-weight:bold; margin-bottom:14px;">🫁 اسپیرومتری</h3>
-                <div class="form-grid form-grid-4">
-                    <div class="field-group"><label class="field-label">FVC</label>{{ form.spirometry_fvc }}</div>
-                    <div class="field-group"><label class="field-label">FEV1</label>{{ form.spirometry_fev1 }}</div>
-                    <div class="field-group"><label
-                            class="field-label">FEV1/FVC%</label>{{ form.spirometry_fev1_fvc_ratio }}</div>
-                    <div class="field-group"><label class="field-label">FEF
-                        25-75%</label>{{ form.spirometry_fef_25_75 }}</div>
-                    <div class="field-group"><label class="field-label">PEF</label>{{ form.spirometry_pef }}</div>
-                    <div class="field-group form-col-full"><label class="field-label">تفسیر
-                        اسپیرومتری</label>{{ form.spirometry_interpretation }}</div>
-                </div>
-            </div>
-            <div class="card">
-                <h3 style="font-weight:bold; margin-bottom:14px;">📋 یافته‌های دیگر</h3>
-                <div class="field-group"><label class="field-label">یافته‌های ECG</label>{{ form.ecg_findings }}</div>
-                <div class="field-group" style="margin-top:12px;"><label class="field-label">یافته‌های
-                    CXR</label>{{ form.chest_xray_findings }}</div>
-                <div class="field-group" style="margin-top:12px;"><label class="field-label">سایر
-                    موارد</label>{{ form.other_paraclinical_notes }}</div>
-            </div>
+          </div>
         </div>
+      </div>
 
-        <!-- Navigation Buttons -->
-        <div class="btn-row">
-            <button type="button" id="prevBtn" class="btn btn-prev" style="visibility:hidden;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M15 18l-6-6 6-6"/>
-                </svg>
-                مرحله قبل
-            </button>
-            <button type="button" id="nextBtn" class="btn btn-next">
-                مرحله بعد
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M9 18l6-6-6-6"/>
-                </svg>
-            </button>
-            <button type="submit" id="submitBtn" class="btn btn-submit" style="display:none;">
-                ✅ ثبت و ایجاد پرونده
-            </button>
+      <!-- ===== STEP 6: Medical tests ===== -->
+      <div class="step-panel" data-step="5" style="display:none;">
+        <div class="card">
+          <div class="card-head">
+            <span class="ico"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-4.5 8a2 2 0 0 0 1.8 3h9.4a2 2 0 0 0 1.8-3L14 9V3"/><line x1="8" y1="15" x2="16" y2="15"/></svg></span>
+            <div><h2>Medical tests</h2><p>Upload your medical test results (lab reports, spirometry, ECG, imaging, etc.).</p></div>
+          </div>
+          <div class="card-body">
+            <p class="dz-sub" style="margin:-2px 0 12px;">Upload lab reports, blood work, addiction/toxicology screens, imaging, etc. Our AI reads each file and pulls out the results, units and reference ranges automatically.</p>
+            <label class="dropzone" id="labDrop">
+              <div class="dz-ic"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9 15h6"/></svg></div>
+              <div class="dz-title">Tap to add test files, or <span>browse</span></div>
+              <div class="dz-sub">PDF or images — you can select multiple files</div>
+              <input type="file" name="medical_test_files" id="labInput" accept=".pdf,image/*" multiple>
+            </label>
+            <ul class="dz-files" id="labFiles"></ul>
+            {% if form.instance.pk and form.instance.medical_tests.all %}
+              <div class="dz-sub" style="margin-top:14px;">Previously uploaded:</div>
+              <ul class="existing-tests">
+                {% for mt in form.instance.medical_tests.all %}
+                  <li><a href="{{ mt.file.url }}" target="_blank">{{ mt.report_type|default:mt.filename }}</a>{% if mt.status == 'done' %} — {{ mt.panels|length }} panel(s){% elif mt.status == 'failed' %} — extraction failed{% else %} — processing…{% endif %}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
         </div>
+      </div>
+
+      <!-- ===== Navigation ===== -->
+      <div class="nav-row">
+        <button type="button" id="prevBtn" class="btn" style="visibility:hidden;">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg> Previous
+        </button>
+        <button type="button" id="nextBtn" class="btn btn-primary">
+          Next <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <button type="submit" id="submitBtn" class="btn btn-submit" style="display:none;">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Submit &amp; create profile
+        </button>
+      </div>
     </form>
-</div>
+  </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const form = document.getElementById('multiStepForm');
-        const steps = form.querySelectorAll('.form-step');
-        const totalSteps = steps.length;
-        let currentStep = 0;
-
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const submitBtn = document.getElementById('submitBtn');
-        const progressSteps = document.querySelectorAll('.progress-step');
-        const connectors = document.querySelectorAll('.step-connector');
-
-        function updateUI() {
-            steps.forEach((step, i) => {
-                step.style.display = i === currentStep ? 'block' : 'none';
-                if (i === currentStep) {
-                    step.style.animation = 'cardAppear 0.5s ease-out';
-                }
-            });
-
-            progressSteps.forEach((ps, i) => {
-                ps.classList.remove('active', 'completed');
-                if (i < currentStep) ps.classList.add('completed');
-                if (i === currentStep) ps.classList.add('active');
-            });
-
-            connectors.forEach((c, i) => {
-                c.classList.toggle('done', i < currentStep);
-            });
-
-            prevBtn.style.visibility = currentStep === 0 ? 'hidden' : 'visible';
-            nextBtn.style.display = currentStep === totalSteps - 1 ? 'none' : 'inline-flex';
-            submitBtn.style.display = currentStep === totalSteps - 1 ? 'inline-flex' : 'none';
-
-            window.scrollTo({top: 0, behavior: 'smooth'});
-        }
-
-        nextBtn.addEventListener('click', () => {
-            if (currentStep < totalSteps - 1) {
-                currentStep++;
-                updateUI();
-            }
-        });
-
-        prevBtn.addEventListener('click', () => {
-            if (currentStep > 0) {
-                currentStep--;
-                updateUI();
-            }
-        });
-
-        // Click on progress steps to navigate
-        progressSteps.forEach(ps => {
-            ps.addEventListener('click', () => {
-                const target = parseInt(ps.dataset.step);
-                if (target <= currentStep || ps.classList.contains('active')) {
-                    currentStep = target;
-                    updateUI();
-                }
-            });
-        });
-
-        // Apply CSS classes to all form inputs
-        form.querySelectorAll('input[type="text"], input[type="email"], input[type="number"], input[type="date"], input[type="file"]').forEach(el => el.classList.add('form-input'));
-        form.querySelectorAll('select').forEach(el => el.classList.add('form-select'));
-        form.querySelectorAll('textarea').forEach(el => el.classList.add('form-textarea'));
-        form.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(el => {
-            if (el.name.includes('DELETE')) el.classList.add('delete-checkbox');
-        });
-
-        // Model selector
-        const modelSelector = document.getElementById('modelSelector');
-        const modelSelectorBtn = document.getElementById('modelSelectorBtn');
-        const selectedModelText = document.getElementById('selectedModelText');
-        const selectedModelInput = document.getElementById('selectedModelInput');
-
-        modelSelectorBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            modelSelector.classList.toggle('open');
-        });
-
-        modelSelector.querySelectorAll('input[type="radio"]').forEach(radio => {
-            radio.addEventListener('change', function () {
-                if (this.checked) {
-                    selectedModelText.textContent = this.dataset.text;
-                    selectedModelInput.value = this.value;
-                    modelSelector.classList.remove('open');
-                }
-            });
-        });
-
-        window.addEventListener('click', () => modelSelector.classList.remove('open'));
-
-        // Theme toggle
-        const root = document.documentElement;
-        const toggle = document.getElementById('themeToggle');
-
-        function setIcon() {
-            toggle.textContent = root.classList.contains('dark') ? '☀️' : '🌓';
-        }
-
-        if (localStorage.getItem('theme') === 'dark') root.classList.add('dark');
+  <script>
+    /* ===== Theme (shared .dark class + 'theme' key) ===== */
+    (function () {
+      const root = document.documentElement, btn = document.getElementById('themeToggle');
+      const setIcon = () => { btn.textContent = root.classList.contains('dark') ? '☀️' : '🌙'; };
+      if (localStorage.getItem('theme') === 'dark') root.classList.add('dark');
+      setIcon();
+      btn.addEventListener('click', () => {
+        root.classList.toggle('dark');
+        localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
         setIcon();
-        toggle.onclick = () => {
-            root.classList.toggle('dark');
-            localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
-            setIcon();
-        };
+      });
+    })();
 
-        updateUI();
+    document.addEventListener('DOMContentLoaded', function () {
+      const form = document.getElementById('multiStepForm');
+
+      /* ===== Auto text direction (RTL for Persian, LTR for English) ===== */
+      function setAutoDir(root) {
+        (root || form).querySelectorAll('input:not([type=checkbox]):not([type=radio]):not([type=hidden]), select, textarea').forEach(el => {
+          if (!el.hasAttribute('dir')) el.setAttribute('dir', 'auto');
+        });
+      }
+      setAutoDir(form);
+
+      const dirObserver = new MutationObserver(mutations => {
+        mutations.forEach(m => {
+          m.addedNodes.forEach(node => {
+            if (node.nodeType === 1) setAutoDir(node);
+          });
+        });
+      });
+      if (form) dirObserver.observe(form, { childList: true, subtree: true });
+
+      const panels = Array.from(form.querySelectorAll('.step-panel'));
+      const total = panels.length;
+      const stepEls = Array.from(document.querySelectorAll('#steps .step'));
+      const lines = Array.from(document.querySelectorAll('#steps .step-line'));
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const submitBtn = document.getElementById('submitBtn');
+      let current = 0;
+
+      function render(scroll) {
+        panels.forEach((p, i) => { p.style.display = i === current ? 'block' : 'none'; });
+        stepEls.forEach((s, i) => {
+          s.classList.toggle('active', i === current);
+          s.classList.toggle('completed', i < current);
+        });
+        lines.forEach((l, i) => l.classList.toggle('done', i < current));
+        prevBtn.style.visibility = current === 0 ? 'hidden' : 'visible';
+        nextBtn.style.display = current === total - 1 ? 'none' : 'inline-flex';
+        submitBtn.style.display = current === total - 1 ? 'inline-flex' : 'none';
+        if (scroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      nextBtn.addEventListener('click', () => { if (current < total - 1) { current++; render(true); } });
+      prevBtn.addEventListener('click', () => { if (current > 0) { current--; render(true); } });
+      stepEls.forEach(s => s.addEventListener('click', () => { current = parseInt(s.dataset.step, 10); render(true); }));
+
+      /* If the server returned validation errors, reveal the first step that has one. */
+      (function () {
+        const firstError = form.querySelector('.field-error');
+        if (firstError) {
+          const panel = firstError.closest('.step-panel');
+          if (panel) { current = panels.indexOf(panel); }
+        }
+        render(false);
+      })();
+
+      /* ===== Previous-jobs formset add/remove ===== */
+      const container = document.getElementById('jobFormsContainer');
+      const addBtn = document.getElementById('addJobBtn');
+      const tpl = document.getElementById('emptyJobTemplate');
+      const totalForms = document.querySelector('#id_jobs-TOTAL_FORMS')
+                       || document.querySelector('[name="jobs-TOTAL_FORMS"]');
+
+      if (addBtn && tpl && totalForms && container) {
+        addBtn.addEventListener('click', () => {
+          let idx = parseInt(totalForms.value, 10);
+          let html = tpl.innerHTML.replace(/__prefix__/g, idx);
+          const wrap = document.createElement('div');
+          wrap.innerHTML = html.trim();
+          const item = wrap.firstElementChild;
+          const rm = document.createElement('label');
+          rm.className = 'job-remove';
+          rm.innerHTML = '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg> Remove';
+          rm.addEventListener('click', () => { item.remove(); });
+          item.style.position = 'relative';
+          item.insertBefore(rm, item.firstChild);
+          container.appendChild(item);
+          totalForms.value = idx + 1;
+        });
+      }
+
+      /* Existing rows: clicking "Remove" ticks the DELETE checkbox and hides the row. */
+      container && container.querySelectorAll('.job-remove').forEach(lbl => {
+        lbl.addEventListener('click', (e) => {
+          const item = lbl.closest('.formset-item');
+          const del = item.querySelector('input[type=checkbox][name$="-DELETE"]');
+          if (del) { e.preventDefault(); del.checked = true; item.style.display = 'none'; }
+        });
+      });
+
+      /* ===== Report model selector ===== */
+      const selector = document.getElementById('modelSelector');
+      const selBtn = document.getElementById('modelSelectorBtn');
+      const selText = document.getElementById('selectedModelText');
+      const selInput = document.getElementById('selectedModelInput');
+      selBtn.addEventListener('click', (e) => { e.stopPropagation(); selector.classList.toggle('open'); });
+      selector.querySelectorAll('input[type=radio]').forEach(radio => {
+        radio.addEventListener('change', function () {
+          if (this.checked) {
+            selText.textContent = this.dataset.text;
+            selInput.value = this.value;
+            selector.classList.remove('open');
+          }
+        });
+      });
+      document.addEventListener('click', () => selector.classList.remove('open'));
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') selector.classList.remove('open'); });
+
+      /* ===== Auto-calculate BMI from height & weight ===== */
+      (function () {
+        const w = form.querySelector('[name="exam_weight"]');
+        const h = form.querySelector('[name="exam_height"]');
+        const bmi = form.querySelector('[name="bmi"]');
+        if (!w || !h || !bmi) return;
+        function calc() {
+          const kg = parseFloat(w.value), cm = parseFloat(h.value);
+          if (kg > 0 && cm > 0) {
+            const m = cm / 100;
+            bmi.value = (kg / (m * m)).toFixed(1);
+          } else {
+            bmi.value = '';
+          }
+        }
+        w.addEventListener('input', calc);
+        h.addEventListener('input', calc);
+        if (!bmi.value) calc();
+      })();
+
+      /* ===== Eye-photo previews ===== */
+      (function () {
+        const input = document.getElementById('eyeInput');
+        const box = document.getElementById('eyePreviews');
+        const drop = document.getElementById('eyeDrop');
+        if (!input || !box) return;
+        input.addEventListener('change', () => {
+          box.innerHTML = '';
+          Array.from(input.files).forEach(f => {
+            if (!f.type.startsWith('image/')) return;
+            const div = document.createElement('div');
+            div.className = 'thumb';
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(f);
+            div.appendChild(img);
+            box.appendChild(div);
+          });
+        });
+        ['dragover', 'dragenter'].forEach(ev => drop && drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('drag'); }));
+        ['dragleave', 'drop'].forEach(ev => drop && drop.addEventListener(ev, () => drop.classList.remove('drag')));
+      })();
+
+      /* ===== Medical-tests file list ===== */
+      (function () {
+        const input = form.querySelector('#labDrop input[type=file]');
+        const list = document.getElementById('labFiles');
+        const drop = document.getElementById('labDrop');
+        if (!input || !list) return;
+        input.addEventListener('change', () => {
+          list.innerHTML = '';
+          Array.from(input.files).forEach(f => {
+            const li = document.createElement('li');
+            li.innerHTML = '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>';
+            li.appendChild(document.createTextNode(f.name));
+            list.appendChild(li);
+          });
+        });
+        ['dragover', 'dragenter'].forEach(ev => drop && drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('drag'); }));
+        ['dragleave', 'drop'].forEach(ev => drop && drop.addEventListener(ev, () => drop.classList.remove('drag')));
+      })();
     });
-</script>
+  </script>
 </body>
 </html>
