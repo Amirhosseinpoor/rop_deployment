@@ -28,5 +28,16 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
 
+  waha:
+    image: devlikeapro/waha
+    container_name: waha
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./sessions:/app/.sessions
+    ports:
+      - "3009:3000"
+
 volumes:
   postgres_data:

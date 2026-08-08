@@ -20,7 +20,8 @@ from .models import Company, UserProfile, Invitation
 from django.contrib.auth.models import User
 from single_rop.models import PredictionLog
 from double_rop.models import PredictionResult
-from test_analysis.models import HealthProfile
+from test_analysis.models import HealthProfile, MedicalTest, EyeAnalysis
+from django.utils import timezone
 
 # -----------------------
 # Helpers
@@ -411,10 +412,16 @@ def manager_dashboard(request):
             'invitations': Invitation.objects.none(),
             'pending_invitations': 0,
             'assessed_employees': 0,
+            'employees_with_abnormal_labs': 0,
+            'employees_anemia_flagged': 0,
+            'pending_review_count': 0,
+            'oldest_pending_days': 0,
             # Charts: empty payloads
             'bmi_bins_json': json.dumps({}, ensure_ascii=False),
             'risks_json': json.dumps({}, ensure_ascii=False),
             'opinions_json': json.dumps({}, ensure_ascii=False),
+            'hazards_json': json.dumps({}, ensure_ascii=False),
+            'exam_types_json': json.dumps({}, ensure_ascii=False),
         }
         messages.warning(request, "Your company was not found. If you just signed up, please sign out and back in, or complete manager sign-up again.")
         return render(request, 'usac/manager_dashboard2.html', context)
@@ -436,21 +443,29 @@ def manager_dashboard(request):
     if request.method == 'POST':
         national_code = (request.POST.get('national_code') or '').strip()
         add_role = request.POST.get('invite_role', UserProfile.ROLE_EMPLOYEE)
+        exam_type = (request.POST.get('examination_type') or '').strip()
 
         valid_roles = dict(UserProfile.ROLE_CHOICES).keys()
+        valid_exam_types = dict(UserProfile.EXAM_TYPE_CHOICES).keys()
         if not (len(national_code) == 10 and national_code.isdigit() and add_role in valid_roles):
             messages.error(request, "Invalid national code or role.")
             return redirect('manager_dashboard')
+        if add_role == UserProfile.ROLE_EMPLOYEE and exam_type not in valid_exam_types:
+            messages.error(request, "Please select an examination type for the employee.")
+            return redirect('manager_dashboard')
+        if add_role != UserProfile.ROLE_EMPLOYEE:
+            exam_type = ''
 
         # Create/update invitation scoped to this company
         inv, created = Invitation.objects.get_or_create(
             company=company,
             national_code=national_code,
-            defaults={'role': add_role}
+            defaults={'role': add_role, 'examination_type': exam_type or None}
         )
         if not created:
             inv.role = add_role
-            inv.save(update_fields=['role'])
+            inv.examination_type = exam_type or None
+            inv.save(update_fields=['role', 'examination_type'])
 
         messages.success(request, "National code saved. The user can now sign up with it.")
         return redirect('manager_dashboard')
@@ -499,6 +514,50 @@ def manager_dashboard(request):
         Q(opinion_fit=True) | Q(opinion_fit_with_conditions=True) | Q(opinion_unfit=True)
     ).count()
 
+    # Employees with at least one processed lab report containing an abnormal result
+    employees_with_abnormal_labs = profiles.filter(
+        medical_tests__status=MedicalTest.STATUS_DONE,
+        medical_tests__abnormal_count__gt=0,
+    ).distinct().count()
+
+    # Employees whose AI eye screening flagged possible anemia
+    employees_anemia_flagged = profiles.filter(
+        eye_images__analysis__status=EyeAnalysis.STATUS_DONE,
+        eye_images__analysis__anemia_label='positive',
+    ).distinct().count()
+
+    # Occupational hazard exposure, by category (an employee counts once per
+    # category even if multiple hazards in that category apply to them)
+    hazard_groups = {
+        "Physical": Q(hazard_physical_noise=True) | Q(hazard_physical_vibration=True) |
+                    Q(hazard_physical_non_ionizing_radiation=True) | Q(hazard_physical_ionizing_radiation=True) |
+                    Q(hazard_physical_heat_stress=True),
+        "Chemical": Q(hazard_chemical_dust=True) | Q(hazard_chemical_metal_fumes=True) |
+                    Q(hazard_chemical_solvents=True) | Q(hazard_chemical_pesticides=True) |
+                    Q(hazard_chemical_acids_bases=True) | Q(hazard_chemical_gases=True),
+        "Biological": Q(hazard_biological_bites=True) | Q(hazard_biological_bacteria=True) |
+                      Q(hazard_biological_virus=True) | Q(hazard_biological_parasite=True),
+        "Ergonomic": Q(hazard_ergonomic_prolonged_sitting_standing=True) | Q(hazard_ergonomic_repetitive_work=True) |
+                     Q(hazard_ergonomic_heavy_lifting=True) | Q(hazard_ergonomic_poor_posture=True),
+        "Psychological": Q(hazard_psychological_shift_work=True) | Q(hazard_psychological_stressors=True),
+    }
+    hazards = {name: profiles.filter(q).distinct().count() for name, q in hazard_groups.items()}
+
+    # Examination type breakdown (employees only; unset = invited before this field existed)
+    exam_types = {
+        label: employees.filter(profile__examination_type=key).count()
+        for key, label in UserProfile.EXAM_TYPE_CHOICES
+    }
+    exam_types["Unassigned"] = employees.filter(profile__examination_type__isnull=True).count()
+
+    # Doctor review backlog: submitted profiles with no final opinion yet
+    pending_review_qs = profiles.filter(
+        opinion_fit=False, opinion_fit_with_conditions=False, opinion_unfit=False
+    ).order_by('created_at')
+    pending_review_count = pending_review_qs.count()
+    oldest_pending = pending_review_qs.first()
+    oldest_pending_days = (timezone.now() - oldest_pending.created_at).days if oldest_pending else 0
+
     context = {
         'company': company,
         'doctors': doctors,
@@ -506,11 +565,17 @@ def manager_dashboard(request):
         'invitations': invitations,
         'pending_invitations': pending_invitations,
         'assessed_employees': assessed_employees,
+        'employees_with_abnormal_labs': employees_with_abnormal_labs,
+        'employees_anemia_flagged': employees_anemia_flagged,
+        'pending_review_count': pending_review_count,
+        'oldest_pending_days': oldest_pending_days,
 
         # Chart payloads (JSON)
         'bmi_bins_json': json.dumps(bmi_bins, cls=DjangoJSONEncoder, ensure_ascii=False),
         'risks_json': json.dumps(risks, cls=DjangoJSONEncoder, ensure_ascii=False),
         'opinions_json': json.dumps(opinions, cls=DjangoJSONEncoder, ensure_ascii=False),
+        'hazards_json': json.dumps(hazards, cls=DjangoJSONEncoder, ensure_ascii=False),
+        'exam_types_json': json.dumps(exam_types, cls=DjangoJSONEncoder, ensure_ascii=False),
     }
     return render(request, 'usac/manager_dashboard2.html', context)
 
@@ -575,4 +640,13 @@ def send_test_email(request):
 def landing_view(request):
     if request.user.is_authenticated:
         return role_based_redirect(request)
+    # Serve the statically-exported Next.js landing (built via
+    # frontend-next/build-into-django.sh). Falls back to the Django template.
+    import os
+    from django.conf import settings
+    from django.http import HttpResponse
+    exported = os.path.join(settings.BASE_DIR, 'static', 'landing_next', 'app.html')
+    if os.path.exists(exported):
+        with open(exported, encoding='utf-8') as fh:
+            return HttpResponse(fh.read())
     return render(request, "landing.html")

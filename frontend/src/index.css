@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #0a0a0a;
+  --color-surface: #121215;
+  --color-surface-light: #1a1a22;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-accent: #00e5ff;
+  --color-accent-blue: #3b82f6;
+  --color-accent-purple: #8b5cf6;
+  --color-accent-cyan: #06b6d4;
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+@layer base {
+  html, body {
+    @apply bg-[#0a0a0a] text-slate-100 antialiased selection:bg-cyan-500/20 selection:text-cyan-300;
+    font-family: var(--font-sans);
+  }
+}
+
+/* Lenis smooth scrolling rules */
+html.lenis, html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* Custom Glassmorphism & Neon Glow Utilities */
+@layer utilities {
+  .glass-panel {
+    background: rgba(18, 18, 22, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  }
+
+  .glass-panel-glow {
+    background: rgba(20, 20, 28, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 0 30px rgba(0, 229, 255, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  }
+
+  .text-gradient-cyan {
+    background: linear-gradient(135deg, #ffffff 0%, #a5f3fc 50%, #06b6d4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .text-gradient-purple {
+    background: linear-gradient(135deg, #ffffff 0%, #c4b5fd 50%, #8b5cf6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #ffffff 0%, #fde047 50%, #eab308 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .bg-aurora-grid {
+    background-size: 40px 40px;
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  }
+
+  /* Laser line scanner animation */
+  @keyframes scanline {
+    0% { top: 0%; opacity: 0.8; }
+    50% { opacity: 1; }
+    100% { top: 100%; opacity: 0.2; }
+  }
+
+  .animate-scan {
+    animation: scanline 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+}

@@ -87,15 +87,6 @@
       display: flex; align-items: center; justify-content: space-between; gap: 16px;
     }
     .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
-    .brand-mark {
-      width: 36px; height: 36px; border-radius: 11px;
-      background: var(--spark-grad);
-      display: grid; place-items: center; flex-shrink: 0;
-      box-shadow: 0 6px 16px rgba(109, 90, 230, .35);
-    }
-    .brand-mark svg { width: 20px; height: 20px; stroke: #fff; fill: none; stroke-width: 2; }
-    .brand-name { font-weight: 700; font-size: 17px; letter-spacing: -.3px; }
-    .brand-name span { color: var(--accent); }
 
     .top-actions { display: flex; align-items: center; gap: 10px; }
     .back-btn {
@@ -205,7 +196,20 @@
     @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
     @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
-  </style>
+  
+        .brand-mark {
+            width: 34px; height: 34px;
+            border-radius: 10px;
+            background: var(--spark-grad);
+            display: grid; place-items: center;
+            box-shadow: 0 6px 16px rgba(109, 90, 230, .35);
+            flex-shrink: 0; padding: 2px;
+        }
+        .brand-mark img { width: 100%; height: 100%; object-fit: contain; border-radius: 8px; background: #fff; }
+        .brand-name { font-weight: 700; font-size: 15px; letter-spacing: -.2px; }
+        .brand-name span { color: var(--accent); }
+
+    </style>
 </head>
 <body>
   <!-- Top Bar -->
@@ -213,9 +217,9 @@
     <div class="topbar-in">
       <div class="brand">
         <span class="brand-mark">
-          <svg viewBox="0 0 24 24"><path d="M12 2l1.9 5.7a2 2 0 0 0 1.3 1.3L21 11l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 20l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 11l5.8-1.9a2 2 0 0 0 1.3-1.3z"/></svg>
-        </span>
-        <span class="brand-name">Mediverse<span>AI</span></span>
+                    <img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediverseAI Logo">
+                </span>
+                <span class="brand-name">Mediverse<span>AI</span></span>
       </div>
       <div class="top-actions">
         <a href="{% url 'dilemma' %}" class="back-btn">

@@ -57,8 +57,6 @@
       background: color-mix(in srgb, var(--bg) 80%, transparent); border-bottom: 1px solid var(--border); }
     .bar-inner { max-width: 1180px; margin: 0 auto; padding: 13px 22px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
     .brand { display: flex; align-items: center; gap: 12px; }
-    .brand-mark { width: 40px; height: 40px; border-radius: 12px; background: var(--spark-grad); display: grid; place-items: center; flex-shrink: 0; box-shadow: 0 6px 16px rgba(109, 90, 230, .35); }
-    .brand-mark svg { width: 21px; height: 21px; stroke: #fff; fill: none; stroke-width: 2; }
     .brand .t { font-weight: 700; font-size: 17px; letter-spacing: -.2px; }
     .brand .s { font-size: 12px; color: var(--muted); margin-top: 1px; }
 
@@ -158,13 +156,26 @@
 
     @media (max-width: 560px) { .brand .s { display: none; } }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
-  </style>
+  
+        .brand-mark {
+            width: 34px; height: 34px;
+            border-radius: 10px;
+            background: var(--spark-grad);
+            display: grid; place-items: center;
+            box-shadow: 0 6px 16px rgba(109, 90, 230, .35);
+            flex-shrink: 0; padding: 2px;
+        }
+        .brand-mark img { width: 100%; height: 100%; object-fit: contain; border-radius: 8px; background: #fff; }
+        .brand-name { font-weight: 700; font-size: 15px; letter-spacing: -.2px; }
+        .brand-name span { color: var(--accent); }
+
+    </style>
 </head>
 <body>
   <header class="topbar">
     <div class="bar-inner">
       <div class="brand">
-        <span class="brand-mark"><svg viewBox="0 0 24 24"><path d="M12 2l1.9 5.7a2 2 0 0 0 1.3 1.3L21 11l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 20l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 11l5.8-1.9a2 2 0 0 0 1.3-1.3z"/></svg></span>
+        <span class="brand-mark"><img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediverseAI Logo"></span>
         <div>
           <div class="t">{% if doctor %}Edit assistant{% else %}Create assistant{% endif %}</div>
           <div class="s">Build a specialist assistant with its own persona and knowledge</div>
@@ -319,7 +330,7 @@
       color: #fff; background: var(--spark-grad); box-shadow: 0 14px 34px rgba(109,90,230,.42);
       transition: transform .18s ease, box-shadow .18s ease; }
     .cop-fab:hover { transform: translateY(-2px); box-shadow: 0 18px 40px rgba(109,90,230,.55); }
-    .cop-fab svg { width: 21px; height: 21px; stroke: #fff; fill: none; stroke-width: 2; }
+    .cop-fab img { width: 24px; height: 24px; object-fit: contain; border-radius: 6px; background: #fff; padding: 2px; }
     .cop-fab.hidden { display: none; }
 
     .cop-panel { position: fixed; left: 22px; bottom: 20px; z-index: 61;
@@ -331,8 +342,8 @@
 
     .cop-head { display: flex; align-items: center; gap: 11px; padding: 14px 16px; border-bottom: 1px solid var(--border);
       background: var(--surface-2); }
-    .cop-mark { width: 36px; height: 36px; border-radius: 11px; background: var(--spark-grad); display: grid; place-items: center; flex: 0 0 auto; }
-    .cop-mark svg { width: 19px; height: 19px; stroke: #fff; fill: none; stroke-width: 2; }
+    .cop-mark { width: 36px; height: 36px; border-radius: 11px; background: var(--spark-grad); display: grid; place-items: center; flex: 0 0 auto; padding: 2px; }
+    .cop-mark img { width: 100%; height: 100%; object-fit: contain; border-radius: 9px; background: #fff; }
     .cop-head .t { font-weight: 700; font-size: 14.5px; }
     .cop-head .s { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
     .cop-x { margin-left: auto; width: 34px; height: 34px; border: none; border-radius: 9px; background: transparent; color: var(--muted); cursor: pointer; font-size: 20px; line-height: 1; }
@@ -370,16 +381,29 @@
     .agent-card.cop-flash { animation: copflash 1.4s ease-out; }
     @keyframes copflash { 0% { box-shadow: 0 0 0 3px var(--accent-ring); } 100% { box-shadow: 0 0 0 0 transparent; } }
     .field-flash { animation: copflash 1.4s ease-out; }
-  </style>
+  
+        .brand-mark {
+            width: 34px; height: 34px;
+            border-radius: 10px;
+            background: var(--spark-grad);
+            display: grid; place-items: center;
+            box-shadow: 0 6px 16px rgba(109, 90, 230, .35);
+            flex-shrink: 0; padding: 2px;
+        }
+        .brand-mark img { width: 100%; height: 100%; object-fit: contain; border-radius: 8px; background: #fff; }
+        .brand-name { font-weight: 700; font-size: 15px; letter-spacing: -.2px; }
+        .brand-name span { color: var(--accent); }
+
+    </style>
 
   <button id="copFab" class="cop-fab" type="button" aria-label="Open the assistant builder copilot">
-    <svg viewBox="0 0 24 24"><path d="M12 2l1.9 5.7a2 2 0 0 0 1.3 1.3L21 11l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 20l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 11l5.8-1.9a2 2 0 0 0 1.3-1.3z"/></svg>
+    <img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediverseAI Logo">
     Copilot
   </button>
 
   <section id="copPanel" class="cop-panel" aria-label="Assistant builder copilot">
     <div class="cop-head">
-      <span class="cop-mark"><svg viewBox="0 0 24 24"><path d="M12 2l1.9 5.7a2 2 0 0 0 1.3 1.3L21 11l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 20l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 11l5.8-1.9a2 2 0 0 0 1.3-1.3z"/></svg></span>
+      <span class="cop-mark"><img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediverseAI Logo"></span>
       <div>
         <div class="t">Studio Copilot</div>
         <div class="s">I'll help you build this assistant</div>

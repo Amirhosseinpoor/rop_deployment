@@ -57,8 +57,6 @@
       background: color-mix(in srgb, var(--bg) 80%, transparent); border-bottom: 1px solid var(--border); }
     .topbar-in { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 15px 0; }
     .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
-    .brand-mark { width: 42px; height: 42px; border-radius: 12px; background: var(--spark-grad); display: grid; place-items: center; flex-shrink: 0; box-shadow: 0 6px 16px rgba(109, 90, 230, .35); }
-    .brand-mark svg { width: 22px; height: 22px; stroke: #fff; fill: none; stroke-width: 2; }
     .brand h1 { font-size: 18px; font-weight: 700; line-height: 1.15; letter-spacing: -.2px; }
     .brand p { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
     .top-actions { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; }
@@ -138,14 +136,27 @@
 
     @media (max-width: 560px) { .brand p { display: none; } }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
-  </style>
+  
+        .brand-mark {
+            width: 34px; height: 34px;
+            border-radius: 10px;
+            background: var(--spark-grad);
+            display: grid; place-items: center;
+            box-shadow: 0 6px 16px rgba(109, 90, 230, .35);
+            flex-shrink: 0; padding: 2px;
+        }
+        .brand-mark img { width: 100%; height: 100%; object-fit: contain; border-radius: 8px; background: #fff; }
+        .brand-name { font-weight: 700; font-size: 15px; letter-spacing: -.2px; }
+        .brand-name span { color: var(--accent); }
+
+    </style>
 </head>
 <body>
 
   <header class="topbar">
     <div class="wrap topbar-in">
       <div class="brand">
-        <span class="brand-mark"><svg viewBox="0 0 24 24"><path d="M12 2l1.9 5.7a2 2 0 0 0 1.3 1.3L21 11l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 20l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 11l5.8-1.9a2 2 0 0 0 1.3-1.3z"/></svg></span>
+        <span class="brand-mark"><img src="{% static 'icons/mediversai_logo_final-03.png' %}" alt="MediverseAI Logo"></span>
         <div>
           <h1>Doctor Studio</h1>
           <p>Manage your AI medical assistants</p>

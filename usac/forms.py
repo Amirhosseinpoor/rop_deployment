@@ -148,6 +148,7 @@ class StaffSignupForm(UserCreationForm):
         profile.national_code = self.cleaned_data['national_code']
         profile.phone = self.cleaned_data.get('phone') or ''
         profile.company = self._invitation.company
+        profile.examination_type = self._invitation.examination_type
         profile.save()
 
         self._invitation.mark_used(user)

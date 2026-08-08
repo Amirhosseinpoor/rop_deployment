@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@studio-freight/lenis": "^1.0.42",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.43.0",
+    "lucide-react": "^1.28.0",
+    "tailwind-merge": "^3.6.0"
+  }
+}

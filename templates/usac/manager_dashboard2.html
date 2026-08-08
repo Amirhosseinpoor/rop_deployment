@@ -127,6 +127,8 @@
     .kpi-ico.g { background: rgba(34,197,94,.12); color: #16A34A; } .dark .kpi-ico.g { color: #4ADE80; }
     .kpi-ico.w { background: rgba(245,158,11,.12); color: #D97706; } .dark .kpi-ico.w { color: #FBBF24; }
     .kpi-ico.b { background: rgba(37,99,235,.12); color: #2563EB; } .dark .kpi-ico.b { color: #93C5FD; }
+    .kpi-ico.r { background: rgba(229,72,77,.12); color: #E5484D; } .dark .kpi-ico.r { color: #FF9A9E; }
+    .kpi-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
     .kpi-val { font-size: 26px; font-weight: 750; letter-spacing: -.02em; line-height: 1; }
     .kpi-lab { font-size: 12.5px; color: var(--muted); margin-top: 5px; }
 
@@ -157,7 +159,10 @@
     /* Charts */
     .charts { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px; }
     @media (min-width: 760px) { .charts { grid-template-columns: repeat(3, 1fr); } }
+    .charts.charts-2 { grid-template-columns: 1fr; }
+    @media (min-width: 760px) { .charts.charts-2 { grid-template-columns: repeat(2, 1fr); } }
     .chart-wrap { height: 240px; position: relative; }
+    .chart-wrap.short { height: 130px; }
 
     /* Invite form */
     .invite-form { display: flex; flex-wrap: wrap; gap: 12px; align-items: stretch; }
@@ -290,6 +295,22 @@
         <div class="kpi-ico g"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
         <div><div class="kpi-val">{{ assessed_employees }}</div><div class="kpi-lab">Assessed employees</div></div>
       </div>
+      <div class="kpi" style="animation-delay:.26s">
+        <div class="kpi-ico r"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6.5L4 18a2 2 0 0 0 1.76 3h12.48A2 2 0 0 0 20 18l-5-9.5V2"/><path d="M8.5 2h7M6 15h12"/></svg></div>
+        <div><div class="kpi-val">{{ employees_with_abnormal_labs }}</div><div class="kpi-lab">Abnormal lab results</div></div>
+      </div>
+      <div class="kpi" style="animation-delay:.32s">
+        <div class="kpi-ico r"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg></div>
+        <div><div class="kpi-val">{{ employees_anemia_flagged }}</div><div class="kpi-lab">Anemia flags (AI screening)</div></div>
+      </div>
+      <div class="kpi" style="animation-delay:.38s">
+        <div class="kpi-ico w"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div>
+          <div class="kpi-val">{{ pending_review_count }}</div>
+          <div class="kpi-lab">Pending doctor review</div>
+          {% if pending_review_count %}<div class="kpi-sub">Oldest: {{ oldest_pending_days }}d ago</div>{% endif %}
+        </div>
+      </div>
     </div>
 
     <div class="grid2">
@@ -308,9 +329,17 @@
           </div>
           <div class="fld" style="max-width:170px;">
             <label>Role</label>
-            <select name="invite_role">
+            <select name="invite_role" id="inviteRoleSelect">
               <option value="employee">Employee</option>
               <option value="doctor">Doctor</option>
+            </select>
+          </div>
+          <div class="fld" id="examTypeFld" style="max-width:260px;">
+            <label>Examination type</label>
+            <select name="examination_type" id="examTypeSelect" required>
+              <option value="pre_employment">Pre-Employment Medical Examination</option>
+              <option value="periodic">Periodic Medical Examination</option>
+              <option value="return_to_work">Return-to-Work Examination</option>
             </select>
           </div>
           <button type="submit" class="btn-primary">
@@ -345,7 +374,19 @@
       <div class="charts">
         <div><div style="font-size:13px; font-weight:600; color:var(--ink-soft); margin-bottom:10px;">BMI distribution</div><div class="chart-wrap"><canvas id="bmiChart"></canvas></div></div>
         <div><div style="font-size:13px; font-weight:600; color:var(--ink-soft); margin-bottom:10px;">Health risks</div><div class="chart-wrap"><canvas id="risksChart"></canvas></div></div>
-        <div><div style="font-size:13px; font-weight:600; color:var(--ink-soft); margin-bottom:10px;">Medical opinion</div><div class="chart-wrap"><canvas id="opinionsChart"></canvas></div></div>
+        <div><div style="font-size:13px; font-weight:600; color:var(--ink-soft); margin-bottom:10px;">Medical opinion</div><div class="chart-wrap short"><canvas id="opinionsChart"></canvas></div></div>
+      </div>
+    </div>
+
+    <!-- Compliance & screening -->
+    <div class="card" style="animation-delay:.15s">
+      <div class="card-head">
+        <span class="ico"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg></span>
+        <h2>Compliance &amp; screening</h2>
+      </div>
+      <div class="charts charts-2">
+        <div><div style="font-size:13px; font-weight:600; color:var(--ink-soft); margin-bottom:10px;">Occupational hazard exposure</div><div class="chart-wrap"><canvas id="hazardsChart"></canvas></div></div>
+        <div><div style="font-size:13px; font-weight:600; color:var(--ink-soft); margin-bottom:10px;">Examination type</div><div class="chart-wrap"><canvas id="examTypesChart"></canvas></div></div>
       </div>
     </div>
 
@@ -358,12 +399,13 @@
       </div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>National code</th><th>Role</th><th>Created</th><th>Status</th></tr></thead>
+          <thead><tr><th>National code</th><th>Role</th><th>Examination type</th><th>Created</th><th>Status</th></tr></thead>
           <tbody>
             {% for inv in invitations %}
             <tr>
               <td class="mono">{{ inv.national_code }}</td>
               <td><span class="badge role"><span class="d"></span> {{ inv.get_role_display }}</span></td>
+              <td style="color:var(--muted);">{{ inv.get_examination_type_display|default:"—" }}</td>
               <td style="color:var(--muted);">{{ inv.created_at|date:"Y-m-d H:i" }}</td>
               <td>{% if inv.used_by %}<span class="badge ok"><span class="d"></span> Used</span>{% else %}<span class="badge pend"><span class="d"></span> Pending</span>{% endif %}</td>
             </tr>
@@ -415,7 +457,7 @@
       {% if employees %}
       <div class="tbl-wrap">
         <table id="employeesTable">
-          <thead><tr><th>User</th><th>Email</th><th>National code</th><th>Phone</th><th>Assessment</th><th>Opinion</th><th></th></tr></thead>
+          <thead><tr><th>User</th><th>Email</th><th>National code</th><th>Phone</th><th>Examination type</th><th>Assessment</th><th>Opinion</th><th></th></tr></thead>
           <tbody>
             {% for u in employees %}
             <tr>
@@ -423,6 +465,7 @@
               <td style="color:var(--muted);">{{ u.email|default:"—" }}</td>
               <td class="mono">{{ u.profile.national_code|default:"—" }}</td>
               <td class="mono">{{ u.profile.phone|default:"—" }}</td>
+              <td style="color:var(--muted);">{{ u.profile.get_examination_type_display|default:"—" }}</td>
               <td>
                 {% with hp=u.health_profile %}
                   {% if hp %}
@@ -465,9 +508,26 @@
   <script id="bmi-data" type="application/json">{{ bmi_bins_json|safe }}</script>
   <script id="risks-data" type="application/json">{{ risks_json|safe }}</script>
   <script id="opinions-data" type="application/json">{{ opinions_json|safe }}</script>
+  <script id="hazards-data" type="application/json">{{ hazards_json|safe }}</script>
+  <script id="exam-types-data" type="application/json">{{ exam_types_json|safe }}</script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
   <script>
+    /* invite form: examination type only applies to employees */
+    (function () {
+      const roleSel = document.getElementById('inviteRoleSelect');
+      const examFld = document.getElementById('examTypeFld');
+      const examSel = document.getElementById('examTypeSelect');
+      if (!roleSel || !examFld || !examSel) return;
+      const sync = () => {
+        const isEmployee = roleSel.value === 'employee';
+        examFld.style.display = isEmployee ? '' : 'none';
+        examSel.required = isEmployee;
+      };
+      roleSel.addEventListener('change', sync);
+      sync();
+    })();
+
     /* theme — shared .dark class + 'theme' key */
     const root = document.documentElement, tbtn = document.getElementById('themeToggle');
     const setIcon = () => { tbtn.textContent = root.classList.contains('dark') ? '☀️' : '🌙'; };
@@ -518,29 +578,61 @@
       Object.values(chartInstances).forEach(c => c && c.destroy());
 
       const bmi = readJSON('bmi-data'), risks = readJSON('risks-data'), opinions = readJSON('opinions-data');
+      const hazards = readJSON('hazards-data'), examTypes = readJSON('exam-types-data');
+      const rTicks = { color: muted, backdropColor: 'transparent', showLabelBackdrop: false };
 
+      // BMI distribution — horizontal bar (one bar per weight class)
       chartInstances.bmi = new Chart(document.getElementById('bmiChart'), {
-        type: 'doughnut',
-        data: { labels: Object.keys(bmi), datasets: [{ data: Object.values(bmi), backgroundColor: ACCENT, borderColor: dark ? '#1A1A1E' : '#fff', borderWidth: 2 }] },
-        options: { responsive: true, maintainAspectRatio: false, cutout: '62%',
-          plugins: { legend: { position: 'bottom', labels: { color: muted, boxWidth: 10, boxHeight: 10, padding: 12, font: { size: 11 } } } } }
+        type: 'bar',
+        data: { labels: Object.keys(bmi), datasets: [{ data: Object.values(bmi), backgroundColor: ACCENT, borderRadius: 6, barThickness: 16 }] },
+        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { x: { beginAtZero: true, grid: { color: grid }, ticks: { color: muted, precision: 0, font: { size: 11 } } },
+                    y: { grid: { display: false }, ticks: { color: muted, font: { size: 10.5 } } } } }
       });
 
+      // Health risks — radar (shape of the workforce's risk profile)
       chartInstances.risks = new Chart(document.getElementById('risksChart'), {
-        type: 'bar',
-        data: { labels: Object.keys(risks), datasets: [{ data: Object.values(risks), backgroundColor: '#6D5AE6', borderRadius: 8, barThickness: 34 }] },
+        type: 'radar',
+        data: { labels: Object.keys(risks), datasets: [{ label: 'Employees', data: Object.values(risks),
+          backgroundColor: 'rgba(109,90,230,.22)', borderColor: '#6D5AE6', pointBackgroundColor: '#6D5AE6', borderWidth: 2 }] },
         options: { responsive: true, maintainAspectRatio: false,
           plugins: { legend: { display: false } },
-          scales: { x: { grid: { display: false }, ticks: { color: muted, font: { size: 11 } } },
-                    y: { beginAtZero: true, grid: { color: grid }, ticks: { color: muted, precision: 0 } } } }
+          scales: { r: { beginAtZero: true, angleLines: { color: grid }, grid: { color: grid },
+            pointLabels: { color: muted, font: { size: 11 } }, ticks: { ...rTicks, display: false } } } }
       });
 
+      // Medical opinion — single 100%-stacked bar (proportion of each outcome)
       const oLabels = Object.keys(opinions);
       chartInstances.opinions = new Chart(document.getElementById('opinionsChart'), {
-        type: 'doughnut',
-        data: { labels: oLabels, datasets: [{ data: Object.values(opinions), backgroundColor: oLabels.map(l => SEMANTIC[l] || '#8B6DF0'), borderColor: dark ? '#1A1A1E' : '#fff', borderWidth: 2 }] },
-        options: { responsive: true, maintainAspectRatio: false, cutout: '62%',
-          plugins: { legend: { position: 'bottom', labels: { color: muted, boxWidth: 10, boxHeight: 10, padding: 12, font: { size: 11 } } } } }
+        type: 'bar',
+        data: { labels: [''], datasets: oLabels.map(l => ({ label: l, data: [opinions[l]], backgroundColor: SEMANTIC[l] || '#8B6DF0', borderRadius: 6 })) },
+        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { color: muted, boxWidth: 10, boxHeight: 10, padding: 12, font: { size: 11 } } } },
+          scales: { x: { stacked: true, beginAtZero: true, grid: { color: grid }, ticks: { color: muted, precision: 0, font: { size: 11 } } },
+                    y: { stacked: true, grid: { display: false }, ticks: { display: false } } } }
+      });
+
+      // Occupational hazard exposure — polar area (category count as segment size)
+      chartInstances.hazards = new Chart(document.getElementById('hazardsChart'), {
+        type: 'polarArea',
+        data: { labels: Object.keys(hazards), datasets: [{ data: Object.values(hazards), backgroundColor: ACCENT }] },
+        options: { responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { color: muted, boxWidth: 10, boxHeight: 10, padding: 10, font: { size: 10.5 } } } },
+          scales: { r: { beginAtZero: true, angleLines: { color: grid }, grid: { color: grid }, ticks: { ...rTicks, display: false } } } }
+      });
+
+      // Examination type — grouped vertical bars
+      const SHORT_EXAM = { 'Pre-Employment Medical Examination': 'Pre-Employment', 'Periodic Medical Examination': 'Periodic',
+                            'Return-to-Work Examination': 'Return-to-Work', 'Unassigned': 'Unassigned' };
+      const eLabels = Object.keys(examTypes).map(l => SHORT_EXAM[l] || l);
+      chartInstances.examTypes = new Chart(document.getElementById('examTypesChart'), {
+        type: 'bar',
+        data: { labels: eLabels, datasets: [{ data: Object.values(examTypes), backgroundColor: ACCENT, borderRadius: 8, barThickness: 30 }] },
+        options: { responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { x: { grid: { display: false }, ticks: { color: muted, font: { size: 10.5 } } },
+                    y: { beginAtZero: true, grid: { color: grid }, ticks: { color: muted, precision: 0 } } } }
       });
     }
     if (document.getElementById('bmiChart')) { window.addEventListener('load', drawAllCharts); }

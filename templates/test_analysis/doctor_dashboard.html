@@ -152,12 +152,16 @@
     .badge.red { color: var(--danger); background: rgba(229,72,77,.1); border-color: rgba(229,72,77,.3); } .dark .badge.red { color: #FF9A9E; }
     .badge.neutral { color: var(--muted); background: var(--surface-2); border-color: var(--border); }
 
+    .row-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: nowrap; }
     .row-link { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 13px; border-radius: 9px;
       background: var(--user-grad); border: 1px solid transparent; color: #fff; font-size: 12.5px; font-weight: 600;
-      box-shadow: 0 6px 14px rgba(109,90,230,.28); transition: var(--transition); }
+      white-space: nowrap; box-shadow: 0 6px 14px rgba(109,90,230,.28); transition: var(--transition); }
     .row-link svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; transition: transform var(--transition); }
     .row-link:hover { filter: brightness(1.06); box-shadow: 0 10px 20px rgba(109,90,230,.42); }
     .row-link:hover svg { transform: translateX(3px); }
+    .row-link.secondary { background: var(--surface); color: var(--ink-soft); border-color: var(--border-strong);
+      box-shadow: none; padding: 0 12px; }
+    .row-link.secondary:hover { background: var(--surface-hover); border-color: var(--accent); color: var(--accent); filter: none; box-shadow: none; }
 
     .empty { text-align: center; padding: 44px 20px; color: var(--muted); font-size: 14px; }
     .empty svg { width: 36px; height: 36px; stroke: var(--muted); fill: none; stroke-width: 1.6; opacity: .6; margin-bottom: 10px; }
@@ -244,8 +248,8 @@
         <table id="employeesTable">
           <thead>
             <tr>
-              <th>Employee</th><th>Full name</th><th>National code</th><th>Job title</th>
-              <th>Assessment</th><th>Opinion</th><th></th>
+              <th>Employee</th><th>Full name</th><th>National code</th><th>Job title</th><th>Examination type</th>
+              <th>Assessment</th><th>Opinion</th><th style="text-align:right;">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -255,6 +259,7 @@
               <td>{{ emp.get_full_name|default:"—" }}</td>
               <td class="mono">{{ emp.profile.national_code|default:"—" }}</td>
               <td style="color:var(--muted);">{{ emp.health_profile.current_job_title|default:"—" }}</td>
+              <td style="color:var(--muted);">{{ emp.profile.get_examination_type_display|default:"—" }}</td>
               <td>
                 {% with hp=emp.health_profile %}
                   {% if hp %}
@@ -278,12 +283,14 @@
                   {% else %}<span class="badge neutral">Not reviewed</span>{% endif %}
                 {% endwith %}
               </td>
-              <td style="text-align:right;">
-                <a href="{% url 'home' %}?employee={{ emp.id }}" class="row-link">ROP</a>
-                <a href="{% url 'double_home' %}?employee={{ emp.id }}" class="row-link">KC</a>
-                <a href="{% url 'profile_detail_user' user_id=emp.id %}" class="row-link">
-                  View record <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </a>
+              <td>
+                <div class="row-actions">
+                  <a href="{% url 'home' %}?employee={{ emp.id }}" class="row-link secondary">ROP</a>
+                  <a href="{% url 'double_home' %}?employee={{ emp.id }}" class="row-link secondary">KC</a>
+                  <a href="{% url 'profile_detail_user' user_id=emp.id %}" class="row-link">
+                    View record <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </a>
+                </div>
               </td>
             </tr>
             {% endfor %}

@@ -1,0 +1,30 @@
+{
+  "name": "frontend-next",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@react-three/drei": "^9.99.0",
+    "@react-three/fiber": "^8.15.19",
+    "@react-three/postprocessing": "^2.16.2",
+    "gsap": "^3.12.5",
+    "lenis": "^1.1.13",
+    "maath": "^0.10.8",
+    "next": "14.2.35",
+    "postprocessing": "^6.35.3",
+    "react": "^18",
+    "react-dom": "^18",
+    "three": "^0.160.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "typescript": "^5"
+  }
+}
